@@ -34,6 +34,8 @@ def document(item: dict[str, Any]) -> str:
     lines = [item["name"], item["description"], item.get("business_context", "")]
     lines.append("Concepts: " + ", ".join(item.get("concepts", [])))
     lines.append("Source: " + item["source"]["name"])
+    for key, value in sorted(item.get("facets", {}).items()):
+        lines.append(f"{key}: {value}")
     for table in item["tables"]:
         lines.append("Table: " + table["id"])
         for column in table["columns"]:
@@ -87,6 +89,15 @@ def ingest() -> dict[str, object]:
 def search(question: str, top_k: int = 3) -> list[dict[str, Any]]:
     if not question.strip() or not 1 <= top_k <= 10:
         raise ValueError("Provide a question and top_k between 1 and 10.")
+    return rank_all(question)[:top_k]
+
+
+def rank_all(question: str) -> list[dict[str, Any]]:
+    """Full valid catalog ranking for evaluation; public searches remain capped."""
+    if not question.strip():
+        raise ValueError("Provide a question")
+    from .inspection import public_product
+
     items = catalog()
     vector = embed([question])[0]
     with connect() as connection:
@@ -100,10 +111,11 @@ def search(question: str, top_k: int = 3) -> list[dict[str, Any]]:
             rows = cursor.fetchall()
     # Ignore deleted/stale manifests instead of returning an unqueryable product.
     valid = {item["id"]: (item["version"], content_hash(item)) for item in items}
+    public = {item["id"]: public_product(item) for item in items}
     return [
-        {"id": row[0], "version": row[1], "name": row[2], "score": float(row[4])}
+        {**public[row[0]], "score": float(row[4])}
         for row in rows if valid.get(row[0]) == (row[1], row[3])
-    ][:top_k]
+    ]
 
 
 def main() -> None:

@@ -1,0 +1,6091 @@
+{
+  "benchmark_version": 2,
+  "created_at": "2026-09-26T18:39:18.146764+00:00",
+  "benchmark_sha256": "61dcb6041a1f525aad3016a83e15d4f73077497685d9efc2af7be4bbcd3e52be",
+  "catalog_lock_sha256": "4113455bee29498424e680bede85c610a23dfe87af1be97f9193eef938542ca0",
+  "split": "all",
+  "validation": {
+    "cases": 60,
+    "catalog_size": 15,
+    "evidence_verified": 30,
+    "semantic_labels": "agent-authored; human review pending"
+  },
+  "metrics": {
+    "cases": 60,
+    "answerable_cases": 30,
+    "clarification_cases": 15,
+    "unavailable_cases": 15,
+    "recall_at_1": 0.8,
+    "recall_at_3": 0.9666666666666667,
+    "recall_at_5": 1.0,
+    "full_catalog_mrr": 0.8805555555555556,
+    "clarification_candidate_coverage_at_5": 1.0,
+    "all_clarification_candidates_at_5": 1.0,
+    "error_cases": 0,
+    "retrieval_p95_ms": 1377.43,
+    "abstention_accuracy": null,
+    "automatic_selection_accuracy": null,
+    "numeric_answer_accuracy": null
+  },
+  "by_split": {
+    "development": {
+      "cases": 30,
+      "answerable_cases": 15,
+      "clarification_cases": 8,
+      "unavailable_cases": 7,
+      "recall_at_1": 0.8666666666666667,
+      "recall_at_3": 0.9333333333333333,
+      "recall_at_5": 1.0,
+      "full_catalog_mrr": 0.9055555555555556,
+      "clarification_candidate_coverage_at_5": 1.0,
+      "all_clarification_candidates_at_5": 1.0,
+      "error_cases": 0,
+      "retrieval_p95_ms": 1377.43,
+      "abstention_accuracy": null,
+      "automatic_selection_accuracy": null,
+      "numeric_answer_accuracy": null
+    },
+    "held_out": {
+      "cases": 30,
+      "answerable_cases": 15,
+      "clarification_cases": 7,
+      "unavailable_cases": 8,
+      "recall_at_1": 0.7333333333333333,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "full_catalog_mrr": 0.8555555555555556,
+      "clarification_candidate_coverage_at_5": 1.0,
+      "all_clarification_candidates_at_5": 1.0,
+      "error_cases": 0,
+      "retrieval_p95_ms": 1581.86,
+      "abstention_accuracy": null,
+      "automatic_selection_accuracy": null,
+      "numeric_answer_accuracy": null
+    }
+  },
+  "by_product": {
+    "fred_underemployment_u6": {
+      "cases": 2,
+      "answerable_cases": 2,
+      "clarification_cases": 0,
+      "unavailable_cases": 0,
+      "recall_at_1": 1.0,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "full_catalog_mrr": 1.0,
+      "clarification_candidate_coverage_at_5": null,
+      "all_clarification_candidates_at_5": null,
+      "error_cases": 0,
+      "retrieval_p95_ms": 1255.5,
+      "abstention_accuracy": null,
+      "automatic_selection_accuracy": null,
+      "numeric_answer_accuracy": null
+    },
+    "fred_unemployment": {
+      "cases": 2,
+      "answerable_cases": 2,
+      "clarification_cases": 0,
+      "unavailable_cases": 0,
+      "recall_at_1": 0.0,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "full_catalog_mrr": 0.41666666666666663,
+      "clarification_candidate_coverage_at_5": null,
+      "all_clarification_candidates_at_5": null,
+      "error_cases": 0,
+      "retrieval_p95_ms": 1581.86,
+      "abstention_accuracy": null,
+      "automatic_selection_accuracy": null,
+      "numeric_answer_accuracy": null
+    },
+    "fred_unemployment_count": {
+      "cases": 2,
+      "answerable_cases": 2,
+      "clarification_cases": 0,
+      "unavailable_cases": 0,
+      "recall_at_1": 1.0,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "full_catalog_mrr": 1.0,
+      "clarification_candidate_coverage_at_5": null,
+      "all_clarification_candidates_at_5": null,
+      "error_cases": 0,
+      "retrieval_p95_ms": 916.04,
+      "abstention_accuracy": null,
+      "automatic_selection_accuracy": null,
+      "numeric_answer_accuracy": null
+    },
+    "fred_unemployment_unadjusted": {
+      "cases": 2,
+      "answerable_cases": 2,
+      "clarification_cases": 0,
+      "unavailable_cases": 0,
+      "recall_at_1": 0.5,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "full_catalog_mrr": 0.75,
+      "clarification_candidate_coverage_at_5": null,
+      "all_clarification_candidates_at_5": null,
+      "error_cases": 0,
+      "retrieval_p95_ms": 1657.83,
+      "abstention_accuracy": null,
+      "automatic_selection_accuracy": null,
+      "numeric_answer_accuracy": null
+    },
+    "sec_apple_balance_sheet": {
+      "cases": 2,
+      "answerable_cases": 2,
+      "clarification_cases": 0,
+      "unavailable_cases": 0,
+      "recall_at_1": 1.0,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "full_catalog_mrr": 1.0,
+      "clarification_candidate_coverage_at_5": null,
+      "all_clarification_candidates_at_5": null,
+      "error_cases": 0,
+      "retrieval_p95_ms": 669.18,
+      "abstention_accuracy": null,
+      "automatic_selection_accuracy": null,
+      "numeric_answer_accuracy": null
+    },
+    "sec_apple_cash_flow": {
+      "cases": 2,
+      "answerable_cases": 2,
+      "clarification_cases": 0,
+      "unavailable_cases": 0,
+      "recall_at_1": 1.0,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "full_catalog_mrr": 1.0,
+      "clarification_candidate_coverage_at_5": null,
+      "all_clarification_candidates_at_5": null,
+      "error_cases": 0,
+      "retrieval_p95_ms": 736.66,
+      "abstention_accuracy": null,
+      "automatic_selection_accuracy": null,
+      "numeric_answer_accuracy": null
+    },
+    "sec_apple_income_statement": {
+      "cases": 2,
+      "answerable_cases": 2,
+      "clarification_cases": 0,
+      "unavailable_cases": 0,
+      "recall_at_1": 1.0,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "full_catalog_mrr": 1.0,
+      "clarification_candidate_coverage_at_5": null,
+      "all_clarification_candidates_at_5": null,
+      "error_cases": 0,
+      "retrieval_p95_ms": 679.64,
+      "abstention_accuracy": null,
+      "automatic_selection_accuracy": null,
+      "numeric_answer_accuracy": null
+    },
+    "sec_apple_quarterly_income_statement": {
+      "cases": 2,
+      "answerable_cases": 2,
+      "clarification_cases": 0,
+      "unavailable_cases": 0,
+      "recall_at_1": 1.0,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "full_catalog_mrr": 1.0,
+      "clarification_candidate_coverage_at_5": null,
+      "all_clarification_candidates_at_5": null,
+      "error_cases": 0,
+      "retrieval_p95_ms": 682.19,
+      "abstention_accuracy": null,
+      "automatic_selection_accuracy": null,
+      "numeric_answer_accuracy": null
+    },
+    "sec_microsoft_cash_flow": {
+      "cases": 2,
+      "answerable_cases": 2,
+      "clarification_cases": 0,
+      "unavailable_cases": 0,
+      "recall_at_1": 1.0,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "full_catalog_mrr": 1.0,
+      "clarification_candidate_coverage_at_5": null,
+      "all_clarification_candidates_at_5": null,
+      "error_cases": 0,
+      "retrieval_p95_ms": 623.65,
+      "abstention_accuracy": null,
+      "automatic_selection_accuracy": null,
+      "numeric_answer_accuracy": null
+    },
+    "sec_microsoft_income_statement": {
+      "cases": 2,
+      "answerable_cases": 2,
+      "clarification_cases": 0,
+      "unavailable_cases": 0,
+      "recall_at_1": 0.5,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "full_catalog_mrr": 0.75,
+      "clarification_candidate_coverage_at_5": null,
+      "all_clarification_candidates_at_5": null,
+      "error_cases": 0,
+      "retrieval_p95_ms": 639.56,
+      "abstention_accuracy": null,
+      "automatic_selection_accuracy": null,
+      "numeric_answer_accuracy": null
+    },
+    "world_bank_canada_gdp_per_capita": {
+      "cases": 2,
+      "answerable_cases": 2,
+      "clarification_cases": 0,
+      "unavailable_cases": 0,
+      "recall_at_1": 1.0,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "full_catalog_mrr": 1.0,
+      "clarification_candidate_coverage_at_5": null,
+      "all_clarification_candidates_at_5": null,
+      "error_cases": 0,
+      "retrieval_p95_ms": 758.74,
+      "abstention_accuracy": null,
+      "automatic_selection_accuracy": null,
+      "numeric_answer_accuracy": null
+    },
+    "world_bank_us_gdp_per_capita": {
+      "cases": 2,
+      "answerable_cases": 2,
+      "clarification_cases": 0,
+      "unavailable_cases": 0,
+      "recall_at_1": 0.0,
+      "recall_at_3": 0.5,
+      "recall_at_5": 1.0,
+      "full_catalog_mrr": 0.29166666666666663,
+      "clarification_candidate_coverage_at_5": null,
+      "all_clarification_candidates_at_5": null,
+      "error_cases": 0,
+      "retrieval_p95_ms": 861.29,
+      "abstention_accuracy": null,
+      "automatic_selection_accuracy": null,
+      "numeric_answer_accuracy": null
+    },
+    "world_bank_us_gdp_per_capita_ppp": {
+      "cases": 2,
+      "answerable_cases": 2,
+      "clarification_cases": 0,
+      "unavailable_cases": 0,
+      "recall_at_1": 1.0,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "full_catalog_mrr": 1.0,
+      "clarification_candidate_coverage_at_5": null,
+      "all_clarification_candidates_at_5": null,
+      "error_cases": 0,
+      "retrieval_p95_ms": 705.13,
+      "abstention_accuracy": null,
+      "automatic_selection_accuracy": null,
+      "numeric_answer_accuracy": null
+    },
+    "world_bank_us_gdp_per_capita_real": {
+      "cases": 2,
+      "answerable_cases": 2,
+      "clarification_cases": 0,
+      "unavailable_cases": 0,
+      "recall_at_1": 1.0,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "full_catalog_mrr": 1.0,
+      "clarification_candidate_coverage_at_5": null,
+      "all_clarification_candidates_at_5": null,
+      "error_cases": 0,
+      "retrieval_p95_ms": 674.34,
+      "abstention_accuracy": null,
+      "automatic_selection_accuracy": null,
+      "numeric_answer_accuracy": null
+    },
+    "world_bank_us_gdp_total": {
+      "cases": 2,
+      "answerable_cases": 2,
+      "clarification_cases": 0,
+      "unavailable_cases": 0,
+      "recall_at_1": 1.0,
+      "recall_at_3": 1.0,
+      "recall_at_5": 1.0,
+      "full_catalog_mrr": 1.0,
+      "clarification_candidate_coverage_at_5": null,
+      "all_clarification_candidates_at_5": null,
+      "error_cases": 0,
+      "retrieval_p95_ms": 672.51,
+      "abstention_accuracy": null,
+      "automatic_selection_accuracy": null,
+      "numeric_answer_accuracy": null
+    }
+  },
+  "limitations": [
+    "Agent-authored semantic labels; human review pending",
+    "Retriever ranks candidates; humans clarify and choose",
+    "Unavailable cases are ranking diagnostics, not measured abstention",
+    "No SQL or numeric-answer quality score",
+    "Not an official FinSearchComp benchmark",
+    "Provider cost not instrumented; no cost pass claimed"
+  ],
+  "cases": [
+    {
+      "id": "positive_01",
+      "split": "development",
+      "family": "labor_definition",
+      "question": "What share of the U.S. civilian labor force was unemployed in April 2020, after seasonal adjustment?",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "fred_unemployment"
+      ],
+      "label_reason": "Use headline U-3 percentage, not people counts or broader underutilization.",
+      "evidence": {
+        "product_id": "fred_unemployment",
+        "column": "unemployment_rate",
+        "key": {
+          "observation_date": "2020-04-01"
+        }
+      },
+      "rank": 3,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.5830491781234741
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.5593246221542358
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.5508675575256348
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.5262832641601562
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.32753443717956543
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.3197385370731354
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.3167065680027008
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.2892122268676758
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.21492372453212738
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.20983996987342834
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.20743580162525177
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.20255909860134125
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.18287885189056396
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.16733837127685547
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.1576220542192459
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 1377.43
+    },
+    {
+      "id": "positive_02",
+      "split": "held_out",
+      "family": "labor_change",
+      "question": "Track the change in the seasonally adjusted headline jobless percentage in the United States between January and December 2024.",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "fred_unemployment"
+      ],
+      "label_reason": "Both monthly endpoints are covered; change concerns U-3, not U-6.",
+      "evidence": {
+        "product_id": "fred_unemployment",
+        "column": "unemployment_rate",
+        "key": {
+          "observation_date": "2024-12-01"
+        }
+      },
+      "rank": 2,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.5782939791679382
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.5570869445800781
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.5514297485351562
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.5469970703125
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.36890316009521484
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.36182668805122375
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.33941084146499634
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.32767680287361145
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.2558629512786865
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.2536720037460327
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.24568220973014832
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.24503003060817719
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.23928183317184448
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.2250305712223053
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.19943784177303314
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 1581.86
+    },
+    {
+      "id": "positive_03",
+      "split": "development",
+      "family": "labor_calendar",
+      "question": "What was the actual U.S. U-3 rate for July 2023 without removing seasonal patterns?",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "fred_unemployment_unadjusted"
+      ],
+      "label_reason": "Explicitly unadjusted U-3 excludes the adjusted rate.",
+      "evidence": {
+        "product_id": "fred_unemployment_unadjusted",
+        "column": "unemployment_rate",
+        "key": {
+          "observation_date": "2023-07-01"
+        }
+      },
+      "rank": 1,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.6421424746513367
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.5836597681045532
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.5663180947303772
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.4363064169883728
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.35573282837867737
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.31864410638809204
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.3144589364528656
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.307196706533432
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.30170509219169617
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.26738956570625305
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.2633424401283264
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.2459772825241089
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.2416105568408966
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.23342196643352509
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.2189989984035492
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 1419.27
+    },
+    {
+      "id": "positive_04",
+      "split": "held_out",
+      "family": "labor_seasonality",
+      "question": "I am studying recurring summer hiring patterns: give the raw monthly percentage of the U.S. labor force unemployed during 2024, rather than a seasonally smoothed series.",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "fred_unemployment_unadjusted"
+      ],
+      "label_reason": "Retaining seasonality requires the unadjusted series.",
+      "evidence": {
+        "product_id": "fred_unemployment_unadjusted",
+        "column": "unemployment_rate",
+        "key": {
+          "observation_date": "2024-01-01"
+        }
+      },
+      "rank": 2,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.6027235984802246
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.5904160737991333
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.5772362947463989
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.5602688193321228
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.3644619584083557
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.3289377987384796
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.32589036226272583
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.30609893798828125
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.3056704103946686
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.3031793534755707
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.27892693877220154
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.2721070647239685
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.26017099618911743
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.25875455141067505
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.2511399984359741
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 1657.83
+    },
+    {
+      "id": "positive_05",
+      "split": "development",
+      "family": "labor_population",
+      "question": "How many Americans were unemployed in April 2020? I want a headcount, not a percentage.",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "fred_unemployment_count"
+      ],
+      "label_reason": "UNEMPLOY measures people in thousands; conversion to persons is a later execution task.",
+      "evidence": {
+        "product_id": "fred_unemployment_count",
+        "column": "unemployed_thousands",
+        "key": {
+          "observation_date": "2020-04-01"
+        }
+      },
+      "rank": 1,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.5675044655799866
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.519291877746582
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.5109981298446655
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.5016511082649231
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.33179253339767456
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.2899368107318878
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.28445133566856384
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.28377270698547363
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.2587850093841553
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.25299641489982605
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.2409672886133194
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.2371179759502411
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.20337608456611633
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.18983803689479828
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.18528872728347778
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 655.66
+    },
+    {
+      "id": "positive_06",
+      "split": "held_out",
+      "family": "labor_level_change",
+      "question": "Find the seasonally adjusted change in the number of unemployed U.S. workers from December 2019 to December 2024, reported in thousands.",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "fred_unemployment_count"
+      ],
+      "label_reason": "Difference of population levels uses count series, not rate points.",
+      "evidence": {
+        "product_id": "fred_unemployment_count",
+        "column": "unemployed_thousands",
+        "key": {
+          "observation_date": "2024-12-01"
+        }
+      },
+      "rank": 1,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.6535099148750305
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.598602294921875
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.5779707431793213
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.5503660440444946
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.39717897772789
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.3721509873867035
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.34943830966949463
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.32533690333366394
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.27866315841674805
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.26072198152542114
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.25188297033309937
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.25117331743240356
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.23834776878356934
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.21781077980995178
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.18945768475532532
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 916.04
+    },
+    {
+      "id": "positive_07",
+      "split": "development",
+      "family": "labor_involuntary",
+      "question": "In December 2024, what U.S. rate includes workers forced into part-time jobs and people marginally attached to the labor force, seasonally adjusted?",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "fred_underemployment_u6"
+      ],
+      "label_reason": "The stated population is U-6, not the civilian U-3 headline rate.",
+      "evidence": {
+        "product_id": "fred_underemployment_u6",
+        "column": "underemployment_rate",
+        "key": {
+          "observation_date": "2024-12-01"
+        }
+      },
+      "rank": 1,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.6664348840713501
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.5622097253799438
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.5546416640281677
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.5117393136024475
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.36095353960990906
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.35557079315185547
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.35508593916893005
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.33162638545036316
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.2705271244049072
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.2374524027109146
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.2349240928888321
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.23007021844387054
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.22480513155460358
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.2161400318145752
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.20404276251792908
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 1158.27
+    },
+    {
+      "id": "positive_08",
+      "split": "held_out",
+      "family": "labor_broad_trend",
+      "question": "Trace broad U.S. labor underutilization through the pandemic in 2020, including involuntary part-time and discouraged workers, with seasonal effects removed.",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "fred_underemployment_u6"
+      ],
+      "label_reason": "Broader labor underutilization defines U-6; full 2020 monthly coverage exists.",
+      "evidence": {
+        "product_id": "fred_underemployment_u6",
+        "column": "underemployment_rate",
+        "key": {
+          "observation_date": "2020-04-01"
+        }
+      },
+      "rank": 1,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.6692643165588379
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.5512344241142273
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.5269770622253418
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.523751974105835
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.40274250507354736
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.3636071979999542
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.36034679412841797
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.33468207716941833
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.2663452625274658
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.24940015375614166
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.24363890290260315
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.23541633784770966
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.22982852160930634
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.21960577368736267
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.2148987203836441
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 1255.5
+    },
+    {
+      "id": "positive_09",
+      "split": "development",
+      "family": "gdp_nominal_person",
+      "question": "What was U.S. economic output per resident in 2019, valued at that year's prices in U.S. dollars?",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "world_bank_us_gdp_per_capita"
+      ],
+      "label_reason": "Nominal output per person excludes total output, constant prices and international dollars.",
+      "evidence": {
+        "product_id": "world_bank_us_gdp_per_capita",
+        "column": "gdp_per_capita_usd",
+        "key": {
+          "year": 2019
+        }
+      },
+      "rank": 4,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.642406702041626
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.6379807591438293
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.6162065267562866
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.5954248905181885
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.5100175142288208
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.39347735047340393
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.37972158193588257
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.3704603910446167
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.36344248056411743
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.3337700068950653
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.2833781838417053
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.28014951944351196
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.2799040377140045
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.27578112483024597
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.22716397047042847
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 861.29
+    },
+    {
+      "id": "positive_10",
+      "split": "held_out",
+      "family": "gdp_nominal_growth",
+      "question": "Measure the 2015\u20132024 growth in U.S. GDP per capita in current dollars, allowing inflation to remain in the comparison.",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "world_bank_us_gdp_per_capita"
+      ],
+      "label_reason": "Explicit inclusion of price changes requires current-dollar per-capita GDP.",
+      "evidence": {
+        "product_id": "world_bank_us_gdp_per_capita",
+        "column": "gdp_per_capita_usd",
+        "key": {
+          "year": 2024
+        }
+      },
+      "rank": 3,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.7241212725639343
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.6820768713951111
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.6711878776550293
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.623564600944519
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.5724466443061829
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.352296382188797
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.35158422589302063
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.34840768575668335
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.3469122052192688
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.2953992187976837
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.27994289994239807
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.25964489579200745
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.258181095123291
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.2563665211200714
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.23007149994373322
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 766.05
+    },
+    {
+      "id": "positive_11",
+      "split": "development",
+      "family": "gdp_total",
+      "question": "How large was the entire U.S. economy in 2023, measured by GDP in current U.S. dollars rather than per person?",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "world_bank_us_gdp_total"
+      ],
+      "label_reason": "Total nominal GDP is not a per-capita measure.",
+      "evidence": {
+        "product_id": "world_bank_us_gdp_total",
+        "column": "gdp_usd",
+        "key": {
+          "year": 2023
+        }
+      },
+      "rank": 1,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.6708570718765259
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.5890843868255615
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.571838915348053
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.5553520321846008
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.4758014976978302
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.4249309003353119
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.41305285692214966
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.4018215537071228
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.38564831018447876
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.3274170160293579
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.3253505825996399
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.30373263359069824
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.3033260405063629
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.2800622880458832
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.2559685707092285
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 672.51
+    },
+    {
+      "id": "positive_12",
+      "split": "held_out",
+      "family": "gdp_total_path",
+      "question": "Build a 2015\u20132024 series of aggregate American economic output at prevailing prices for a chart of nominal economy size.",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "world_bank_us_gdp_total"
+      ],
+      "label_reason": "Aggregate prevailing-price output selects total current-dollar GDP.",
+      "evidence": {
+        "product_id": "world_bank_us_gdp_total",
+        "column": "gdp_usd",
+        "key": {
+          "year": 2015
+        }
+      },
+      "rank": 1,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.5640445947647095
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.5363969206809998
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.5258389115333557
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.4994148015975952
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.43098485469818115
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.36200517416000366
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.3477126955986023
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.34569084644317627
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.33603572845458984
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.3319184482097626
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.32406240701675415
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.32189759612083435
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.291452556848526
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.28667011857032776
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.2708738148212433
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 579.24
+    },
+    {
+      "id": "positive_13",
+      "split": "development",
+      "family": "gdp_price_control",
+      "question": "Did U.S. output per person rise between 2015 and 2024 after removing inflation? Use 2015 U.S. dollars.",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "world_bank_us_gdp_per_capita_real"
+      ],
+      "label_reason": "Constant 2015 USD isolates real per-person output, not PPP.",
+      "evidence": {
+        "product_id": "world_bank_us_gdp_per_capita_real",
+        "column": "gdp_per_capita_usd",
+        "key": {
+          "year": 2024
+        }
+      },
+      "rank": 1,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.6412222385406494
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.6087100505828857
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.5656733512878418
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.5618520975112915
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.49809107184410095
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.37445759773254395
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.3693079948425293
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.3588793873786926
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.3442472219467163
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.29228511452674866
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.2543785870075226
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.24025467038154602
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.23842060565948486
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.21911241114139557
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.2134929895401001
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 592.4
+    },
+    {
+      "id": "positive_14",
+      "split": "held_out",
+      "family": "gdp_real_recovery",
+      "question": "Compare American GDP per capita in 2019 and 2021 on the same 2015-dollar price basis to study the real recovery.",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "world_bank_us_gdp_per_capita_real"
+      ],
+      "label_reason": "Identical constant-price basis is required for real comparison.",
+      "evidence": {
+        "product_id": "world_bank_us_gdp_per_capita_real",
+        "column": "gdp_per_capita_usd",
+        "key": {
+          "year": 2021
+        }
+      },
+      "rank": 1,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.6420232653617859
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.6193621158599854
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.5838660597801208
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.5604407787322998
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.5164201259613037
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.3364783823490143
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.3244760036468506
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.30916544795036316
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.30662962794303894
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.29602789878845215
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.29452383518218994
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.2931707501411438
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.27936261892318726
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.26720166206359863
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.25305530428886414
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 674.34
+    },
+    {
+      "id": "positive_15",
+      "split": "development",
+      "family": "gdp_ppp",
+      "question": "What was U.S. GDP per capita in 2022 in purchasing-power-parity international dollars?",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "world_bank_us_gdp_per_capita_ppp"
+      ],
+      "label_reason": "PPP international dollars are not market-exchange-rate USD.",
+      "evidence": {
+        "product_id": "world_bank_us_gdp_per_capita_ppp",
+        "column": "gdp_per_capita_international_dollars",
+        "key": {
+          "year": 2022
+        }
+      },
+      "rank": 1,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.7590365409851074
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.7260736227035522
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.6925749778747559
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.6174154281616211
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.581250786781311
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.33524635434150696
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.32284295558929443
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.31683361530303955
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.3002273142337799
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.2801682651042938
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.25974154472351074
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.2583925426006317
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.25172531604766846
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.235122948884964
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.22950530052185059
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 705.13
+    },
+    {
+      "id": "positive_16",
+      "split": "held_out",
+      "family": "gdp_purchasing_power",
+      "question": "Prepare America's 2015\u20132024 output-per-person series on a current international-dollar basis for purchasing-power comparisons; do not use constant 2015 USD.",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "world_bank_us_gdp_per_capita_ppp"
+      ],
+      "label_reason": "Purchasing-power conversion selects PPP, despite the USD distractor.",
+      "evidence": {
+        "product_id": "world_bank_us_gdp_per_capita_ppp",
+        "column": "gdp_per_capita_international_dollars",
+        "key": {
+          "year": 2015
+        }
+      },
+      "rank": 1,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.6813934445381165
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.660728931427002
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.6021863222122192
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.5863444805145264
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.563511848449707
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.3403060734272003
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.3214888274669647
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.3209414482116699
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.31660929322242737
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.3076629042625427
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.29688307642936707
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.28079915046691895
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.27180755138397217
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.24486909806728363
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.23810382187366486
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 695.85
+    },
+    {
+      "id": "positive_17",
+      "split": "development",
+      "family": "gdp_geography",
+      "question": "Report Canada's economic output per person in 2020 in current U.S. dollars, not Canadian dollars.",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "world_bank_canada_gdp_per_capita"
+      ],
+      "label_reason": "Geography is Canada; currency remains USD.",
+      "evidence": {
+        "product_id": "world_bank_canada_gdp_per_capita",
+        "column": "gdp_per_capita_usd",
+        "key": {
+          "year": 2020
+        }
+      },
+      "rank": 1,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.7384449243545532
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.6063799262046814
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.6060699820518494
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.5886526107788086
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.5867269039154053
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.39480236172676086
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.362396240234375
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.34943482279777527
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.34102797508239746
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.32159435749053955
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.2870572507381439
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.27653056383132935
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.274370014667511
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.26873138546943665
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.23284661769866943
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 625.84
+    },
+    {
+      "id": "positive_18",
+      "split": "held_out",
+      "family": "gdp_canadian_change",
+      "question": "How did nominal Canadian GDP per capita change from 2015 to 2024 when expressed in USD?",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "world_bank_canada_gdp_per_capita"
+      ],
+      "label_reason": "Canadian geography excludes the otherwise matching U.S. indicator.",
+      "evidence": {
+        "product_id": "world_bank_canada_gdp_per_capita",
+        "column": "gdp_per_capita_usd",
+        "key": {
+          "year": 2024
+        }
+      },
+      "rank": 1,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.6907791495323181
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.5956511497497559
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.5729389190673828
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.5519313216209412
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.5105680227279663
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.2802097797393799
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.2724583148956299
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.2652255892753601
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.264715313911438
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.2611736059188843
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.26113036274909973
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.25259527564048767
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.24752314388751984
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.242702454328537
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.22757521271705627
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 758.74
+    },
+    {
+      "id": "positive_19",
+      "split": "development",
+      "family": "apple_annual_margin",
+      "question": "Calculate Apple's consolidated gross margin for FY2024 using annual net sales and gross profit, not its Q3 results.",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "sec_apple_income_statement"
+      ],
+      "label_reason": "Annual income contains revenue and gross profit for this derived task.",
+      "evidence": {
+        "product_id": "sec_apple_income_statement",
+        "column": "gross_profit_usd",
+        "key": {
+          "fiscal_year": 2024
+        }
+      },
+      "rank": 1,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.6966196894645691
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.6661021113395691
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.6258465647697449
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.5898184180259705
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.5044115781784058
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.4540408253669739
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.2865082621574402
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.26194608211517334
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.26077669858932495
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.2592833638191223
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.2488878220319748
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.23875068128108978
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.2273891121149063
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.2069021314382553
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.1732323169708252
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 665.36
+    },
+    {
+      "id": "positive_20",
+      "split": "held_out",
+      "family": "apple_annual_earnings",
+      "question": "Compare Apple's FY2022 and FY2023 annual operating income to net income. Do not substitute cash generated from operations.",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "sec_apple_income_statement"
+      ],
+      "label_reason": "Income metrics differ from operating cash flow; fiscal years are covered.",
+      "evidence": {
+        "product_id": "sec_apple_income_statement",
+        "column": "operating_income_usd",
+        "key": {
+          "fiscal_year": 2023
+        }
+      },
+      "rank": 1,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.7182811498641968
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.7077339291572571
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.6566036939620972
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.5997732877731323
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.5065199732780457
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.5064682960510254
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.26862987875938416
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.2571350932121277
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.24977895617485046
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.24884936213493347
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.24433393776416779
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.24171775579452515
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.24150337278842926
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.23893532156944275
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.22348159551620483
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 679.64
+    },
+    {
+      "id": "positive_21",
+      "split": "development",
+      "family": "apple_cash_vs_profit",
+      "question": "How much cash did Apple generate from operations during FY2024, rather than its accounting net income?",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "sec_apple_cash_flow"
+      ],
+      "label_reason": "Operating cash flow is not operating income or net income.",
+      "evidence": {
+        "product_id": "sec_apple_cash_flow",
+        "column": "operating_cash_flow_usd",
+        "key": {
+          "fiscal_year": 2024
+        }
+      },
+      "rank": 1,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.7467082738876343
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.7419039011001587
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.6619966626167297
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.6547521948814392
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.5085846781730652
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.4709479808807373
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.2824713885784149
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.27455493807792664
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.2474571019411087
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.24727223813533783
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.24062898755073547
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.1980268508195877
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.1936412751674652
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.18279388546943665
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.1824769228696823
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 623.09
+    },
+    {
+      "id": "positive_22",
+      "split": "held_out",
+      "family": "apple_cash_financing",
+      "question": "Compare Apple's cash flows from investing and financing in FY2022\u2013FY2024, preserving the signs of outflows.",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "sec_apple_cash_flow"
+      ],
+      "label_reason": "Annual investing and financing cash flows are available; signs must be retained.",
+      "evidence": {
+        "product_id": "sec_apple_cash_flow",
+        "column": "financing_cash_flow_usd",
+        "key": {
+          "fiscal_year": 2022
+        }
+      },
+      "rank": 1,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.7349482774734497
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.6150587797164917
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.609259843826294
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.549248993396759
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.5443848967552185
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.3989855647087097
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.20699916779994965
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.2010955959558487
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.20109279453754425
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.19696933031082153
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.1959940493106842
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.19057171046733856
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.18871234357357025
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.18618014454841614
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.18523983657360077
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 736.66
+    },
+    {
+      "id": "positive_23",
+      "split": "development",
+      "family": "apple_financial_position",
+      "question": "What were Apple's total assets and total liabilities at the FY2024 balance-sheet date?",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "sec_apple_balance_sheet"
+      ],
+      "label_reason": "Instant balance-sheet positions are not annual income or cash flows.",
+      "evidence": {
+        "product_id": "sec_apple_balance_sheet",
+        "column": "assets_usd",
+        "key": {
+          "fiscal_year": 2024
+        }
+      },
+      "rank": 1,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.7809900045394897
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.628501296043396
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.5908958315849304
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.5443644523620605
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.3801984190940857
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.3772771656513214
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.25597885251045227
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.22464603185653687
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.2206498086452484
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.21197499334812164
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.2103649079799652
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.20512057840824127
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.20401053130626678
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.2019241452217102
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.19311575591564178
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 669.18
+    },
+    {
+      "id": "positive_24",
+      "split": "held_out",
+      "family": "apple_equity_change",
+      "question": "Compare Apple's shareholders' equity at September 30, 2023 and September 28, 2024.",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "sec_apple_balance_sheet"
+      ],
+      "label_reason": "Both exact instant dates are represented in the balance sheet.",
+      "evidence": {
+        "product_id": "sec_apple_balance_sheet",
+        "column": "equity_usd",
+        "key": {
+          "fiscal_year": 2023
+        }
+      },
+      "rank": 1,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.6629285216331482
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.5783712863922119
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.5591373443603516
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.5385156869888306
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.36004137992858887
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.3471442461013794
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.24859963357448578
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.244333416223526
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.23043005168437958
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.2295505851507187
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.2227645367383957
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.21918676793575287
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.21906818449497223
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.21849572658538818
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.2047310322523117
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 630.12
+    },
+    {
+      "id": "positive_25",
+      "split": "development",
+      "family": "apple_quarter_margin",
+      "question": "Calculate Apple's gross margin for Q3 FY2024 from the three-month revenue and gross profit, excluding nine-month totals.",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "sec_apple_quarterly_income_statement"
+      ],
+      "label_reason": "Exact Q3 duration excludes annual and YTD statement contexts.",
+      "evidence": {
+        "product_id": "sec_apple_quarterly_income_statement",
+        "column": "gross_profit_usd",
+        "key": {
+          "fiscal_year": 2024,
+          "fiscal_quarter": 3
+        }
+      },
+      "rank": 1,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.7310376763343811
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.665332555770874
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.6000000834465027
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.56348717212677
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.4777304232120514
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.4177655875682831
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.2991330921649933
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.2917950451374054
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.282324880361557
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.27270588278770447
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.2505384683609009
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.24580077826976776
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.2366991490125656
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.23347142338752747
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.2097625881433487
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 682.19
+    },
+    {
+      "id": "positive_26",
+      "split": "held_out",
+      "family": "apple_quarter_earnings",
+      "question": "How did Apple's net income for the three months ended June 29, 2024 compare with the three months ended July 1, 2023?",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "sec_apple_quarterly_income_statement"
+      ],
+      "label_reason": "The filing supplies those two comparative fiscal Q3 periods.",
+      "evidence": {
+        "product_id": "sec_apple_quarterly_income_statement",
+        "column": "net_income_usd",
+        "key": {
+          "fiscal_year": 2023,
+          "fiscal_quarter": 3
+        }
+      },
+      "rank": 1,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.6921249032020569
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.6758430004119873
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.6210064888000488
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.5939216613769531
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.45494431257247925
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.40031498670578003
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.2816053628921509
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.27601227164268494
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.27041974663734436
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.26462316513061523
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.24506625533103943
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.24108082056045532
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.23964276909828186
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.23436546325683594
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.22838976979255676
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 623.85
+    },
+    {
+      "id": "positive_27",
+      "split": "development",
+      "family": "microsoft_income",
+      "question": "What was Microsoft's consolidated revenue for its fiscal year ended June 30, 2024?",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "sec_microsoft_income_statement"
+      ],
+      "label_reason": "Microsoft June-end annual revenue excludes Apple and cash flows.",
+      "evidence": {
+        "product_id": "sec_microsoft_income_statement",
+        "column": "revenue_usd",
+        "key": {
+          "fiscal_year": 2024
+        }
+      },
+      "rank": 1,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.6809085011482239
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.6167575120925903
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.5021206736564636
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.462424635887146
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.456046998500824
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.4480959177017212
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.25732967257499695
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.21582481265068054
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.20269647240638733
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.19826728105545044
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.1932016909122467
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.19013994932174683
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.18772348761558533
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.18319548666477203
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.16633810102939606
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 623.31
+    },
+    {
+      "id": "positive_28",
+      "split": "held_out",
+      "family": "microsoft_profit_mix",
+      "question": "Compare Microsoft's annual operating income and net income across FY2022\u2013FY2024, rather than operating cash generated.",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "sec_microsoft_income_statement"
+      ],
+      "label_reason": "Both accounting earnings fields exist in the Microsoft annual income statement.",
+      "evidence": {
+        "product_id": "sec_microsoft_income_statement",
+        "column": "net_income_usd",
+        "key": {
+          "fiscal_year": 2022
+        }
+      },
+      "rank": 2,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.7354238629341125
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.7297640442848206
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.5777217745780945
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.5716114640235901
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.47915685176849365
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.44715696573257446
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.2960020899772644
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.27180299162864685
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.2702012062072754
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.26046517491340637
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.2587283253669739
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.24923112988471985
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.23966297507286072
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.22203044593334198
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.2186049222946167
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 639.56
+    },
+    {
+      "id": "positive_29",
+      "split": "development",
+      "family": "microsoft_cash",
+      "question": "How much cash did Microsoft generate from operations in FY2023, not its operating profit?",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "sec_microsoft_cash_flow"
+      ],
+      "label_reason": "Microsoft operating cash flows differ from accounting operating income.",
+      "evidence": {
+        "product_id": "sec_microsoft_cash_flow",
+        "column": "operating_cash_flow_usd",
+        "key": {
+          "fiscal_year": 2023
+        }
+      },
+      "rank": 1,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.7029149532318115
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.682213306427002
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.5300748348236084
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.5069417357444763
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.48998507857322693
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.4328669309616089
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.24455751478672028
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.2049701064825058
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.2005460262298584
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.2003013789653778
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.19771522283554077
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.19182011485099792
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.18632547557353973
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.1799953281879425
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.17890283465385437
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 623.65
+    },
+    {
+      "id": "positive_30",
+      "split": "held_out",
+      "family": "microsoft_cash_coverage",
+      "question": "Show Microsoft's annual net cash flows from investing and financing for the fiscal years ending June 2022 through June 2024.",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "sec_microsoft_cash_flow"
+      ],
+      "label_reason": "Microsoft annual cash-flow coverage includes these three fiscal years.",
+      "evidence": {
+        "product_id": "sec_microsoft_cash_flow",
+        "column": "investing_cash_flow_usd",
+        "key": {
+          "fiscal_year": 2024
+        }
+      },
+      "rank": 1,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.7689283490180969
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.6340915560722351
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.5991736650466919
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.4801112413406372
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.4679204225540161
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.4100886881351471
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.2571580111980438
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.22819417715072632
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.22407902777194977
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.22138378024101257
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.21534115076065063
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.2112390398979187
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.20885607600212097
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.20085912942886353
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.19816307723522186
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 593.05
+    },
+    {
+      "id": "clarify_01",
+      "split": "development",
+      "family": "clarification_1",
+      "question": "Which dataset should I use for the U.S. unemployment rate in April 2020?",
+      "expected_outcome": "clarify",
+      "expected_data_products": [
+        "fred_unemployment",
+        "fred_unemployment_unadjusted",
+        "fred_underemployment_u6"
+      ],
+      "label_reason": "Rate definition and seasonal adjustment unspecified.",
+      "evidence": null,
+      "rank": null,
+      "clarification_coverage_at_5": 1.0,
+      "ranking": [
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.6127799153327942
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.5992559790611267
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.5892457962036133
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.5541019439697266
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.44308149814605713
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.4089968502521515
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.4036247730255127
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.3835512101650238
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.3104231655597687
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.2393033653497696
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.23170645534992218
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.2266872376203537
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.22637949883937836
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.22319930791854858
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.21592068672180176
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 639.8
+    },
+    {
+      "id": "clarify_02",
+      "split": "development",
+      "family": "clarification_2",
+      "question": "Show America's unemployment situation in 2024.",
+      "expected_outcome": "clarify",
+      "expected_data_products": [
+        "fred_unemployment",
+        "fred_unemployment_unadjusted",
+        "fred_unemployment_count",
+        "fred_underemployment_u6"
+      ],
+      "label_reason": "Rate versus count, population definition and seasonal basis need human choice.",
+      "evidence": null,
+      "rank": null,
+      "clarification_coverage_at_5": 1.0,
+      "ranking": [
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.5280150771141052
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.4943591356277466
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.4898676574230194
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.4809461236000061
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.37268367409706116
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.36440759897232056
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.36223918199539185
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.33061084151268005
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.28024977445602417
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.24435408413410187
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.24002215266227722
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.20504920184612274
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.18154895305633545
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.17034675180912018
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.14838624000549316
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 644.66
+    },
+    {
+      "id": "clarify_03",
+      "split": "development",
+      "family": "clarification_3",
+      "question": "I need the U.S. U-3 unemployment percentage for July 2023.",
+      "expected_outcome": "clarify",
+      "expected_data_products": [
+        "fred_unemployment",
+        "fred_unemployment_unadjusted"
+      ],
+      "label_reason": "U-3 specified, but seasonal adjustment omitted.",
+      "evidence": null,
+      "rank": null,
+      "clarification_coverage_at_5": 1.0,
+      "ranking": [
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.6928925514221191
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.6339471936225891
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.6302843689918518
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.5408607721328735
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.365714967250824
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.34160828590393066
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.3379095792770386
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.3188391923904419
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.2890443205833435
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.2433062493801117
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.24193675816059113
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.23221594095230103
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.22182849049568176
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.2150402069091797
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.19718244671821594
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 623.08
+    },
+    {
+      "id": "clarify_04",
+      "split": "development",
+      "family": "clarification_4",
+      "question": "How many percentage points did the headline American unemployment rate move during 2024?",
+      "expected_outcome": "clarify",
+      "expected_data_products": [
+        "fred_unemployment",
+        "fred_unemployment_unadjusted"
+      ],
+      "label_reason": "Headline U-3 specified; adjusted versus raw rate remains open.",
+      "evidence": null,
+      "rank": null,
+      "clarification_coverage_at_5": 1.0,
+      "ranking": [
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.551433265209198
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.5459902286529541
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.5343918204307556
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.46994057297706604
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.29539674520492554
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.2931615710258484
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.2917712330818176
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.26939913630485535
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.2666719853878021
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.24475041031837463
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.22998970746994019
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.22877581417560577
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.22852987051010132
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.20408828556537628
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.1902909278869629
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 608.3
+    },
+    {
+      "id": "clarify_05",
+      "split": "development",
+      "family": "clarification_5",
+      "question": "Find the monthly series for unemployed Americans during 2020.",
+      "expected_outcome": "clarify",
+      "expected_data_products": [
+        "fred_unemployment",
+        "fred_unemployment_unadjusted",
+        "fred_unemployment_count"
+      ],
+      "label_reason": "Number versus share and seasonal adjustment are unspecified.",
+      "evidence": null,
+      "rank": null,
+      "clarification_coverage_at_5": 1.0,
+      "ranking": [
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.5876880288124084
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.5680675506591797
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.5514713525772095
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.54249107837677
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.386644184589386
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.34894219040870667
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.3468291163444519
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.32916152477264404
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.2916848063468933
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.2732672095298767
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.27075085043907166
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.2687946557998657
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.2560100555419922
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.25460368394851685
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.24642562866210938
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 641.04
+    },
+    {
+      "id": "clarify_06",
+      "split": "development",
+      "family": "clarification_6",
+      "question": "What was U.S. GDP per capita in 2020?",
+      "expected_outcome": "clarify",
+      "expected_data_products": [
+        "world_bank_us_gdp_per_capita",
+        "world_bank_us_gdp_per_capita_real",
+        "world_bank_us_gdp_per_capita_ppp"
+      ],
+      "label_reason": "Price and currency-conversion basis unspecified.",
+      "evidence": null,
+      "rank": null,
+      "clarification_coverage_at_5": 1.0,
+      "ranking": [
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.7244421243667603
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.7015031576156616
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.7010633945465088
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.6323786973953247
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.5745143294334412
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.366362601518631
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.34267428517341614
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.324978232383728
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.32103821635246277
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.29823538661003113
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.27464431524276733
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.2704929709434509
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.26469552516937256
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.2634047269821167
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.25179433822631836
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 557.46
+    },
+    {
+      "id": "clarify_07",
+      "split": "development",
+      "family": "clarification_7",
+      "question": "Has American output per person increased since 2015?",
+      "expected_outcome": "clarify",
+      "expected_data_products": [
+        "world_bank_us_gdp_per_capita",
+        "world_bank_us_gdp_per_capita_real",
+        "world_bank_us_gdp_per_capita_ppp"
+      ],
+      "label_reason": "Nominal, real and PPP growth answer different questions.",
+      "evidence": null,
+      "rank": null,
+      "clarification_coverage_at_5": 1.0,
+      "ranking": [
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.5715689659118652
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.561066210269928
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.5327395796775818
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.48337483406066895
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.4747968912124634
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.32087674736976624
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.3096889853477478
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.3088693618774414
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.28646135330200195
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.26640328764915466
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.264181911945343
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.2627277672290802
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.24127909541130066
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.21336308121681213
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.186074897646904
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 694.1
+    },
+    {
+      "id": "clarify_08",
+      "split": "development",
+      "family": "clarification_8",
+      "question": "Find U.S. GDP data for 2024.",
+      "expected_outcome": "clarify",
+      "expected_data_products": [
+        "world_bank_us_gdp_per_capita",
+        "world_bank_us_gdp_total",
+        "world_bank_us_gdp_per_capita_real",
+        "world_bank_us_gdp_per_capita_ppp"
+      ],
+      "label_reason": "Aggregate versus per-capita and price basis need clarification.",
+      "evidence": null,
+      "rank": null,
+      "clarification_coverage_at_5": 1.0,
+      "ranking": [
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.6298409700393677
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.5917401909828186
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.5718002915382385
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.5402952432632446
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.45632606744766235
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.45318105816841125
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.4508710205554962
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.4434269964694977
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.44042545557022095
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.36105042695999146
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.3157040774822235
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.3045811653137207
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.29966095089912415
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.27522531151771545
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.27364641427993774
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 929.98
+    },
+    {
+      "id": "clarify_09",
+      "split": "held_out",
+      "family": "clarification_9",
+      "question": "I want output per person in current USD for 2023, but haven't chosen the country.",
+      "expected_outcome": "clarify",
+      "expected_data_products": [
+        "world_bank_us_gdp_per_capita",
+        "world_bank_canada_gdp_per_capita"
+      ],
+      "label_reason": "Country is missing; U.S. and Canada are both plausible.",
+      "evidence": null,
+      "rank": null,
+      "clarification_coverage_at_5": 1.0,
+      "ranking": [
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.49542054533958435
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.48986831307411194
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.48945146799087524
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.4892217814922333
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.4657050669193268
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.32279255986213684
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.31786227226257324
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.3018066883087158
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.29742956161499023
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.2892023026943207
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.2851916253566742
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.2805725038051605
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.27436742186546326
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.263353556394577
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.2327684760093689
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 627.03
+    },
+    {
+      "id": "clarify_10",
+      "split": "held_out",
+      "family": "clarification_10",
+      "question": "Which GDP measure can support a living-standards chart for the United States from 2015 to 2024?",
+      "expected_outcome": "clarify",
+      "expected_data_products": [
+        "world_bank_us_gdp_per_capita",
+        "world_bank_us_gdp_per_capita_real",
+        "world_bank_us_gdp_per_capita_ppp"
+      ],
+      "label_reason": "Living standards does not uniquely choose nominal, real or PPP basis.",
+      "evidence": null,
+      "rank": null,
+      "clarification_coverage_at_5": 1.0,
+      "ranking": [
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.6627157330513
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.6403604745864868
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.6383938789367676
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.6104438900947571
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.5146334767341614
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.4098208546638489
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.40375879406929016
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.39588305354118347
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.3861427903175354
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.34611284732818604
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.32210850715637207
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.3198561668395996
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.31074315309524536
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.2875683009624481
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.2873653173446655
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 611.92
+    },
+    {
+      "id": "clarify_11",
+      "split": "held_out",
+      "family": "clarification_11",
+      "question": "Find Apple's revenue data from its 2024 financial reports.",
+      "expected_outcome": "clarify",
+      "expected_data_products": [
+        "sec_apple_income_statement",
+        "sec_apple_quarterly_income_statement"
+      ],
+      "label_reason": "Annual versus Q3 duration unspecified.",
+      "evidence": null,
+      "rank": null,
+      "clarification_coverage_at_5": 1.0,
+      "ranking": [
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.7207205295562744
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.61451655626297
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.5966899394989014
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.5825562477111816
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.4733404517173767
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.39990583062171936
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.28972798585891724
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.28186652064323425
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.2813943326473236
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.26385822892189026
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.2635801434516907
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.2392730861902237
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.23751430213451385
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.2242920845746994
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.22346627712249756
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 619.32
+    },
+    {
+      "id": "clarify_12",
+      "split": "held_out",
+      "family": "clarification_12",
+      "question": "I need Apple's financial results for 2023 and 2024.",
+      "expected_outcome": "clarify",
+      "expected_data_products": [
+        "sec_apple_income_statement",
+        "sec_apple_cash_flow",
+        "sec_apple_balance_sheet",
+        "sec_apple_quarterly_income_statement"
+      ],
+      "label_reason": "Statement type and period basis unspecified.",
+      "evidence": null,
+      "rank": null,
+      "clarification_coverage_at_5": 1.0,
+      "ranking": [
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.6408774256706238
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.5897953510284424
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.586810827255249
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.5777096748352051
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.41053953766822815
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.3824212849140167
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.22681811451911926
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.2181723564863205
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.21656322479248047
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.21338260173797607
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.20443089306354523
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.20055970549583435
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.1966836005449295
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.19279274344444275
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.18729965388774872
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 665.27
+    },
+    {
+      "id": "clarify_13",
+      "split": "held_out",
+      "family": "clarification_13",
+      "question": "Show Apple's profitability in fiscal 2024.",
+      "expected_outcome": "clarify",
+      "expected_data_products": [
+        "sec_apple_income_statement",
+        "sec_apple_quarterly_income_statement"
+      ],
+      "label_reason": "Annual versus available fiscal Q3 earnings requires a choice.",
+      "evidence": null,
+      "rank": null,
+      "clarification_coverage_at_5": 1.0,
+      "ranking": [
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.702130138874054
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.628970205783844
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.611538290977478
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.5977590680122375
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.46727022528648376
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.4133419990539551
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.2524273693561554
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.2480919063091278
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.2386385202407837
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.23132003843784332
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.22121462225914001
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.2030341625213623
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.20266196131706238
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.19511783123016357
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.1794317215681076
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 729.93
+    },
+    {
+      "id": "clarify_14",
+      "split": "held_out",
+      "family": "clarification_14",
+      "question": "Find Microsoft's figures for operating performance in FY2024.",
+      "expected_outcome": "clarify",
+      "expected_data_products": [
+        "sec_microsoft_income_statement",
+        "sec_microsoft_cash_flow"
+      ],
+      "label_reason": "Operating earnings versus operating cash generation needs clarification.",
+      "evidence": null,
+      "rank": null,
+      "clarification_coverage_at_5": 1.0,
+      "ranking": [
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.6444383263587952
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.6236806511878967
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.4834502935409546
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.44672536849975586
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.4244355857372284
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.40866968035697937
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.26477721333503723
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.262071430683136
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.25754067301750183
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.2552240192890167
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.2546112835407257
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.2520603835582733
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.2513725757598877
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.2387576848268509
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.2237418293952942
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 734.57
+    },
+    {
+      "id": "clarify_15",
+      "split": "held_out",
+      "family": "clarification_15",
+      "question": "I need annual operating cash flow for FY2024, but haven't selected Apple or Microsoft.",
+      "expected_outcome": "clarify",
+      "expected_data_products": [
+        "sec_apple_cash_flow",
+        "sec_microsoft_cash_flow"
+      ],
+      "label_reason": "Company is missing; both annual cash-flow products cover the year.",
+      "evidence": null,
+      "rank": null,
+      "clarification_coverage_at_5": 1.0,
+      "ranking": [
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.6411689519882202
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.6115870475769043
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.5867413878440857
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.5304645299911499
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.5209313631057739
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.4985620677471161
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.2302287518978119
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.22721412777900696
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.21285203099250793
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.20519107580184937
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.20226944983005524
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.20122113823890686
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.19895249605178833
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.19793467223644257
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.19390320777893066
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 717.26
+    },
+    {
+      "id": "unavailable_01",
+      "split": "development",
+      "family": "unavailable_1",
+      "question": "What was Canada's monthly unemployment rate in April 2020?",
+      "expected_outcome": "abstain",
+      "expected_data_products": [],
+      "label_reason": "No Canadian labor series.",
+      "evidence": null,
+      "rank": null,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.48791515827178955
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.4447100758552551
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.4414655268192291
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.4095904231071472
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.399921715259552
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.23340189456939697
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.213983416557312
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.2059168517589569
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.20187540352344513
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.162921741604805
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.1493920385837555
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.12686572968959808
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.12525255978107452
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.12125083804130554
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.10646210610866547
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 665.7
+    },
+    {
+      "id": "unavailable_02",
+      "split": "development",
+      "family": "unavailable_2",
+      "question": "Give U.S. initial jobless claims for December 2024.",
+      "expected_outcome": "abstain",
+      "expected_data_products": [],
+      "label_reason": "No jobless-claims product; unemployment rate is not claims.",
+      "evidence": null,
+      "rank": null,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.49810996651649475
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.47702789306640625
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.4475274085998535
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.43651846051216125
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.3316446542739868
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.3163003623485565
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.3023277521133423
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.2819739580154419
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.2221379429101944
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.22182215750217438
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.21818509697914124
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.2147967368364334
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.21196182072162628
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.19352364540100098
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.1732301414012909
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 711.8
+    },
+    {
+      "id": "unavailable_03",
+      "split": "development",
+      "family": "unavailable_3",
+      "question": "What was the U.S. labor-force participation rate in 2020?",
+      "expected_outcome": "abstain",
+      "expected_data_products": [],
+      "label_reason": "No participation series.",
+      "evidence": null,
+      "rank": null,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.5540409684181213
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.504422664642334
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.494402140378952
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.4427917003631592
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.3599340319633484
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.3550812005996704
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.3427842855453491
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.3349206745624542
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.2556021511554718
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.19724486768245697
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.1855364292860031
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.1791476458311081
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.15418878197669983
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.15354067087173462
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.14804941415786743
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 656.12
+    },
+    {
+      "id": "unavailable_04",
+      "split": "development",
+      "family": "unavailable_4",
+      "question": "Report seasonally adjusted U.S. U-3 unemployment for January 2015.",
+      "expected_outcome": "abstain",
+      "expected_data_products": [],
+      "label_reason": "Labor snapshots begin in 2018.",
+      "evidence": null,
+      "rank": null,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.6822068095207214
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.6288452744483948
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.6021915674209595
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.535454273223877
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.3544219732284546
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.3393799960613251
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.3248000144958496
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.30233925580978394
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.26694920659065247
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.2476174682378769
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.2257654070854187
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.22074556350708008
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.21555164456367493
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.21283648908138275
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.2108367532491684
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 655.78
+    },
+    {
+      "id": "unavailable_05",
+      "split": "development",
+      "family": "unavailable_5",
+      "question": "Find Germany's nominal GDP per capita in 2023.",
+      "expected_outcome": "abstain",
+      "expected_data_products": [],
+      "label_reason": "No German GDP snapshot.",
+      "evidence": null,
+      "rank": null,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.5153601169586182
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.49438726902008057
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.4883948564529419
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.48250508308410645
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.4379696547985077
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.2948608994483948
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.2786424160003662
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.2765938341617584
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.253670871257782
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.23299691081047058
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.2227751761674881
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.21342027187347412
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.20174270868301392
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.19462937116622925
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.18198636174201965
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 689.0
+    },
+    {
+      "id": "unavailable_06",
+      "split": "development",
+      "family": "unavailable_6",
+      "question": "What was U.S. GDP per capita in 2010 in current USD?",
+      "expected_outcome": "abstain",
+      "expected_data_products": [],
+      "label_reason": "All active GDP snapshots begin in 2015; archived data is not active catalog coverage.",
+      "evidence": null,
+      "rank": null,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.7264691591262817
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.7193014621734619
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.7012198567390442
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.6215794682502747
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.5839554667472839
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.3062646985054016
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.28811538219451904
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.27360618114471436
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.27181896567344666
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.23486070334911346
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.2240898460149765
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.20657795667648315
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.20570304989814758
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.2041364163160324
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.202391117811203
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 797.19
+    },
+    {
+      "id": "unavailable_07",
+      "split": "development",
+      "family": "unavailable_7",
+      "question": "Give Canada's GDP per capita in inflation-adjusted 2015 dollars for 2024.",
+      "expected_outcome": "abstain",
+      "expected_data_products": [],
+      "label_reason": "Canada current USD exists, but Canadian real GDP does not.",
+      "evidence": null,
+      "rank": null,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.717782199382782
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.5908631682395935
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.5537808537483215
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.5237422585487366
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.47410914301872253
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.2733113765716553
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.2529318332672119
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.23816201090812683
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.23391972482204437
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.23204423487186432
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.22742801904678345
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.221112921833992
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.2199680507183075
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.20782990753650665
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.18998877704143524
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 723.62
+    },
+    {
+      "id": "unavailable_08",
+      "split": "held_out",
+      "family": "unavailable_8",
+      "question": "Find quarterly U.S. GDP per capita for Q2 2024.",
+      "expected_outcome": "abstain",
+      "expected_data_products": [],
+      "label_reason": "Only annual World Bank GDP snapshots.",
+      "evidence": null,
+      "rank": null,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.620201587677002
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.6077580451965332
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.6024772524833679
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.5563504099845886
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.5094752311706543
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.4493585228919983
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.43247324228286743
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.4270547330379486
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.4253215193748474
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.41660788655281067
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.35127660632133484
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.3465648889541626
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.33121728897094727
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.3155481815338135
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.3149300217628479
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 754.02
+    },
+    {
+      "id": "unavailable_09",
+      "split": "held_out",
+      "family": "unavailable_9",
+      "question": "What was India's PPP GDP per capita in 2022?",
+      "expected_outcome": "abstain",
+      "expected_data_products": [],
+      "label_reason": "PPP product covers United States only.",
+      "evidence": null,
+      "rank": null,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.5483017563819885
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.5181300044059753
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.5118233561515808
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.4848281443119049
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.40775176882743835
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.24442724883556366
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.23890404403209686
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.2108716517686844
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.20319807529449463
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.19682881236076355
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.19216041266918182
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.19159053266048431
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.19079236686229706
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.18756580352783203
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.1804424673318863
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 648.03
+    },
+    {
+      "id": "unavailable_10",
+      "split": "held_out",
+      "family": "unavailable_10",
+      "question": "What were Apple's total assets at the end of FY2022?",
+      "expected_outcome": "abstain",
+      "expected_data_products": [],
+      "label_reason": "Balance-sheet snapshot covers FY2023\u2013FY2024 only.",
+      "evidence": null,
+      "rank": null,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.7315479516983032
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.6551437973976135
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.6143039464950562
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.5787055492401123
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.39884325861930847
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.3949386477470398
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.2691139578819275
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.23785093426704407
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.21886509656906128
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.21677060425281525
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.20406697690486908
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.19576457142829895
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.19240924715995789
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.1906227171421051
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.18893307447433472
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 603.91
+    },
+    {
+      "id": "unavailable_11",
+      "split": "held_out",
+      "family": "unavailable_11",
+      "question": "Show Apple's Q1 FY2024 revenue.",
+      "expected_outcome": "abstain",
+      "expected_data_products": [],
+      "label_reason": "Only Q3 quarterly income is captured.",
+      "evidence": null,
+      "rank": null,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.6964387893676758
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.6935760378837585
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.6144096255302429
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.5857566595077515
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.4891761839389801
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.4236511290073395
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.24240398406982422
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.23925036191940308
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.22382226586341858
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.21764394640922546
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.2174406796693802
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.21647794544696808
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.2097904235124588
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.19844873249530792
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.19293621182441711
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 704.6
+    },
+    {
+      "id": "unavailable_12",
+      "split": "held_out",
+      "family": "unavailable_12",
+      "question": "Report Microsoft's quarterly revenue for Q3 FY2024.",
+      "expected_outcome": "abstain",
+      "expected_data_products": [],
+      "label_reason": "Microsoft income is annual only.",
+      "evidence": null,
+      "rank": null,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.5820698738098145
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.5615332722663879
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.5169506669044495
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.47531890869140625
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.4360189735889435
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.401461124420166
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.2869373857975006
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.2645711600780487
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.23816871643066406
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.23736883699893951
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.23383918404579163
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.21023410558700562
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.19958056509494781
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.19892972707748413
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.1814204603433609
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 626.78
+    },
+    {
+      "id": "unavailable_13",
+      "split": "held_out",
+      "family": "unavailable_13",
+      "question": "What were Microsoft's total assets at June 30, 2024?",
+      "expected_outcome": "abstain",
+      "expected_data_products": [],
+      "label_reason": "No Microsoft balance-sheet product.",
+      "evidence": null,
+      "rank": null,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.5332754850387573
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.5212305188179016
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.4999608099460602
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.38823220133781433
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.35616302490234375
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.32535600662231445
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.2605549097061157
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.20219463109970093
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.1997241973876953
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.19385449588298798
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.191986083984375
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.19080403447151184
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.1880796253681183
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.1860995888710022
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.15579889714717865
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 631.23
+    },
+    {
+      "id": "unavailable_14",
+      "split": "held_out",
+      "family": "unavailable_14",
+      "question": "Compare Apple's and Microsoft's net income for FY2024 in a single-source answer.",
+      "expected_outcome": "abstain",
+      "expected_data_products": [],
+      "label_reason": "Requires two company products; v1 remains single-source.",
+      "evidence": null,
+      "rank": null,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.691366970539093
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.6414940357208252
+        },
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.6252300143241882
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.6167907118797302
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.596665620803833
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.5839131474494934
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.26152002811431885
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.2588176727294922
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.24292495846748352
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.24088692665100098
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.23871161043643951
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.23522618412971497
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.23498328030109406
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.22280025482177734
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.21207767724990845
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 644.42
+    },
+    {
+      "id": "unavailable_15",
+      "split": "held_out",
+      "family": "unavailable_15",
+      "question": "Calculate Apple's annual operating cash flow divided by annual net income in FY2024 using one data product.",
+      "expected_outcome": "abstain",
+      "expected_data_products": [],
+      "label_reason": "Requires cash-flow and income products; no single product contains both.",
+      "evidence": null,
+      "rank": null,
+      "clarification_coverage_at_5": null,
+      "ranking": [
+        {
+          "id": "sec_apple_cash_flow",
+          "version": 1,
+          "score": 0.7509844899177551
+        },
+        {
+          "id": "sec_apple_income_statement",
+          "version": 2,
+          "score": 0.6996521353721619
+        },
+        {
+          "id": "sec_apple_balance_sheet",
+          "version": 1,
+          "score": 0.5975640416145325
+        },
+        {
+          "id": "sec_apple_quarterly_income_statement",
+          "version": 1,
+          "score": 0.5781578421592712
+        },
+        {
+          "id": "sec_microsoft_cash_flow",
+          "version": 1,
+          "score": 0.5694881081581116
+        },
+        {
+          "id": "sec_microsoft_income_statement",
+          "version": 1,
+          "score": 0.4678049385547638
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita",
+          "version": 2,
+          "score": 0.3191489279270172
+        },
+        {
+          "id": "world_bank_canada_gdp_per_capita",
+          "version": 1,
+          "score": 0.30618858337402344
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_real",
+          "version": 1,
+          "score": 0.2995154559612274
+        },
+        {
+          "id": "world_bank_us_gdp_per_capita_ppp",
+          "version": 1,
+          "score": 0.2956613302230835
+        },
+        {
+          "id": "world_bank_us_gdp_total",
+          "version": 1,
+          "score": 0.2797265946865082
+        },
+        {
+          "id": "fred_underemployment_u6",
+          "version": 1,
+          "score": 0.24377457797527313
+        },
+        {
+          "id": "fred_unemployment_count",
+          "version": 1,
+          "score": 0.2307063341140747
+        },
+        {
+          "id": "fred_unemployment_unadjusted",
+          "version": 1,
+          "score": 0.2305539846420288
+        },
+        {
+          "id": "fred_unemployment",
+          "version": 2,
+          "score": 0.22494415938854218
+        }
+      ],
+      "error_type": null,
+      "retrieval_ms": 643.02
+    }
+  ]
+}

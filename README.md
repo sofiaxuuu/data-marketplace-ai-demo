@@ -1,8 +1,9 @@
 # DataScout
 
-DataScout finds a data product before it runs a query. The current build is the
-first working local flow: real FRED and World Bank snapshots, a human source
-confirmation step, a bounded DuckDB query, and a visible answer/SQL trace.
+DataScout now has 15 real, overlapping data products. Search ranks candidates;
+you compare their definitions, units and periods and explicitly choose one to
+inspect. Samples are local Parquet; descriptive metadata is embedded in
+SingleStore. A separate limited baseline runs fixed FRED/World Bank DuckDB queries.
 
 ## Run locally
 
@@ -63,10 +64,17 @@ model name, and a normalized vector. Ingestion updates changed products and skip
 unchanged ones. Search uses exact cosine similarity and excludes stale/deleted
 local manifests. Scores rank candidates; they are not calibrated confidence.
 
-`DATASCOUT_RETRIEVAL_BACKEND=singlestore` enables semantic retrieval in the UI
-question flow. The subsequent selector still uses deterministic measure/coverage
-checks. Set the backend to `local` for the offline baseline. The API also exposes
-`POST /retrieval/search` with `question` and optional `top_k` (default 3).
+The candidate inspector always uses SingleStore search and requires a human
+choice; it never executes SQL. The API exposes `POST /retrieval/search` with
+`question` and optional `top_k` (default 3, maximum 10), returning comparison
+metadata and execution-support status. `GET /catalog` exposes all products and
+schemas, without repository paths. Catalog changes invalidate UI choices on
+the next refresh (every 30 seconds or on window focus).
+
+`DATASCOUT_RETRIEVAL_BACKEND=singlestore` optionally enables retrieval in the
+separate limited baseline workflow. That deterministic selector still supports
+only adjusted U-3 unemployment and current-USD U.S. GDP per capita; it is not
+the selector for the expanded catalog. Use `local` for its offline mode.
 
 ## Data provenance
 
@@ -83,8 +91,9 @@ official CSV, run:
 This is a one-time build operation. User questions never call FRED. A rebuild
 can change values if the source revises its historical series.
 
-The [World Bank snapshot](data/sample_datasets/world_bank_us_gdp_per_capita/snapshot.json)
-contains annual U.S. GDP per capita observations for 2000–2024 from the
+The active World Bank products all cover **2015–2024**. The original
+[archived snapshot](data/sample_datasets/world_bank_us_gdp_per_capita/snapshot.json)
+retains its 2000–2024 observations from the
 [World Bank Indicators API](https://api.worldbank.org/v2/country/USA/indicator/NY.GDP.PCAP.CD?format=json).
 Rebuild it with `.venv/bin/python scripts/build_world_bank_snapshot.py`.
 
@@ -157,8 +166,66 @@ npm run build
 
 ## Current scope
 
-The current flow handles monthly U.S. unemployment and annual U.S. GDP-per-capita
-questions within their snapshot ranges. SingleStore semantic retrieval precedes
-deterministic product selection when enabled. Apple's SEC snapshot is acquired
-and cataloged; its question-execution adapter, LLM selection,
-the larger benchmark, and Exa discovery are next in [PLAN.md](PLAN.md).
+| Family | Products | Active sample coverage |
+|---|---|---|
+| FRED | Adjusted U-3, unadjusted U-3, unemployment count, adjusted U-6 | Monthly 2018–2024 |
+| World Bank | U.S. nominal per-capita GDP, total nominal GDP, real per-capita GDP, PPP per-capita GDP; Canadian nominal per-capita GDP | Annual 2015–2024 |
+| Apple SEC | Annual income, cash flow, balance sheet; Q3 income | Income/cash flow FY2022–2024; balance FY2023–2024; Q3 FY2023/FY2024 only |
+| Microsoft SEC | Annual income and cash flow | FY2022–2024 |
+
+SEC facts come from pinned 2024 filings, not latest-filing lookups. Fiscal dates,
+instant balance-sheet values and exact three-month quarters are kept distinct.
+Existing archived snapshots remain untouched. Browse recipes with the ingestion
+CLI; `.venv/bin/python scripts/build_catalog.py --download` publishes **missing**
+reviewed products only and never silently refreshes existing ones.
+
+Generalized SQL execution, automatic selection/abstention and Exa discovery
+remain future work. Catalog registration does not enable question execution.
+
+## Competing-product evaluation
+
+```bash
+PYTHONPATH=python .venv/bin/python -m evals.expanded --validate-only
+PYTHONPATH=python .venv/bin/python -m evals.expanded --split development --output evals/results/NEW_REPORT_NAME.json
+# Only run held-out after freezing changes; never tune against held-out labels:
+PYTHONPATH=python .venv/bin/python -m evals.expanded --split held_out
+```
+
+The benchmark has 30 answerable questions, 15 clarification cases and 15
+unavailable/multi-source requests, split evenly into development and held-out.
+It locks all 15 manifest versions, metadata hashes and snapshot hashes. Positive
+labels have mechanically checked schema/period evidence; semantic labels are
+agent-authored and still require human review. This is not an official
+FinSearchComp score or a numeric-answer benchmark.
+
+The first untuned [live baseline](evals/results/expanded-baseline-v2.json) achieved
+80% Recall@1, 96.7% Recall@3 and 100% Recall@5 across answerable questions;
+held-out Recall@1 was 73.3%. Full-catalog MRR was 0.881. All annotated plausible
+clarification candidates appeared in the top five. Unavailable cases are
+diagnostics—not an abstention accuracy score, because a retriever always ranks.
+
+The original 36-case benchmark remains a three-product **local-only** smoke
+test, pinned to archived manifests under `evals/legacy_catalog`. Run
+`PYTHONPATH=python .venv/bin/python -m evals.run --validate-only` or
+`PYTHONPATH=python .venv/bin/python -m evals.run --mode local --execute`.
+Its labels do not evaluate the expanded index.
+
+### Human benchmark review
+
+Open `/benchmark-review` (or click **Review benchmark** on the home page).
+Review one question at a time: reveal the agent-authored expected dataset choice
+and reason, then approve, propose a correction, flag wording, or mark not sure.
+Search the catalog when proposing a different dataset. No SQL, embeddings, or
+live source calls are made. Numerical answers are outside this review's scope.
+
+Reviews are shared locally, stored with append-only revisions in the ignored
+`.local/benchmark-reviews.sqlite3` database. Keep this file to retain feedback;
+it is not included in git. Saves require the frozen benchmark/catalog versions
+and reject concurrent overwrites. Unreviewed includes stale and not-sure cases.
+Feedback does **not** change benchmark labels, reports, metadata, or embeddings.
+This is a trusted-local workflow without authentication; do not expose it as a
+public review service.
+
+Future improvements: separate reviewer histories and disagreement resolution;
+approved label promotion; approved, versioned metadata suggestions followed by
+re-embedding and evaluation. Never use held-out feedback for metadata tuning.

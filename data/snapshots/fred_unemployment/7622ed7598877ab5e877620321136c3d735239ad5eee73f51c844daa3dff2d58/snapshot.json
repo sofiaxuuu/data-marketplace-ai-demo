@@ -1,0 +1,13 @@
+{
+  "pipeline_version": 1,
+  "adapter": "csv",
+  "source_url": "https://fred.stlouisfed.org/graph/fredgraph.csv",
+  "retrieved_at": "2026-09-26",
+  "source_sha256": "ffe86c903f6944ebc8281e5474a15fc4ceaac61059bc51ec86a7241391d8713d",
+  "recipe_sha256": "725d1a975001f79d17da23fee246649f7cd01bd204a8b575e43251ab9acb7fd4",
+  "snapshot_sha256": "16bb76db877eb351ac6706deace6bf4890a0d676cae51bdbe774848706954c72",
+  "start": "2018-01-01",
+  "end": "2024-12-01",
+  "rows": 84,
+  "raw_file": "source.csv"
+}

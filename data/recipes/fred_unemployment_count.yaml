@@ -1,0 +1,86 @@
+{
+  "recipe_version": 1,
+  "id": "fred_unemployment_count",
+  "name": "U.S. unemployment count",
+  "description": "Number of unemployed people, not a percentage or labor-force participation rate. Monthly United States observations, January 2018–December 2024.",
+  "business_context": "Number of unemployed people, not a percentage or labor-force participation rate. Monthly United States observations, January 2018–December 2024.",
+  "concepts": [
+    "United States",
+    "Number of unemployed people, not a percentage or labor-force participation rate.",
+    "thousands of persons",
+    "seasonally adjusted",
+    "monthly",
+    "2018-01 through 2024-12"
+  ],
+  "facets": {
+    "geography": "United States",
+    "measure": "Number of unemployed people, not a percentage or labor-force participation rate.",
+    "unit": "thousands of persons",
+    "seasonal_adjustment": "seasonally adjusted",
+    "frequency": "monthly",
+    "coverage": "2018-01 through 2024-12"
+  },
+  "table_id": "unemployment_count",
+  "columns": [
+    {
+      "name": "observation_date",
+      "type": "DATE",
+      "description": "First day of observation month",
+      "paths": [
+        [
+          "observation_date"
+        ],
+        [
+          "DATE"
+        ]
+      ]
+    },
+    {
+      "name": "unemployed_thousands",
+      "type": "DOUBLE",
+      "unit": "thousands of persons",
+      "description": "Number of unemployed people, not a percentage or labor-force participation rate. seasonally adjusted",
+      "paths": [
+        [
+          "UNEMPLOY"
+        ]
+      ]
+    }
+  ],
+  "source_name": "FRED, Federal Reserve Bank of St. Louis",
+  "source_url": "https://fred.stlouisfed.org/series/UNEMPLOY",
+  "source": {
+    "adapter": "csv",
+    "url": "https://fred.stlouisfed.org/graph/fredgraph.csv",
+    "allowed_hosts": [
+      "fred.stlouisfed.org"
+    ],
+    "params": {
+      "id": "UNEMPLOY"
+    }
+  },
+  "unique_key": [
+    "observation_date"
+  ],
+  "coverage": {
+    "column": "observation_date",
+    "start": "2018-01-01",
+    "end": "2024-12-01",
+    "frequency": "monthly"
+  },
+  "expected_rows": 84,
+  "filters": [
+    {
+      "path": [
+        "observation_date"
+      ],
+      "minimum": "2018-01-01",
+      "maximum": "2024-12-01"
+    }
+  ],
+  "skip_missing": [
+    [
+      "UNEMPLOY"
+    ]
+  ]
+}

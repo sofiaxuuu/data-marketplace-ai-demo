@@ -126,8 +126,8 @@ def acquire_sec(recipe: Recipe) -> bytes:
     from edgar import Company, set_identity
 
     set_identity(identity)
-    filing = Company(source.cik).get_filings(form="10-K", filing_date=source.filing_date.isoformat()).get(source.accession)
-    if filing is None or filing.accession_no != source.accession or filing.form != "10-K":
+    filing = Company(source.cik).get_filings(form=source.form, filing_date=source.filing_date.isoformat()).get(source.accession)
+    if filing is None or filing.accession_no != source.accession or filing.form != source.form:
         raise ValueError("Pinned filing was not found; latest-filing fallback is prohibited")
     xbrl = filing.xbrl()
     if xbrl is None:
@@ -136,7 +136,9 @@ def acquire_sec(recipe: Recipe) -> bytes:
         "cik": source.cik, "accession": source.accession,
         "filing_date": source.filing_date.isoformat(), "source_url": recipe.source_url,
         "retrieved_at": date.today().isoformat(), "edgartools_version": version("edgartools"),
-        "facts": xbrl.facts.get_facts(),
+        "artifact_kind": "extracted-concept-facts",
+        "facts": [fact for fact in xbrl.facts.get_facts()
+                  if str(fact.get("concept", "")).replace("_", ":", 1) in source.metrics.values()],
     }
     return (json.dumps(payload, indent=2, default=str, allow_nan=False) + "\n").encode()
 
@@ -188,22 +190,26 @@ def records(recipe: Recipe, raw: bytes) -> list[dict]:
 
 def sec_records(source: Source, facts: list[dict]) -> list[dict]:
     result = []
-    for year, end in sorted(source.period_ends.items()):
+    periods = [(p.fiscal_year, p.end, p.start, p.fiscal_quarter, p.start is None)
+               for p in source.periods] or [(year, end, None, None, False) for year, end in sorted(source.period_ends.items())]
+    for year, end, exact_start, quarter, instant in periods:
         row = {"fiscal_year": year, "period_end": end}
+        if quarter:
+            row["fiscal_quarter"] = quarter
         starts = set()
         for column, concept in source.metrics.items():
             matches = set()
             for fact in facts:
                 if str(fact.get("concept", "")).replace("_", ":", 1) != concept:
                     continue
-                if fact.get("period_type") != "duration" or str(fact.get("period_end")) != end.isoformat():
+                if fact.get("period_type") != ("instant" if instant else "duration") or str(fact.get("period_instant" if instant else "period_end")) != end.isoformat():
                     continue
                 if any(key.startswith("dim_") and value for key, value in fact.items()) or fact.get("dimensions"):
                     continue
                 if fact.get("currency") != source.currency or str(fact.get("entity_identifier", "")).lstrip("0") != str(source.cik):
                     continue
-                start = date.fromisoformat(str(fact["period_start"]))
-                if not 350 <= (end - start).days <= 380:
+                start = None if instant else date.fromisoformat(str(fact["period_start"]))
+                if not instant and (start != exact_start if exact_start else not 350 <= (end - start).days <= 380):
                     continue
                 try:
                     number = Decimal(str(fact["numeric_value"]))
@@ -213,11 +219,13 @@ def sec_records(source: Source, facts: list[dict]) -> list[dict]:
                     raise ValueError("Expected finite whole-dollar XBRL values")
                 matches.add((start, int(number)))
             if len(matches) != 1:
-                raise ValueError(f"Expected one unambiguous annual {column} total for FY{year}; found {len(matches)}")
+                raise ValueError(f"Expected one unambiguous {column} total for FY{year}; found {len(matches)}")
             start, row[column] = matches.pop()
             starts.add(start)
         if len(starts) != 1:
             raise ValueError("Metrics have mismatched fiscal reporting periods")
-        row["period_start"] = starts.pop()
+        start = starts.pop()
+        if not instant:
+            row["period_start"] = start
         result.append(row)
     return result

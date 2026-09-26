@@ -10,3 +10,4 @@ __pycache__/
 .cache/edgar/
 .cache/ingestion/
 singlestore_bundle.pem
+.local/

@@ -1,0 +1,80 @@
+{
+  "benchmark_version": 2,
+  "products": {
+    "fred_underemployment_u6": {
+      "version": 1,
+      "snapshot_sha256": "6c9392e4184738659c4142c9526fe73cec18c05318a3a6b035d912cba1b4805c",
+      "metadata_sha256": "472a525ef641456c2ac052a70db10028bc87cc0185d0f9ffba7f755a3bd6fda0"
+    },
+    "fred_unemployment": {
+      "version": 2,
+      "snapshot_sha256": "16bb76db877eb351ac6706deace6bf4890a0d676cae51bdbe774848706954c72",
+      "metadata_sha256": "b3c4c85494e274784fa2d0ffb20a2a06ee0394a740e7cea2bd92a1808ead3f04"
+    },
+    "fred_unemployment_count": {
+      "version": 1,
+      "snapshot_sha256": "40a1704458955a8c99985c187c2cb83cdddbcd0c37a8e10195b7b38ccf33dc57",
+      "metadata_sha256": "e889d8b8f35d33c9a8dfb2ade7ed6b4f10f3ae45305a19495f4a8eeb784dd62d"
+    },
+    "fred_unemployment_unadjusted": {
+      "version": 1,
+      "snapshot_sha256": "e11cf46c7b34adfc9bc81056bd100734a280bd688399ffb60e642255034b39da",
+      "metadata_sha256": "728ad9780ea2780690db98c70082c5a624128157d5566a5a670ff095f3e72a20"
+    },
+    "sec_apple_balance_sheet": {
+      "version": 1,
+      "snapshot_sha256": "a9cf8e2db1bde7cae8829680745d5966572f233fffe03cadfa11840db68a8367",
+      "metadata_sha256": "a1e40fd273f0017db125747efe5401db7346b0703c4a94bcdc9742295dfdd6d9"
+    },
+    "sec_apple_cash_flow": {
+      "version": 1,
+      "snapshot_sha256": "76300753e189cad2ea2e18daec675581bbe05906f6cf8493232d5d41e9f2c661",
+      "metadata_sha256": "39b8b7dab73bf698c6fa6d458a3e8f80acf61363359bc6da5ce37a12facbdf42"
+    },
+    "sec_apple_income_statement": {
+      "version": 2,
+      "snapshot_sha256": "62b909287975e0aa590530210e28bc58ee18dd6137b4ada5e80d2420cddf3e78",
+      "metadata_sha256": "59d4bef92dc29d138710064bd637d893a30f4401b1fc83ee7a47c074b3beac1b"
+    },
+    "sec_apple_quarterly_income_statement": {
+      "version": 1,
+      "snapshot_sha256": "d57ee463fe214eb7e606471def85dfd4cb7703ed8bf9a1ef876c3b328dee51ff",
+      "metadata_sha256": "f1e031c9ae7ed7dde596e4079331d68ef6fd61d300138901356b0a3000c1aaf2"
+    },
+    "sec_microsoft_cash_flow": {
+      "version": 1,
+      "snapshot_sha256": "42b8f5953cb2fab7147b0291d7db0b67adf67e865af01f794d2efb6adc5f5a62",
+      "metadata_sha256": "9f969792d33949125161c2a17347c0e9f67e988b67ab36d34ac2070d980ab4a2"
+    },
+    "sec_microsoft_income_statement": {
+      "version": 1,
+      "snapshot_sha256": "5503cedf1fdd41a113e679a8bf9586c25e400e3e5aee05541e2e5af86bfac97a",
+      "metadata_sha256": "7d10a40e983a2d370a4ec769e474f597cdbd43e6eea40f83a58d02e27b258415"
+    },
+    "world_bank_canada_gdp_per_capita": {
+      "version": 1,
+      "snapshot_sha256": "70cb761ae7bc309f5182317d759c4f2e017c3861a4af16d6600d4f900b8bf019",
+      "metadata_sha256": "66182491b0e06f3f81d8b6ff713935c22af25ac7a597b9c03467204683fcb35d"
+    },
+    "world_bank_us_gdp_per_capita": {
+      "version": 2,
+      "snapshot_sha256": "397d5ed6f4c242c7ccd9fcfd36aaf83c420dcd3e99d00ccae41df36dd9860ed5",
+      "metadata_sha256": "6db45d745f8b8f20b903f6d780135636592babcc9d73e806b02c2d3b8984f69c"
+    },
+    "world_bank_us_gdp_per_capita_ppp": {
+      "version": 1,
+      "snapshot_sha256": "59789e03863ee8285bc22d6d5dff3590249e94bc949dd1c6c4d87ba8867164f4",
+      "metadata_sha256": "23f2c2140e1647f0c3647851b63543cbd3cfc7b1cbca8e917a6e6c6c44de46b5"
+    },
+    "world_bank_us_gdp_per_capita_real": {
+      "version": 1,
+      "snapshot_sha256": "a2704a275f79112c64b83d66ffe973d615ca5cc56edfc088e3a819166adcb22a",
+      "metadata_sha256": "15bc4028d217714e9c7117cfb3910bd746c35b51124c50aa0e2c9aea2f0118d3"
+    },
+    "world_bank_us_gdp_total": {
+      "version": 1,
+      "snapshot_sha256": "f251dbe5e1950443d1194f0ff4535438b14ad04033674bb6e3cc0328560b8ed9",
+      "metadata_sha256": "f8b8bf7abe9832792034f051870a6840d021cdd03e43f870eb3c15345902b042"
+    }
+  }
+}

@@ -2,7 +2,8 @@ recipe_version: 1
 id: fred_unemployment
 name: U.S. unemployment rate
 description: Monthly U.S. civilian unemployment rate, seasonally adjusted, from FRED series UNRATE.
-business_context: Use for historical U.S. unemployment-rate questions. This snapshot covers January 2018 through December 2024.
+business_context: U.S. headline U-3 unemployment rate, seasonally adjusted. Not a count, unadjusted rate or broader U-6 measure. This snapshot covers January 2018 through December 2024.
+facets: {geography: United States, measure: 'U-3 unemployed people as a percentage of the civilian labor force', unit: percent, seasonal_adjustment: seasonally adjusted, frequency: monthly, coverage: '2018-01 through 2024-12'}
 concepts: [unemployment, unemployment rate, labor market]
 table_id: unemployment_rate
 columns:

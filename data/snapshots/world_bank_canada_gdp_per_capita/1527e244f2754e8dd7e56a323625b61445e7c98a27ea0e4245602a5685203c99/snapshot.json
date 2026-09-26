@@ -1,0 +1,13 @@
+{
+  "pipeline_version": 1,
+  "adapter": "rest_json",
+  "source_url": "https://api.worldbank.org/v2/country/CAN/indicator/NY.GDP.PCAP.CD",
+  "retrieved_at": "2026-09-26",
+  "source_sha256": "c198b0e7938bfdc89cc61f101e0c31c5bdf25ff0fe42293e1dfc001dd9d0c7d7",
+  "recipe_sha256": "c1dbeee0bbdfc27c8a7459e0db0d044f3e647dc52498a7c02a58d191a0f922f8",
+  "snapshot_sha256": "70cb761ae7bc309f5182317d759c4f2e017c3861a4af16d6600d4f900b8bf019",
+  "start": "2015",
+  "end": "2024",
+  "rows": 10,
+  "raw_file": "source.json"
+}

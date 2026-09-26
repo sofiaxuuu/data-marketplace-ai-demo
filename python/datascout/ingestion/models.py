@@ -55,6 +55,21 @@ class Pagination(StrictModel):
     max_pages: int = Field(default=100, ge=1, le=1000)
 
 
+class FiscalPeriod(StrictModel):
+    fiscal_year: int = Field(ge=1900, le=2100)
+    fiscal_quarter: int | None = Field(default=None, ge=1, le=4)
+    start: date | None = None
+    end: date
+
+    @model_validator(mode="after")
+    def ordered(self):
+        if self.start and (self.start > self.end or not 60 <= (self.end - self.start).days <= 380):
+            raise ValueError("Invalid fiscal duration")
+        if self.fiscal_quarter and (not self.start or not 60 <= (self.end - self.start).days <= 110):
+            raise ValueError("Quarterly periods require exact three-month duration")
+        return self
+
+
 class Source(StrictModel):
     adapter: Literal["csv", "rest_json", "sec_xbrl"]
     url: str | None = None
@@ -73,6 +88,8 @@ class Source(StrictModel):
     filing_date: date | None = None
     currency: Literal["USD"] = "USD"
     period_ends: dict[int, date] = Field(default_factory=dict)
+    form: Literal["10-K", "10-Q"] = "10-K"
+    periods: list[FiscalPeriod] = Field(default_factory=list)
     metrics: dict[str, str] = Field(default_factory=dict)
     period_basis: str | None = None
 
@@ -83,8 +100,15 @@ class Source(StrictModel):
                 raise ValueError("EdgarTools manages SEC transport; do not configure HTTP options")
             if not self.cik or not self.accession or not re.fullmatch(r"\d{10}-\d{2}-\d{6}", self.accession) or not self.filing_date:
                 raise ValueError("SEC requires CIK, pinned accession and filing date")
-            if not self.period_ends or not self.metrics or not self.period_basis:
+            if not (self.period_ends or self.periods) or not self.metrics or not self.period_basis:
                 raise ValueError("SEC requires reviewed fiscal periods, concepts and period basis")
+            if self.period_ends and self.periods:
+                raise ValueError("Use either legacy annual ends or explicit periods")
+            if self.periods:
+                keys = [(p.fiscal_year, p.fiscal_quarter) for p in self.periods]
+                shapes = {(p.start is not None, p.fiscal_quarter is not None) for p in self.periods}
+                if len(keys) != len(set(keys)) or len(shapes) != 1:
+                    raise ValueError("Fiscal periods must be unique and use one consistent shape")
             if len(set(self.period_ends.values())) != len(self.period_ends):
                 raise ValueError("Fiscal period end dates must be unique")
             for key, concept in self.metrics.items():
@@ -96,7 +120,7 @@ class Source(StrictModel):
                 raise ValueError("Use a public HTTPS URL without credentials/query; put query values in params")
             if parsed.hostname not in self.allowed_hosts:
                 raise ValueError("Endpoint host must be explicitly approved in allowed_hosts")
-            if self.cik or self.accession or self.period_ends or self.metrics:
+            if self.cik or self.accession or self.period_ends or self.periods or self.metrics or self.form != "10-K":
                 raise ValueError("XBRL options require sec_xbrl")
             if any(re.search(r"token|secret|password|api.?key|authorization", key, re.I) for key in self.params):
                 raise ValueError("Use headers_env for credentials, not literal query parameters")
@@ -122,6 +146,7 @@ class Recipe(StrictModel):
     description: str
     business_context: str
     concepts: list[str]
+    facets: dict[str, str] = Field(default_factory=dict)
     table_id: str = Field(pattern=IDENTIFIER)
     columns: list[Column] = Field(min_length=1)
     source_name: str
@@ -143,7 +168,13 @@ class Recipe(StrictModel):
         if citation.scheme != "https" or not citation.hostname or citation.username or citation.password:
             raise ValueError("Source attribution must be a public HTTPS URL without credentials")
         if self.source.adapter == "sec_xbrl":
-            expected = [("fiscal_year", "INTEGER"), ("period_start", "DATE"), ("period_end", "DATE"), *[(key, "BIGINT") for key in self.source.metrics]]
+            periods = self.source.periods
+            expected = [("fiscal_year", "INTEGER")]
+            if periods and periods[0].fiscal_quarter:
+                expected.append(("fiscal_quarter", "INTEGER"))
+            if not periods or periods[0].start:
+                expected.append(("period_start", "DATE"))
+            expected += [("period_end", "DATE"), *[(key, "BIGINT") for key in self.source.metrics]]
             if [(col.name, col.type) for col in self.columns] != expected:
                 raise ValueError("SEC columns must match configured metric order and types")
         elif any(not col.paths for col in self.columns):

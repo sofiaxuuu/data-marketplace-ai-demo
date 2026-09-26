@@ -1,0 +1,876 @@
+{
+  "benchmark_version": 2,
+  "name": "Competing-product retrieval benchmark",
+  "label_status": "Agent-authored; snapshot/schema-verified; human semantic review pending",
+  "scope": "Catalog retrieval only: no automatic clarification, abstention or SQL quality score",
+  "cases": [
+    {
+      "id": "positive_01",
+      "split": "development",
+      "family": "labor_definition",
+      "question": "What share of the U.S. civilian labor force was unemployed in April 2020, after seasonal adjustment?",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "fred_unemployment"
+      ],
+      "label_reason": "Use headline U-3 percentage, not people counts or broader underutilization.",
+      "evidence": {
+        "product_id": "fred_unemployment",
+        "column": "unemployment_rate",
+        "key": {
+          "observation_date": "2020-04-01"
+        }
+      }
+    },
+    {
+      "id": "positive_02",
+      "split": "held_out",
+      "family": "labor_change",
+      "question": "Track the change in the seasonally adjusted headline jobless percentage in the United States between January and December 2024.",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "fred_unemployment"
+      ],
+      "label_reason": "Both monthly endpoints are covered; change concerns U-3, not U-6.",
+      "evidence": {
+        "product_id": "fred_unemployment",
+        "column": "unemployment_rate",
+        "key": {
+          "observation_date": "2024-12-01"
+        }
+      }
+    },
+    {
+      "id": "positive_03",
+      "split": "development",
+      "family": "labor_calendar",
+      "question": "What was the actual U.S. U-3 rate for July 2023 without removing seasonal patterns?",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "fred_unemployment_unadjusted"
+      ],
+      "label_reason": "Explicitly unadjusted U-3 excludes the adjusted rate.",
+      "evidence": {
+        "product_id": "fred_unemployment_unadjusted",
+        "column": "unemployment_rate",
+        "key": {
+          "observation_date": "2023-07-01"
+        }
+      }
+    },
+    {
+      "id": "positive_04",
+      "split": "held_out",
+      "family": "labor_seasonality",
+      "question": "I am studying recurring summer hiring patterns: give the raw monthly percentage of the U.S. labor force unemployed during 2024, rather than a seasonally smoothed series.",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "fred_unemployment_unadjusted"
+      ],
+      "label_reason": "Retaining seasonality requires the unadjusted series.",
+      "evidence": {
+        "product_id": "fred_unemployment_unadjusted",
+        "column": "unemployment_rate",
+        "key": {
+          "observation_date": "2024-01-01"
+        }
+      }
+    },
+    {
+      "id": "positive_05",
+      "split": "development",
+      "family": "labor_population",
+      "question": "How many Americans were unemployed in April 2020? I want a headcount, not a percentage.",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "fred_unemployment_count"
+      ],
+      "label_reason": "UNEMPLOY measures people in thousands; conversion to persons is a later execution task.",
+      "evidence": {
+        "product_id": "fred_unemployment_count",
+        "column": "unemployed_thousands",
+        "key": {
+          "observation_date": "2020-04-01"
+        }
+      }
+    },
+    {
+      "id": "positive_06",
+      "split": "held_out",
+      "family": "labor_level_change",
+      "question": "Find the seasonally adjusted change in the number of unemployed U.S. workers from December 2019 to December 2024, reported in thousands.",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "fred_unemployment_count"
+      ],
+      "label_reason": "Difference of population levels uses count series, not rate points.",
+      "evidence": {
+        "product_id": "fred_unemployment_count",
+        "column": "unemployed_thousands",
+        "key": {
+          "observation_date": "2024-12-01"
+        }
+      }
+    },
+    {
+      "id": "positive_07",
+      "split": "development",
+      "family": "labor_involuntary",
+      "question": "In December 2024, what U.S. rate includes workers forced into part-time jobs and people marginally attached to the labor force, seasonally adjusted?",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "fred_underemployment_u6"
+      ],
+      "label_reason": "The stated population is U-6, not the civilian U-3 headline rate.",
+      "evidence": {
+        "product_id": "fred_underemployment_u6",
+        "column": "underemployment_rate",
+        "key": {
+          "observation_date": "2024-12-01"
+        }
+      }
+    },
+    {
+      "id": "positive_08",
+      "split": "held_out",
+      "family": "labor_broad_trend",
+      "question": "Trace broad U.S. labor underutilization through the pandemic in 2020, including involuntary part-time and discouraged workers, with seasonal effects removed.",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "fred_underemployment_u6"
+      ],
+      "label_reason": "Broader labor underutilization defines U-6; full 2020 monthly coverage exists.",
+      "evidence": {
+        "product_id": "fred_underemployment_u6",
+        "column": "underemployment_rate",
+        "key": {
+          "observation_date": "2020-04-01"
+        }
+      }
+    },
+    {
+      "id": "positive_09",
+      "split": "development",
+      "family": "gdp_nominal_person",
+      "question": "What was U.S. economic output per resident in 2019, valued at that year's prices in U.S. dollars?",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "world_bank_us_gdp_per_capita"
+      ],
+      "label_reason": "Nominal output per person excludes total output, constant prices and international dollars.",
+      "evidence": {
+        "product_id": "world_bank_us_gdp_per_capita",
+        "column": "gdp_per_capita_usd",
+        "key": {
+          "year": 2019
+        }
+      }
+    },
+    {
+      "id": "positive_10",
+      "split": "held_out",
+      "family": "gdp_nominal_growth",
+      "question": "Measure the 2015–2024 growth in U.S. GDP per capita in current dollars, allowing inflation to remain in the comparison.",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "world_bank_us_gdp_per_capita"
+      ],
+      "label_reason": "Explicit inclusion of price changes requires current-dollar per-capita GDP.",
+      "evidence": {
+        "product_id": "world_bank_us_gdp_per_capita",
+        "column": "gdp_per_capita_usd",
+        "key": {
+          "year": 2024
+        }
+      }
+    },
+    {
+      "id": "positive_11",
+      "split": "development",
+      "family": "gdp_total",
+      "question": "How large was the entire U.S. economy in 2023, measured by GDP in current U.S. dollars rather than per person?",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "world_bank_us_gdp_total"
+      ],
+      "label_reason": "Total nominal GDP is not a per-capita measure.",
+      "evidence": {
+        "product_id": "world_bank_us_gdp_total",
+        "column": "gdp_usd",
+        "key": {
+          "year": 2023
+        }
+      }
+    },
+    {
+      "id": "positive_12",
+      "split": "held_out",
+      "family": "gdp_total_path",
+      "question": "Build a 2015–2024 series of aggregate American economic output at prevailing prices for a chart of nominal economy size.",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "world_bank_us_gdp_total"
+      ],
+      "label_reason": "Aggregate prevailing-price output selects total current-dollar GDP.",
+      "evidence": {
+        "product_id": "world_bank_us_gdp_total",
+        "column": "gdp_usd",
+        "key": {
+          "year": 2015
+        }
+      }
+    },
+    {
+      "id": "positive_13",
+      "split": "development",
+      "family": "gdp_price_control",
+      "question": "Did U.S. output per person rise between 2015 and 2024 after removing inflation? Use 2015 U.S. dollars.",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "world_bank_us_gdp_per_capita_real"
+      ],
+      "label_reason": "Constant 2015 USD isolates real per-person output, not PPP.",
+      "evidence": {
+        "product_id": "world_bank_us_gdp_per_capita_real",
+        "column": "gdp_per_capita_usd",
+        "key": {
+          "year": 2024
+        }
+      }
+    },
+    {
+      "id": "positive_14",
+      "split": "held_out",
+      "family": "gdp_real_recovery",
+      "question": "Compare American GDP per capita in 2019 and 2021 on the same 2015-dollar price basis to study the real recovery.",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "world_bank_us_gdp_per_capita_real"
+      ],
+      "label_reason": "Identical constant-price basis is required for real comparison.",
+      "evidence": {
+        "product_id": "world_bank_us_gdp_per_capita_real",
+        "column": "gdp_per_capita_usd",
+        "key": {
+          "year": 2021
+        }
+      }
+    },
+    {
+      "id": "positive_15",
+      "split": "development",
+      "family": "gdp_ppp",
+      "question": "What was U.S. GDP per capita in 2022 in purchasing-power-parity international dollars?",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "world_bank_us_gdp_per_capita_ppp"
+      ],
+      "label_reason": "PPP international dollars are not market-exchange-rate USD.",
+      "evidence": {
+        "product_id": "world_bank_us_gdp_per_capita_ppp",
+        "column": "gdp_per_capita_international_dollars",
+        "key": {
+          "year": 2022
+        }
+      }
+    },
+    {
+      "id": "positive_16",
+      "split": "held_out",
+      "family": "gdp_purchasing_power",
+      "question": "Prepare America's 2015–2024 output-per-person series on a current international-dollar basis for purchasing-power comparisons; do not use constant 2015 USD.",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "world_bank_us_gdp_per_capita_ppp"
+      ],
+      "label_reason": "Purchasing-power conversion selects PPP, despite the USD distractor.",
+      "evidence": {
+        "product_id": "world_bank_us_gdp_per_capita_ppp",
+        "column": "gdp_per_capita_international_dollars",
+        "key": {
+          "year": 2015
+        }
+      }
+    },
+    {
+      "id": "positive_17",
+      "split": "development",
+      "family": "gdp_geography",
+      "question": "Report Canada's economic output per person in 2020 in current U.S. dollars, not Canadian dollars.",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "world_bank_canada_gdp_per_capita"
+      ],
+      "label_reason": "Geography is Canada; currency remains USD.",
+      "evidence": {
+        "product_id": "world_bank_canada_gdp_per_capita",
+        "column": "gdp_per_capita_usd",
+        "key": {
+          "year": 2020
+        }
+      }
+    },
+    {
+      "id": "positive_18",
+      "split": "held_out",
+      "family": "gdp_canadian_change",
+      "question": "How did nominal Canadian GDP per capita change from 2015 to 2024 when expressed in USD?",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "world_bank_canada_gdp_per_capita"
+      ],
+      "label_reason": "Canadian geography excludes the otherwise matching U.S. indicator.",
+      "evidence": {
+        "product_id": "world_bank_canada_gdp_per_capita",
+        "column": "gdp_per_capita_usd",
+        "key": {
+          "year": 2024
+        }
+      }
+    },
+    {
+      "id": "positive_19",
+      "split": "development",
+      "family": "apple_annual_margin",
+      "question": "Calculate Apple's consolidated gross margin for FY2024 using annual net sales and gross profit, not its Q3 results.",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "sec_apple_income_statement"
+      ],
+      "label_reason": "Annual income contains revenue and gross profit for this derived task.",
+      "evidence": {
+        "product_id": "sec_apple_income_statement",
+        "column": "gross_profit_usd",
+        "key": {
+          "fiscal_year": 2024
+        }
+      }
+    },
+    {
+      "id": "positive_20",
+      "split": "held_out",
+      "family": "apple_annual_earnings",
+      "question": "Compare Apple's FY2022 and FY2023 annual operating income to net income. Do not substitute cash generated from operations.",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "sec_apple_income_statement"
+      ],
+      "label_reason": "Income metrics differ from operating cash flow; fiscal years are covered.",
+      "evidence": {
+        "product_id": "sec_apple_income_statement",
+        "column": "operating_income_usd",
+        "key": {
+          "fiscal_year": 2023
+        }
+      }
+    },
+    {
+      "id": "positive_21",
+      "split": "development",
+      "family": "apple_cash_vs_profit",
+      "question": "How much cash did Apple generate from operations during FY2024, rather than its accounting net income?",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "sec_apple_cash_flow"
+      ],
+      "label_reason": "Operating cash flow is not operating income or net income.",
+      "evidence": {
+        "product_id": "sec_apple_cash_flow",
+        "column": "operating_cash_flow_usd",
+        "key": {
+          "fiscal_year": 2024
+        }
+      }
+    },
+    {
+      "id": "positive_22",
+      "split": "held_out",
+      "family": "apple_cash_financing",
+      "question": "Compare Apple's cash flows from investing and financing in FY2022–FY2024, preserving the signs of outflows.",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "sec_apple_cash_flow"
+      ],
+      "label_reason": "Annual investing and financing cash flows are available; signs must be retained.",
+      "evidence": {
+        "product_id": "sec_apple_cash_flow",
+        "column": "financing_cash_flow_usd",
+        "key": {
+          "fiscal_year": 2022
+        }
+      }
+    },
+    {
+      "id": "positive_23",
+      "split": "development",
+      "family": "apple_financial_position",
+      "question": "What were Apple's total assets and total liabilities at the FY2024 balance-sheet date?",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "sec_apple_balance_sheet"
+      ],
+      "label_reason": "Instant balance-sheet positions are not annual income or cash flows.",
+      "evidence": {
+        "product_id": "sec_apple_balance_sheet",
+        "column": "assets_usd",
+        "key": {
+          "fiscal_year": 2024
+        }
+      }
+    },
+    {
+      "id": "positive_24",
+      "split": "held_out",
+      "family": "apple_equity_change",
+      "question": "Compare Apple's shareholders' equity at September 30, 2023 and September 28, 2024.",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "sec_apple_balance_sheet"
+      ],
+      "label_reason": "Both exact instant dates are represented in the balance sheet.",
+      "evidence": {
+        "product_id": "sec_apple_balance_sheet",
+        "column": "equity_usd",
+        "key": {
+          "fiscal_year": 2023
+        }
+      }
+    },
+    {
+      "id": "positive_25",
+      "split": "development",
+      "family": "apple_quarter_margin",
+      "question": "Calculate Apple's gross margin for Q3 FY2024 from the three-month revenue and gross profit, excluding nine-month totals.",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "sec_apple_quarterly_income_statement"
+      ],
+      "label_reason": "Exact Q3 duration excludes annual and YTD statement contexts.",
+      "evidence": {
+        "product_id": "sec_apple_quarterly_income_statement",
+        "column": "gross_profit_usd",
+        "key": {
+          "fiscal_year": 2024,
+          "fiscal_quarter": 3
+        }
+      }
+    },
+    {
+      "id": "positive_26",
+      "split": "held_out",
+      "family": "apple_quarter_earnings",
+      "question": "How did Apple's net income for the three months ended June 29, 2024 compare with the three months ended July 1, 2023?",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "sec_apple_quarterly_income_statement"
+      ],
+      "label_reason": "The filing supplies those two comparative fiscal Q3 periods.",
+      "evidence": {
+        "product_id": "sec_apple_quarterly_income_statement",
+        "column": "net_income_usd",
+        "key": {
+          "fiscal_year": 2023,
+          "fiscal_quarter": 3
+        }
+      }
+    },
+    {
+      "id": "positive_27",
+      "split": "development",
+      "family": "microsoft_income",
+      "question": "What was Microsoft's consolidated revenue for its fiscal year ended June 30, 2024?",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "sec_microsoft_income_statement"
+      ],
+      "label_reason": "Microsoft June-end annual revenue excludes Apple and cash flows.",
+      "evidence": {
+        "product_id": "sec_microsoft_income_statement",
+        "column": "revenue_usd",
+        "key": {
+          "fiscal_year": 2024
+        }
+      }
+    },
+    {
+      "id": "positive_28",
+      "split": "held_out",
+      "family": "microsoft_profit_mix",
+      "question": "Compare Microsoft's annual operating income and net income across FY2022–FY2024, rather than operating cash generated.",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "sec_microsoft_income_statement"
+      ],
+      "label_reason": "Both accounting earnings fields exist in the Microsoft annual income statement.",
+      "evidence": {
+        "product_id": "sec_microsoft_income_statement",
+        "column": "net_income_usd",
+        "key": {
+          "fiscal_year": 2022
+        }
+      }
+    },
+    {
+      "id": "positive_29",
+      "split": "development",
+      "family": "microsoft_cash",
+      "question": "How much cash did Microsoft generate from operations in FY2023, not its operating profit?",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "sec_microsoft_cash_flow"
+      ],
+      "label_reason": "Microsoft operating cash flows differ from accounting operating income.",
+      "evidence": {
+        "product_id": "sec_microsoft_cash_flow",
+        "column": "operating_cash_flow_usd",
+        "key": {
+          "fiscal_year": 2023
+        }
+      }
+    },
+    {
+      "id": "positive_30",
+      "split": "held_out",
+      "family": "microsoft_cash_coverage",
+      "question": "Show Microsoft's annual net cash flows from investing and financing for the fiscal years ending June 2022 through June 2024.",
+      "expected_outcome": "select",
+      "expected_data_products": [
+        "sec_microsoft_cash_flow"
+      ],
+      "label_reason": "Microsoft annual cash-flow coverage includes these three fiscal years.",
+      "evidence": {
+        "product_id": "sec_microsoft_cash_flow",
+        "column": "investing_cash_flow_usd",
+        "key": {
+          "fiscal_year": 2024
+        }
+      }
+    },
+    {
+      "id": "clarify_01",
+      "split": "development",
+      "family": "clarification_1",
+      "question": "Which dataset should I use for the U.S. unemployment rate in April 2020?",
+      "expected_outcome": "clarify",
+      "expected_data_products": [
+        "fred_unemployment",
+        "fred_unemployment_unadjusted",
+        "fred_underemployment_u6"
+      ],
+      "label_reason": "Rate definition and seasonal adjustment unspecified."
+    },
+    {
+      "id": "clarify_02",
+      "split": "development",
+      "family": "clarification_2",
+      "question": "Show America's unemployment situation in 2024.",
+      "expected_outcome": "clarify",
+      "expected_data_products": [
+        "fred_unemployment",
+        "fred_unemployment_unadjusted",
+        "fred_unemployment_count",
+        "fred_underemployment_u6"
+      ],
+      "label_reason": "Rate versus count, population definition and seasonal basis need human choice."
+    },
+    {
+      "id": "clarify_03",
+      "split": "development",
+      "family": "clarification_3",
+      "question": "I need the U.S. U-3 unemployment percentage for July 2023.",
+      "expected_outcome": "clarify",
+      "expected_data_products": [
+        "fred_unemployment",
+        "fred_unemployment_unadjusted"
+      ],
+      "label_reason": "U-3 specified, but seasonal adjustment omitted."
+    },
+    {
+      "id": "clarify_04",
+      "split": "development",
+      "family": "clarification_4",
+      "question": "How many percentage points did the headline American unemployment rate move during 2024?",
+      "expected_outcome": "clarify",
+      "expected_data_products": [
+        "fred_unemployment",
+        "fred_unemployment_unadjusted"
+      ],
+      "label_reason": "Headline U-3 specified; adjusted versus raw rate remains open."
+    },
+    {
+      "id": "clarify_05",
+      "split": "development",
+      "family": "clarification_5",
+      "question": "Find the monthly series for unemployed Americans during 2020.",
+      "expected_outcome": "clarify",
+      "expected_data_products": [
+        "fred_unemployment",
+        "fred_unemployment_unadjusted",
+        "fred_unemployment_count"
+      ],
+      "label_reason": "Number versus share and seasonal adjustment are unspecified."
+    },
+    {
+      "id": "clarify_06",
+      "split": "development",
+      "family": "clarification_6",
+      "question": "What was U.S. GDP per capita in 2020?",
+      "expected_outcome": "clarify",
+      "expected_data_products": [
+        "world_bank_us_gdp_per_capita",
+        "world_bank_us_gdp_per_capita_real",
+        "world_bank_us_gdp_per_capita_ppp"
+      ],
+      "label_reason": "Price and currency-conversion basis unspecified."
+    },
+    {
+      "id": "clarify_07",
+      "split": "development",
+      "family": "clarification_7",
+      "question": "Has American output per person increased since 2015?",
+      "expected_outcome": "clarify",
+      "expected_data_products": [
+        "world_bank_us_gdp_per_capita",
+        "world_bank_us_gdp_per_capita_real",
+        "world_bank_us_gdp_per_capita_ppp"
+      ],
+      "label_reason": "Nominal, real and PPP growth answer different questions."
+    },
+    {
+      "id": "clarify_08",
+      "split": "development",
+      "family": "clarification_8",
+      "question": "Find U.S. GDP data for 2024.",
+      "expected_outcome": "clarify",
+      "expected_data_products": [
+        "world_bank_us_gdp_per_capita",
+        "world_bank_us_gdp_total",
+        "world_bank_us_gdp_per_capita_real",
+        "world_bank_us_gdp_per_capita_ppp"
+      ],
+      "label_reason": "Aggregate versus per-capita and price basis need clarification."
+    },
+    {
+      "id": "clarify_09",
+      "split": "held_out",
+      "family": "clarification_9",
+      "question": "I want output per person in current USD for 2023, but haven't chosen the country.",
+      "expected_outcome": "clarify",
+      "expected_data_products": [
+        "world_bank_us_gdp_per_capita",
+        "world_bank_canada_gdp_per_capita"
+      ],
+      "label_reason": "Country is missing; U.S. and Canada are both plausible."
+    },
+    {
+      "id": "clarify_10",
+      "split": "held_out",
+      "family": "clarification_10",
+      "question": "Which GDP measure can support a living-standards chart for the United States from 2015 to 2024?",
+      "expected_outcome": "clarify",
+      "expected_data_products": [
+        "world_bank_us_gdp_per_capita",
+        "world_bank_us_gdp_per_capita_real",
+        "world_bank_us_gdp_per_capita_ppp"
+      ],
+      "label_reason": "Living standards does not uniquely choose nominal, real or PPP basis."
+    },
+    {
+      "id": "clarify_11",
+      "split": "held_out",
+      "family": "clarification_11",
+      "question": "Find Apple's revenue data from its 2024 financial reports.",
+      "expected_outcome": "clarify",
+      "expected_data_products": [
+        "sec_apple_income_statement",
+        "sec_apple_quarterly_income_statement"
+      ],
+      "label_reason": "Annual versus Q3 duration unspecified."
+    },
+    {
+      "id": "clarify_12",
+      "split": "held_out",
+      "family": "clarification_12",
+      "question": "I need Apple's financial results for 2023 and 2024.",
+      "expected_outcome": "clarify",
+      "expected_data_products": [
+        "sec_apple_income_statement",
+        "sec_apple_cash_flow",
+        "sec_apple_balance_sheet",
+        "sec_apple_quarterly_income_statement"
+      ],
+      "label_reason": "Statement type and period basis unspecified."
+    },
+    {
+      "id": "clarify_13",
+      "split": "held_out",
+      "family": "clarification_13",
+      "question": "Show Apple's profitability in fiscal 2024.",
+      "expected_outcome": "clarify",
+      "expected_data_products": [
+        "sec_apple_income_statement",
+        "sec_apple_quarterly_income_statement"
+      ],
+      "label_reason": "Annual versus available fiscal Q3 earnings requires a choice."
+    },
+    {
+      "id": "clarify_14",
+      "split": "held_out",
+      "family": "clarification_14",
+      "question": "Find Microsoft's figures for operating performance in FY2024.",
+      "expected_outcome": "clarify",
+      "expected_data_products": [
+        "sec_microsoft_income_statement",
+        "sec_microsoft_cash_flow"
+      ],
+      "label_reason": "Operating earnings versus operating cash generation needs clarification."
+    },
+    {
+      "id": "clarify_15",
+      "split": "held_out",
+      "family": "clarification_15",
+      "question": "I need annual operating cash flow for FY2024, but haven't selected Apple or Microsoft.",
+      "expected_outcome": "clarify",
+      "expected_data_products": [
+        "sec_apple_cash_flow",
+        "sec_microsoft_cash_flow"
+      ],
+      "label_reason": "Company is missing; both annual cash-flow products cover the year."
+    },
+    {
+      "id": "unavailable_01",
+      "split": "development",
+      "family": "unavailable_1",
+      "question": "What was Canada's monthly unemployment rate in April 2020?",
+      "expected_outcome": "abstain",
+      "expected_data_products": [],
+      "label_reason": "No Canadian labor series."
+    },
+    {
+      "id": "unavailable_02",
+      "split": "development",
+      "family": "unavailable_2",
+      "question": "Give U.S. initial jobless claims for December 2024.",
+      "expected_outcome": "abstain",
+      "expected_data_products": [],
+      "label_reason": "No jobless-claims product; unemployment rate is not claims."
+    },
+    {
+      "id": "unavailable_03",
+      "split": "development",
+      "family": "unavailable_3",
+      "question": "What was the U.S. labor-force participation rate in 2020?",
+      "expected_outcome": "abstain",
+      "expected_data_products": [],
+      "label_reason": "No participation series."
+    },
+    {
+      "id": "unavailable_04",
+      "split": "development",
+      "family": "unavailable_4",
+      "question": "Report seasonally adjusted U.S. U-3 unemployment for January 2015.",
+      "expected_outcome": "abstain",
+      "expected_data_products": [],
+      "label_reason": "Labor snapshots begin in 2018."
+    },
+    {
+      "id": "unavailable_05",
+      "split": "development",
+      "family": "unavailable_5",
+      "question": "Find Germany's nominal GDP per capita in 2023.",
+      "expected_outcome": "abstain",
+      "expected_data_products": [],
+      "label_reason": "No German GDP snapshot."
+    },
+    {
+      "id": "unavailable_06",
+      "split": "development",
+      "family": "unavailable_6",
+      "question": "What was U.S. GDP per capita in 2010 in current USD?",
+      "expected_outcome": "abstain",
+      "expected_data_products": [],
+      "label_reason": "All active GDP snapshots begin in 2015; archived data is not active catalog coverage."
+    },
+    {
+      "id": "unavailable_07",
+      "split": "development",
+      "family": "unavailable_7",
+      "question": "Give Canada's GDP per capita in inflation-adjusted 2015 dollars for 2024.",
+      "expected_outcome": "abstain",
+      "expected_data_products": [],
+      "label_reason": "Canada current USD exists, but Canadian real GDP does not."
+    },
+    {
+      "id": "unavailable_08",
+      "split": "held_out",
+      "family": "unavailable_8",
+      "question": "Find quarterly U.S. GDP per capita for Q2 2024.",
+      "expected_outcome": "abstain",
+      "expected_data_products": [],
+      "label_reason": "Only annual World Bank GDP snapshots."
+    },
+    {
+      "id": "unavailable_09",
+      "split": "held_out",
+      "family": "unavailable_9",
+      "question": "What was India's PPP GDP per capita in 2022?",
+      "expected_outcome": "abstain",
+      "expected_data_products": [],
+      "label_reason": "PPP product covers United States only."
+    },
+    {
+      "id": "unavailable_10",
+      "split": "held_out",
+      "family": "unavailable_10",
+      "question": "What were Apple's total assets at the end of FY2022?",
+      "expected_outcome": "abstain",
+      "expected_data_products": [],
+      "label_reason": "Balance-sheet snapshot covers FY2023–FY2024 only."
+    },
+    {
+      "id": "unavailable_11",
+      "split": "held_out",
+      "family": "unavailable_11",
+      "question": "Show Apple's Q1 FY2024 revenue.",
+      "expected_outcome": "abstain",
+      "expected_data_products": [],
+      "label_reason": "Only Q3 quarterly income is captured."
+    },
+    {
+      "id": "unavailable_12",
+      "split": "held_out",
+      "family": "unavailable_12",
+      "question": "Report Microsoft's quarterly revenue for Q3 FY2024.",
+      "expected_outcome": "abstain",
+      "expected_data_products": [],
+      "label_reason": "Microsoft income is annual only."
+    },
+    {
+      "id": "unavailable_13",
+      "split": "held_out",
+      "family": "unavailable_13",
+      "question": "What were Microsoft's total assets at June 30, 2024?",
+      "expected_outcome": "abstain",
+      "expected_data_products": [],
+      "label_reason": "No Microsoft balance-sheet product."
+    },
+    {
+      "id": "unavailable_14",
+      "split": "held_out",
+      "family": "unavailable_14",
+      "question": "Compare Apple's and Microsoft's net income for FY2024 in a single-source answer.",
+      "expected_outcome": "abstain",
+      "expected_data_products": [],
+      "label_reason": "Requires two company products; v1 remains single-source."
+    },
+    {
+      "id": "unavailable_15",
+      "split": "held_out",
+      "family": "unavailable_15",
+      "question": "Calculate Apple's annual operating cash flow divided by annual net income in FY2024 using one data product.",
+      "expected_outcome": "abstain",
+      "expected_data_products": [],
+      "label_reason": "Requires cash-flow and income products; no single product contains both."
+    }
+  ]
+}

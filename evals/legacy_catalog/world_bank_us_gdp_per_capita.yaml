@@ -1,0 +1,23 @@
+id: world_bank_us_gdp_per_capita
+version: 1
+name: U.S. GDP per capita
+description: Annual U.S. GDP per capita in current U.S. dollars from World Bank indicator NY.GDP.PCAP.CD.
+business_context: Use for historical U.S. GDP-per-capita questions. The local snapshot covers 2000 through 2024.
+concepts:
+  - GDP per capita
+  - economic output per person
+tables:
+  - id: gdp_per_capita
+    path: data/sample_datasets/world_bank_us_gdp_per_capita/gdp_per_capita.parquet
+    columns:
+      - name: year
+        type: INTEGER
+        description: Calendar year of the indicator observation
+      - name: gdp_per_capita_usd
+        type: DOUBLE
+        unit: current USD
+        description: GDP per capita in current U.S. dollars
+source:
+  name: World Bank Indicators API
+  url: https://api.worldbank.org/v2/country/USA/indicator/NY.GDP.PCAP.CD
+  snapshot_metadata: data/sample_datasets/world_bank_us_gdp_per_capita/snapshot.json

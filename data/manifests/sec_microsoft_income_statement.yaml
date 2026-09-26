@@ -1,0 +1,56 @@
+id: sec_microsoft_income_statement
+version: 1
+name: Microsoft annual income statement
+description: "Microsoft consolidated annual income statement, whole USD. Revenue,\
+  \ gross profit, operating income and net income. FY2022\u2013FY2024; not quarterly\
+  \ results. Microsoft fiscal years are not calendar years."
+business_context: "Microsoft consolidated annual income statement, whole USD. Revenue,\
+  \ gross profit, operating income and net income. FY2022\u2013FY2024; not quarterly\
+  \ results. Microsoft fiscal years are not calendar years."
+concepts:
+- Microsoft
+- Revenue, gross profit, operating income and net income
+- whole USD
+- annual fiscal duration
+- July 1 through June 30 fiscal year
+- "FY2022\u2013FY2024"
+facets:
+  entity: Microsoft
+  measure: Revenue, gross profit, operating income and net income
+  unit: whole USD
+  frequency: annual fiscal duration
+  period_basis: July 1 through June 30 fiscal year
+  coverage: "FY2022\u2013FY2024"
+tables:
+- id: annual_income
+  path: data/snapshots/sec_microsoft_income_statement/5a55e8e86011ce0d04551aa5a8d54f7ceeacd6c532a15a79fb69a53baffecf0b/annual_income.parquet
+  columns:
+  - name: fiscal_year
+    type: INTEGER
+    description: Fiscal year, not calendar year
+  - name: period_start
+    type: DATE
+    description: Exact fiscal duration start
+  - name: period_end
+    type: DATE
+    description: Exact fiscal duration end
+  - name: revenue_usd
+    type: BIGINT
+    description: revenue usd consolidated whole dollars
+    unit: USD
+  - name: gross_profit_usd
+    type: BIGINT
+    description: gross profit usd consolidated whole dollars
+    unit: USD
+  - name: operating_income_usd
+    type: BIGINT
+    description: operating income usd consolidated whole dollars
+    unit: USD
+  - name: net_income_usd
+    type: BIGINT
+    description: net income usd consolidated whole dollars
+    unit: USD
+source:
+  name: SEC EDGAR via EdgarTools
+  url: https://www.sec.gov/Archives/edgar/data/789019/000095017024087843/msft-20240630.htm
+  snapshot_metadata: data/snapshots/sec_microsoft_income_statement/5a55e8e86011ce0d04551aa5a8d54f7ceeacd6c532a15a79fb69a53baffecf0b/snapshot.json

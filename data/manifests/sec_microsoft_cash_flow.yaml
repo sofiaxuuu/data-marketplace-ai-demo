@@ -1,0 +1,55 @@
+id: sec_microsoft_cash_flow
+version: 1
+name: Microsoft annual cash flow
+description: "Microsoft consolidated annual cash flow, whole USD. Net cash from operating,\
+  \ investing and financing activities; retain reported cash-flow signs. FY2022\u2013\
+  FY2024; not quarterly results. Microsoft fiscal years are not calendar years."
+business_context: "Microsoft consolidated annual cash flow, whole USD. Net cash from\
+  \ operating, investing and financing activities; retain reported cash-flow signs.\
+  \ FY2022\u2013FY2024; not quarterly results. Microsoft fiscal years are not calendar\
+  \ years."
+concepts:
+- Microsoft
+- Net cash from operating, investing and financing activities; retain reported cash-flow
+  signs
+- whole USD
+- annual fiscal duration
+- July 1 through June 30 fiscal year
+- "FY2022\u2013FY2024"
+facets:
+  entity: Microsoft
+  measure: Net cash from operating, investing and financing activities; retain reported
+    cash-flow signs
+  unit: whole USD
+  frequency: annual fiscal duration
+  period_basis: July 1 through June 30 fiscal year
+  coverage: "FY2022\u2013FY2024"
+tables:
+- id: annual_cash_flow
+  path: data/snapshots/sec_microsoft_cash_flow/ff0a12d7ee7b933ac8018f8bf99ac1292029b31afbc08138a0ddb48740ef1e24/annual_cash_flow.parquet
+  columns:
+  - name: fiscal_year
+    type: INTEGER
+    description: Fiscal year, not calendar year
+  - name: period_start
+    type: DATE
+    description: Exact fiscal duration start
+  - name: period_end
+    type: DATE
+    description: Exact fiscal duration end
+  - name: operating_cash_flow_usd
+    type: BIGINT
+    description: operating cash flow usd consolidated whole dollars
+    unit: USD
+  - name: investing_cash_flow_usd
+    type: BIGINT
+    description: investing cash flow usd consolidated whole dollars
+    unit: USD
+  - name: financing_cash_flow_usd
+    type: BIGINT
+    description: financing cash flow usd consolidated whole dollars
+    unit: USD
+source:
+  name: SEC EDGAR via EdgarTools
+  url: https://www.sec.gov/Archives/edgar/data/789019/000095017024087843/msft-20240630.htm
+  snapshot_metadata: data/snapshots/sec_microsoft_cash_flow/ff0a12d7ee7b933ac8018f8bf99ac1292029b31afbc08138a0ddb48740ef1e24/snapshot.json

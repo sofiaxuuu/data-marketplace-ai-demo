@@ -1,0 +1,109 @@
+{
+  "recipe_version": 1,
+  "id": "sec_microsoft_income_statement",
+  "name": "Microsoft annual income statement",
+  "description": "Microsoft consolidated annual income statement, whole USD. Revenue, gross profit, operating income and net income. FY2022–FY2024; not quarterly results. Microsoft fiscal years are not calendar years.",
+  "business_context": "Microsoft consolidated annual income statement, whole USD. Revenue, gross profit, operating income and net income. FY2022–FY2024; not quarterly results. Microsoft fiscal years are not calendar years.",
+  "concepts": [
+    "Microsoft",
+    "Revenue, gross profit, operating income and net income",
+    "whole USD",
+    "annual fiscal duration",
+    "July 1 through June 30 fiscal year",
+    "FY2022–FY2024"
+  ],
+  "facets": {
+    "entity": "Microsoft",
+    "measure": "Revenue, gross profit, operating income and net income",
+    "unit": "whole USD",
+    "frequency": "annual fiscal duration",
+    "period_basis": "July 1 through June 30 fiscal year",
+    "coverage": "FY2022–FY2024"
+  },
+  "table_id": "annual_income",
+  "columns": [
+    {
+      "name": "fiscal_year",
+      "type": "INTEGER",
+      "description": "Fiscal year, not calendar year"
+    },
+    {
+      "name": "period_start",
+      "type": "DATE",
+      "description": "Exact fiscal duration start"
+    },
+    {
+      "name": "period_end",
+      "type": "DATE",
+      "description": "Exact fiscal duration end"
+    },
+    {
+      "name": "revenue_usd",
+      "type": "BIGINT",
+      "unit": "USD",
+      "description": "revenue usd consolidated whole dollars"
+    },
+    {
+      "name": "gross_profit_usd",
+      "type": "BIGINT",
+      "unit": "USD",
+      "description": "gross profit usd consolidated whole dollars"
+    },
+    {
+      "name": "operating_income_usd",
+      "type": "BIGINT",
+      "unit": "USD",
+      "description": "operating income usd consolidated whole dollars"
+    },
+    {
+      "name": "net_income_usd",
+      "type": "BIGINT",
+      "unit": "USD",
+      "description": "net income usd consolidated whole dollars"
+    }
+  ],
+  "source_name": "SEC EDGAR via EdgarTools",
+  "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017024087843/msft-20240630.htm",
+  "source": {
+    "adapter": "sec_xbrl",
+    "cik": 789019,
+    "accession": "0000950170-24-087843",
+    "filing_date": "2024-07-30",
+    "form": "10-K",
+    "currency": "USD",
+    "period_basis": "July 1 through June 30 fiscal year",
+    "periods": [
+      {
+        "fiscal_year": 2022,
+        "start": "2021-07-01",
+        "end": "2022-06-30"
+      },
+      {
+        "fiscal_year": 2023,
+        "start": "2022-07-01",
+        "end": "2023-06-30"
+      },
+      {
+        "fiscal_year": 2024,
+        "start": "2023-07-01",
+        "end": "2024-06-30"
+      }
+    ],
+    "metrics": {
+      "revenue_usd": "us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax",
+      "gross_profit_usd": "us-gaap:GrossProfit",
+      "operating_income_usd": "us-gaap:OperatingIncomeLoss",
+      "net_income_usd": "us-gaap:NetIncomeLoss"
+    }
+  },
+  "unique_key": [
+    "fiscal_year"
+  ],
+  "coverage": {
+    "column": "fiscal_year",
+    "start": "2022",
+    "end": "2024",
+    "frequency": "annual"
+  },
+  "expected_rows": 3
+}

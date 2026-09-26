@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import CandidateInspector, { InspectProduct } from "./candidate-inspector";
 
 type TraceStep = { stage: string; result: string };
 type Product = {
@@ -33,7 +34,7 @@ type Answer = {
 };
 
 const example = "What was the U.S. unemployment rate in April 2020?";
-type CatalogProduct = { id: string; version: number; name: string };
+type CatalogProduct = InspectProduct;
 
 async function post<T>(path: string, body: object): Promise<T> {
   const response = await fetch(path, {
@@ -56,10 +57,20 @@ export default function Home() {
   const [catalog, setCatalog] = useState<CatalogProduct[]>([]);
 
   useEffect(() => {
-    fetch("/api/catalog")
-      .then((response) => (response.ok ? response.json() : []))
-      .then((items: CatalogProduct[]) => setCatalog(items))
-      .catch(() => setCatalog([]));
+    let active = true;
+    const refresh = () => fetch("/api/catalog", { cache: "no-store" })
+      .then((response) => {
+        if (!response.ok) throw new Error("Catalog unavailable");
+        return response.json();
+      })
+      .then((items: CatalogProduct[]) => {
+        if (active) setCatalog(previous => JSON.stringify(previous) === JSON.stringify(items) ? previous : items);
+      })
+      .catch(() => { if (active) setCatalog(previous => previous.length ? [] : previous); });
+    refresh();
+    const timer = window.setInterval(refresh, 30000);
+    window.addEventListener("focus", refresh);
+    return () => { active = false; window.clearInterval(timer); window.removeEventListener("focus", refresh); };
   }, []);
 
   async function analyze(event: FormEvent<HTMLFormElement>) {
@@ -106,7 +117,7 @@ export default function Home() {
     <main className="shell">
       <header className="topbar">
         <div className="brand"><span className="brand-mark">D<span>·</span></span><span>DataScout</span></div>
-        <span className="edition">LOCAL DATA LAB / V1 SLICE</span>
+        <a href="/benchmark-review">Review benchmark →</a>
       </header>
 
       <div className="workspace">
@@ -114,9 +125,13 @@ export default function Home() {
           <div className="intro">
             <p className="eyebrow">ASK THE DATA</p>
             <h1>Find the source. Then ask the question.</h1>
-            <p>Review the proposed dataset before DataScout runs a query against its local snapshot.</p>
+            <p>Compare overlapping local products and make an explicit source choice.</p>
           </div>
 
+          <CandidateInspector products={catalog} />
+
+          <h2>Limited execution baseline</h2>
+          <p>This separate workflow uses fixed U.S. seasonally adjusted U-3 unemployment and current-dollar GDP-per-capita templates. It does not choose among the expanded catalog.</p>
           <form onSubmit={analyze} className="question-card">
             <label htmlFor="question">Your question</label>
             <textarea
@@ -139,7 +154,7 @@ export default function Home() {
                 Try: U.S. unemployment in April 2020
               </button>
               <button type="submit" className="primary" disabled={busy !== null || !question.trim()}>
-                {busy === "preview" ? "Checking sources…" : "Find source"}
+                {busy === "preview" ? "Checking baseline…" : "Preview baseline query"}
               </button>
             </div>
           </form>
@@ -191,7 +206,7 @@ export default function Home() {
             <p className="eyebrow">CURRENT CATALOG</p>
             <h2>{catalog.length} local {catalog.length === 1 ? "product" : "products"}</h2>
             {catalog.length ? <ul className="catalog-list">{catalog.map((item) => <li key={item.id}>{item.name}</li>)}</ul> : <p>Catalog unavailable until the API starts.</p>}
-            <div className="catalog-note">Real observations saved as local Parquet snapshots. Apple SEC metadata is searchable; its question-execution adapter is next.</div>
+            <div className="catalog-note">Real observations saved as local Parquet snapshots. Catalog search and human inspection cover every product; execution remains limited to the two baseline templates.</div>
           </div>
           <div className="side-card trace-card">
             <p className="eyebrow">RUN TRACE</p>

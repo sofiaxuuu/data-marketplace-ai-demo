@@ -69,11 +69,17 @@ The caller is responsible for reviewing access rights, source terms and recipes.
   identity before skipping missing values.
 - `unique_key` rejects duplicates/null keys. Coverage can require complete
   monthly, annual or bounds-only coverage. `expected_rows` is optional.
-- `sec_xbrl`: configure CIK, exact accession, filing date, explicit fiscal-year
-  end dates and column-to-XBRL concept mappings. The reader uses annual
-  consolidated, non-dimensional USD whole-dollar facts. Conflicting totals,
-  missing concepts or inconsistent period starts fail. Other currencies,
-  quarterly statements and arbitrary fiscal durations are not yet supported.
+- `sec_xbrl`: configure CIK, exact accession, filing date, `form` (`10-K` or
+  `10-Q`) and column-to-XBRL concept mappings. Legacy `period_ends` supports
+  annual durations. New `periods` entries specify `fiscal_year`, `end`, optional
+  `start`, and optional `fiscal_quarter`: no start means an instant balance;
+  a quarter requires an exact 60–110-day duration. Every product uses one shape.
+  Exact dates distinguish quarter results from YTD totals. Only consolidated,
+  non-dimensional USD whole-dollar facts are accepted; conflicting totals,
+  missing concepts or inconsistent periods fail. Original reporting signs remain.
+- `facets` adds reviewed geography/entity, measure, units, adjustment, price
+  basis, frequency and coverage metadata to manifests and embedding documents.
+  Adding searchable metadata still does not create an execution adapter.
 
 ## Storage, replay and publication
 
@@ -112,7 +118,10 @@ with `PYTHONPATH=python`, without another source download.
 
 This is not an arbitrary web crawler. Only reviewed HTTPS hosts are accepted,
 private/reserved destinations are rejected, cross-host redirects are rejected,
-TLS stays enabled, and source responses are bounded to 20 MiB total. HTTP
+TLS stays enabled, and generic HTTP source responses are bounded to 20 MiB total. SEC
+transport is managed by EdgarTools; saved replay artifacts retain all contexts
+for configured concepts and are also bounded to 20 MiB. These are labeled
+extracted facts, not original HTTP response bytes. HTTP
 timeouts are 30 seconds and pagination defaults to at most 100 pages. Recipes
 are trusted local configuration: hostname checks are defense in depth, not a
 network sandbox for executing unreviewed, adversarial recipes.

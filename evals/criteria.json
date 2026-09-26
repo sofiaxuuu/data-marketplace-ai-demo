@@ -1,0 +1,13 @@
+{
+  "status": "provisional engineering targets, not user-approved acceptance requirements",
+  "split": "held_out",
+  "targets": {
+    "recall_at_1": {"minimum": 0.90},
+    "selection_accuracy": {"minimum": 0.90},
+    "abstention_accuracy": {"minimum": 0.95},
+    "false_selection_rate": {"maximum": 0.05},
+    "numeric_task_accuracy": {"minimum": 0.95},
+    "preview_p95_ms": {"maximum": 5000}
+  },
+  "notes": "Retrieval targets require SingleStore mode. Numeric accuracy is over all answerable cases, including blocked/failed execution. Small held-out sample means rates have coarse resolution. Cost is not gated until provider usage is instrumented."
+}

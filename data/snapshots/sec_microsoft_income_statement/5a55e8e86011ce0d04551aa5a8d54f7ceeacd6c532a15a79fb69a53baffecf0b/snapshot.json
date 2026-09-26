@@ -1,0 +1,25 @@
+{
+  "pipeline_version": 1,
+  "adapter": "sec_xbrl",
+  "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017024087843/msft-20240630.htm",
+  "retrieved_at": "2026-09-26",
+  "source_sha256": "84d06d2302490f0a62286695a2b393c0b7f211354057148b781ead09ca3ee8f9",
+  "recipe_sha256": "5c353a1774f24f8c45d04a49ceee534904280ab66a9174132220fe8d21b703ef",
+  "snapshot_sha256": "5503cedf1fdd41a113e679a8bf9586c25e400e3e5aee05541e2e5af86bfac97a",
+  "start": "2022",
+  "end": "2024",
+  "rows": 3,
+  "raw_file": "source.json",
+  "cik": 789019,
+  "accession": "0000950170-24-087843",
+  "filing_date": "2024-07-30",
+  "edgartools_version": "5.58.0",
+  "unit": "USD",
+  "period_basis": "July 1 through June 30 fiscal year",
+  "metric_concepts": {
+    "revenue_usd": "us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax",
+    "gross_profit_usd": "us-gaap:GrossProfit",
+    "operating_income_usd": "us-gaap:OperatingIncomeLoss",
+    "net_income_usd": "us-gaap:NetIncomeLoss"
+  }
+}

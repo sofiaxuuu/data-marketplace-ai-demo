@@ -1,0 +1,27 @@
+{
+  "finsearchcomp": {
+    "title": "FinSearchComp: Towards a Realistic, Expert-Level Evaluation of Financial Search and Reasoning",
+    "creators": "Liang Hu et al.; ByteDance Seed and Columbia Business School",
+    "repository": "https://github.com/randomtutu/FinSearchComp",
+    "paper": "https://arxiv.org/abs/2509.13160",
+    "dataset_url": "https://raw.githubusercontent.com/randomtutu/FinSearchComp/main/data/finsearchcomp_data.json",
+    "dataset_sha256": "6437a6dae907ec81002bd817dafc26c3e46e6b6edfde700f22645b1e2aa208c4",
+    "accessed_at": "2026-09-26",
+    "license": "CC-BY-4.0",
+    "license_url": "https://github.com/randomtutu/FinSearchComp/blob/main/LICENSE",
+    "changes": "Six question texts retained unchanged. DataScout local availability labels added. Original numeric answers are not used to score this local abstention task. No judge prompts or code imported.",
+    "published_references_for_audit_only": {
+      "(T2)Simple_Historical_Lookup_512": "3.5% to 3.7% accepted",
+      "(T2)Simple_Historical_Lookup_514": "$44575.6; rounding errors allowed",
+      "(T2)Simple_Historical_Lookup_576": "5.3% to 5.5% accepted",
+      "(T2)Simple_Historical_Lookup_615": "$104,038 million; rounding errors allowed",
+      "(T2)Simple_Historical_Lookup_616": "$-14,545 million or $14,545 million; rounding errors allowed",
+      "(T2)Simple_Historical_Lookup_617": "$93,353 million; rounding errors allowed"
+    }
+  },
+  "authored_cases": {
+    "kind": "agent-authored local evaluation cases",
+    "status": "Human label review pending; numeric gold values mechanically checked against frozen Parquet snapshots",
+    "note": "This is a small task-specific diagnostic benchmark, not an independent expert benchmark or an official FinSearchComp evaluation."
+  }
+}

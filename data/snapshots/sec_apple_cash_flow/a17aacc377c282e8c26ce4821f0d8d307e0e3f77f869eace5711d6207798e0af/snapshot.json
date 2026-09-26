@@ -1,0 +1,24 @@
+{
+  "pipeline_version": 1,
+  "adapter": "sec_xbrl",
+  "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019324000123/aapl-20240928.htm",
+  "retrieved_at": "2026-09-25",
+  "source_sha256": "27c6f7d9e2ccb5771c13355d716e19ef1fa4b84cc9774d137566ead6d83c0526",
+  "recipe_sha256": "c7452a666d49d5317b61b12932d3734e4b0cd9db29adf5a9a1513c598df2f905",
+  "snapshot_sha256": "76300753e189cad2ea2e18daec675581bbe05906f6cf8493232d5d41e9f2c661",
+  "start": "2022",
+  "end": "2024",
+  "rows": 3,
+  "raw_file": "source.json",
+  "cik": 320193,
+  "accession": "0000320193-24-000123",
+  "filing_date": "2024-11-01",
+  "edgartools_version": "5.58.0",
+  "unit": "USD",
+  "period_basis": "Apple September fiscal year",
+  "metric_concepts": {
+    "operating_cash_flow_usd": "us-gaap:NetCashProvidedByUsedInOperatingActivities",
+    "investing_cash_flow_usd": "us-gaap:NetCashProvidedByUsedInInvestingActivities",
+    "financing_cash_flow_usd": "us-gaap:NetCashProvidedByUsedInFinancingActivities"
+  }
+}

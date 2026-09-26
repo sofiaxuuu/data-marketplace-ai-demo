@@ -1,0 +1,102 @@
+{
+  "recipe_version": 1,
+  "id": "sec_microsoft_cash_flow",
+  "name": "Microsoft annual cash flow",
+  "description": "Microsoft consolidated annual cash flow, whole USD. Net cash from operating, investing and financing activities; retain reported cash-flow signs. FY2022–FY2024; not quarterly results. Microsoft fiscal years are not calendar years.",
+  "business_context": "Microsoft consolidated annual cash flow, whole USD. Net cash from operating, investing and financing activities; retain reported cash-flow signs. FY2022–FY2024; not quarterly results. Microsoft fiscal years are not calendar years.",
+  "concepts": [
+    "Microsoft",
+    "Net cash from operating, investing and financing activities; retain reported cash-flow signs",
+    "whole USD",
+    "annual fiscal duration",
+    "July 1 through June 30 fiscal year",
+    "FY2022–FY2024"
+  ],
+  "facets": {
+    "entity": "Microsoft",
+    "measure": "Net cash from operating, investing and financing activities; retain reported cash-flow signs",
+    "unit": "whole USD",
+    "frequency": "annual fiscal duration",
+    "period_basis": "July 1 through June 30 fiscal year",
+    "coverage": "FY2022–FY2024"
+  },
+  "table_id": "annual_cash_flow",
+  "columns": [
+    {
+      "name": "fiscal_year",
+      "type": "INTEGER",
+      "description": "Fiscal year, not calendar year"
+    },
+    {
+      "name": "period_start",
+      "type": "DATE",
+      "description": "Exact fiscal duration start"
+    },
+    {
+      "name": "period_end",
+      "type": "DATE",
+      "description": "Exact fiscal duration end"
+    },
+    {
+      "name": "operating_cash_flow_usd",
+      "type": "BIGINT",
+      "unit": "USD",
+      "description": "operating cash flow usd consolidated whole dollars"
+    },
+    {
+      "name": "investing_cash_flow_usd",
+      "type": "BIGINT",
+      "unit": "USD",
+      "description": "investing cash flow usd consolidated whole dollars"
+    },
+    {
+      "name": "financing_cash_flow_usd",
+      "type": "BIGINT",
+      "unit": "USD",
+      "description": "financing cash flow usd consolidated whole dollars"
+    }
+  ],
+  "source_name": "SEC EDGAR via EdgarTools",
+  "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017024087843/msft-20240630.htm",
+  "source": {
+    "adapter": "sec_xbrl",
+    "cik": 789019,
+    "accession": "0000950170-24-087843",
+    "filing_date": "2024-07-30",
+    "form": "10-K",
+    "currency": "USD",
+    "period_basis": "July 1 through June 30 fiscal year",
+    "periods": [
+      {
+        "fiscal_year": 2022,
+        "start": "2021-07-01",
+        "end": "2022-06-30"
+      },
+      {
+        "fiscal_year": 2023,
+        "start": "2022-07-01",
+        "end": "2023-06-30"
+      },
+      {
+        "fiscal_year": 2024,
+        "start": "2023-07-01",
+        "end": "2024-06-30"
+      }
+    ],
+    "metrics": {
+      "operating_cash_flow_usd": "us-gaap:NetCashProvidedByUsedInOperatingActivities",
+      "investing_cash_flow_usd": "us-gaap:NetCashProvidedByUsedInInvestingActivities",
+      "financing_cash_flow_usd": "us-gaap:NetCashProvidedByUsedInFinancingActivities"
+    }
+  },
+  "unique_key": [
+    "fiscal_year"
+  ],
+  "coverage": {
+    "column": "fiscal_year",
+    "start": "2022",
+    "end": "2024",
+    "frequency": "annual"
+  },
+  "expected_rows": 3
+}

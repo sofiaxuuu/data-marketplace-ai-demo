@@ -1,0 +1,36 @@
+id: world_bank_us_gdp_per_capita_real
+version: 1
+name: "U.S. GDP per capita \u2014 constant 2015 USD"
+description: "Economic output per person adjusted for inflation. Annual United States\
+  \ observations in constant 2015 USD, 2015\u20132024. constant 2015 prices."
+business_context: "Economic output per person adjusted for inflation. Annual United\
+  \ States observations in constant 2015 USD, 2015\u20132024. constant 2015 prices."
+concepts:
+- United States
+- Economic output per person adjusted for inflation
+- constant 2015 USD
+- constant 2015 prices
+- annual
+- "2015\u20132024"
+facets:
+  geography: United States
+  measure: Economic output per person adjusted for inflation
+  unit: constant 2015 USD
+  price_basis: constant 2015 prices
+  frequency: annual
+  coverage: "2015\u20132024"
+tables:
+- id: gdp
+  path: data/snapshots/world_bank_us_gdp_per_capita_real/04b0b173654394df7e61945b483e9aaa35ec0c1f00f6e12c5011b7784dbe1f64/gdp.parquet
+  columns:
+  - name: year
+    type: INTEGER
+    description: Calendar year
+  - name: gdp_per_capita_usd
+    type: DOUBLE
+    description: Economic output per person adjusted for inflation
+    unit: constant 2015 USD
+source:
+  name: World Bank Indicators API
+  url: https://api.worldbank.org/v2/country/USA/indicator/NY.GDP.PCAP.KD
+  snapshot_metadata: data/snapshots/world_bank_us_gdp_per_capita_real/04b0b173654394df7e61945b483e9aaa35ec0c1f00f6e12c5011b7784dbe1f64/snapshot.json

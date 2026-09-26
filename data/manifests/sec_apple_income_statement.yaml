@@ -1,48 +1,58 @@
 id: sec_apple_income_statement
-version: 1
+version: 2
 name: Apple annual income statement
-description: Consolidated Apple Inc. annual revenue, gross profit, operating income and net income from its FY2024 SEC 10-K, extracted with EdgarTools.
-business_context: Apple only, fiscal years 2022 through 2024, whole USD. Fiscal years end in September and are not calendar years. No quarterly, segment, balance sheet or cash flow data.
+description: Consolidated Apple Inc. annual revenue, gross profit, operating income
+  and net income from its FY2024 SEC 10-K, extracted with EdgarTools.
+business_context: Apple only, fiscal years 2022 through 2024, whole USD. Fiscal years
+  end in September and are not calendar years. No quarterly, segment, balance sheet
+  or cash flow data.
 concepts:
-  - Apple
-  - AAPL
-  - annual revenue
-  - net sales
-  - gross profit
-  - operating income
-  - net income
-  - income statement
-  - SEC 10-K
+- Apple
+- AAPL
+- annual revenue
+- net sales
+- gross profit
+- operating income
+- net income
+- income statement
+- SEC 10-K
+facets:
+  entity: Apple
+  measure: Revenue, gross profit, operating income and net income
+  unit: whole USD
+  frequency: annual fiscal duration
+  period_basis: Apple September fiscal year
+  coverage: "FY2022\u2013FY2024"
 tables:
-  - id: annual_income
-    path: data/sample_datasets/sec_apple_income_statement/income_statement.parquet
-    columns:
-      - name: fiscal_year
-        type: INTEGER
-        description: Apple fiscal year, not calendar year
-      - name: period_start
-        type: DATE
-        description: Exact start date of annual fiscal reporting period
-      - name: period_end
-        type: DATE
-        description: Exact end date of annual fiscal reporting period
-      - name: revenue_usd
-        type: BIGINT
-        unit: USD
-        description: Consolidated annual net sales, whole USD
-      - name: gross_profit_usd
-        type: BIGINT
-        unit: USD
-        description: Consolidated annual gross profit, whole USD
-      - name: operating_income_usd
-        type: BIGINT
-        unit: USD
-        description: Consolidated annual operating income, whole USD
-      - name: net_income_usd
-        type: BIGINT
-        unit: USD
-        description: Consolidated annual net income, whole USD
+- id: annual_income
+  path: data/snapshots/sec_apple_income_statement/551ee2fedbf147b1ef541a68e273c43c00108dcee411ea8abe0963c66fc73787/annual_income.parquet
+  columns:
+  - name: fiscal_year
+    type: INTEGER
+    description: Apple fiscal year, not calendar year
+  - name: period_start
+    type: DATE
+    description: Exact start date of annual fiscal reporting period
+  - name: period_end
+    type: DATE
+    description: Exact end date of annual fiscal reporting period
+  - name: revenue_usd
+    type: BIGINT
+    description: Consolidated annual net sales, whole USD
+    unit: USD
+  - name: gross_profit_usd
+    type: BIGINT
+    description: Consolidated annual gross profit, whole USD
+    unit: USD
+  - name: operating_income_usd
+    type: BIGINT
+    description: Consolidated annual operating income, whole USD
+    unit: USD
+  - name: net_income_usd
+    type: BIGINT
+    description: Consolidated annual net income, whole USD
+    unit: USD
 source:
   name: SEC EDGAR via EdgarTools
   url: https://www.sec.gov/Archives/edgar/data/320193/000032019324000123/aapl-20240928.htm
-  snapshot_metadata: data/sample_datasets/sec_apple_income_statement/snapshot.json
+  snapshot_metadata: data/snapshots/sec_apple_income_statement/551ee2fedbf147b1ef541a68e273c43c00108dcee411ea8abe0963c66fc73787/snapshot.json

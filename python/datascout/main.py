@@ -14,10 +14,13 @@ from .analysis import execute, preview
 from .catalog import ROOT, CatalogError, catalog
 from .embeddings import EmbeddingError
 from .retrieval import search
+from .inspection import public_product
+from .reviews import router as review_router
 from .singlestore import ConfigurationError
 
 
 app = FastAPI(title="DataScout API", version="0.1.0")
+app.include_router(review_router)
 logger = logging.getLogger("uvicorn.error")
 
 
@@ -54,12 +57,9 @@ def health() -> dict[str, str]:
 
 
 @app.get("/catalog")
-def get_catalog() -> list[dict[str, str | int]]:
+def get_catalog() -> list[dict]:
     try:
-        return [
-            {"id": item["id"], "version": item["version"], "name": item["name"]}
-            for item in catalog()
-        ]
+        return [public_product(item) for item in catalog()]
     except CatalogError as error:
         raise HTTPException(status_code=503, detail="Catalog unavailable; check the API logs.") from error
 

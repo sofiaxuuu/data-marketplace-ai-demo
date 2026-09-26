@@ -1,0 +1,36 @@
+id: world_bank_us_gdp_total
+version: 1
+name: "U.S. total GDP \u2014 current USD"
+description: "Total economic output, not per-person output. Annual United States observations\
+  \ in current USD, 2015\u20132024. current prices."
+business_context: "Total economic output, not per-person output. Annual United States\
+  \ observations in current USD, 2015\u20132024. current prices."
+concepts:
+- United States
+- Total economic output, not per-person output
+- current USD
+- current prices
+- annual
+- "2015\u20132024"
+facets:
+  geography: United States
+  measure: Total economic output, not per-person output
+  unit: current USD
+  price_basis: current prices
+  frequency: annual
+  coverage: "2015\u20132024"
+tables:
+- id: gdp
+  path: data/snapshots/world_bank_us_gdp_total/b3fd64d06ce5b222813945e9fe2d0070fb867eda817d95ef92d9f32eb626b358/gdp.parquet
+  columns:
+  - name: year
+    type: INTEGER
+    description: Calendar year
+  - name: gdp_usd
+    type: DOUBLE
+    description: Total economic output, not per-person output
+    unit: current USD
+source:
+  name: World Bank Indicators API
+  url: https://api.worldbank.org/v2/country/USA/indicator/NY.GDP.MKTP.CD
+  snapshot_metadata: data/snapshots/world_bank_us_gdp_total/b3fd64d06ce5b222813945e9fe2d0070fb867eda817d95ef92d9f32eb626b358/snapshot.json

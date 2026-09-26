@@ -1,0 +1,24 @@
+{
+  "pipeline_version": 1,
+  "adapter": "sec_xbrl",
+  "source_url": "https://www.sec.gov/Archives/edgar/data/789019/000095017024087843/msft-20240630.htm",
+  "retrieved_at": "2026-09-26",
+  "source_sha256": "ac85a4a038fe911c12575208f926353ae4262a4f55d200018ce594d89fd5dc3c",
+  "recipe_sha256": "5dfcdf6121964a8069fd391915fb2ea2ff5d7bfd2a932b806380594ee48a13d3",
+  "snapshot_sha256": "42b8f5953cb2fab7147b0291d7db0b67adf67e865af01f794d2efb6adc5f5a62",
+  "start": "2022",
+  "end": "2024",
+  "rows": 3,
+  "raw_file": "source.json",
+  "cik": 789019,
+  "accession": "0000950170-24-087843",
+  "filing_date": "2024-07-30",
+  "edgartools_version": "5.58.0",
+  "unit": "USD",
+  "period_basis": "July 1 through June 30 fiscal year",
+  "metric_concepts": {
+    "operating_cash_flow_usd": "us-gaap:NetCashProvidedByUsedInOperatingActivities",
+    "investing_cash_flow_usd": "us-gaap:NetCashProvidedByUsedInInvestingActivities",
+    "financing_cash_flow_usd": "us-gaap:NetCashProvidedByUsedInFinancingActivities"
+  }
+}

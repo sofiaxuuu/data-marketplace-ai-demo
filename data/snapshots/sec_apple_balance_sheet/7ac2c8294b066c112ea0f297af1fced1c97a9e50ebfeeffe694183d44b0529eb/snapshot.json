@@ -1,0 +1,24 @@
+{
+  "pipeline_version": 1,
+  "adapter": "sec_xbrl",
+  "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019324000123/aapl-20240928.htm",
+  "retrieved_at": "2026-09-25",
+  "source_sha256": "27c6f7d9e2ccb5771c13355d716e19ef1fa4b84cc9774d137566ead6d83c0526",
+  "recipe_sha256": "d2bfdfc997b483e8369a4e73454a73ae964106f002e870f662f74cecad6a9d40",
+  "snapshot_sha256": "a9cf8e2db1bde7cae8829680745d5966572f233fffe03cadfa11840db68a8367",
+  "start": "2023",
+  "end": "2024",
+  "rows": 2,
+  "raw_file": "source.json",
+  "cik": 320193,
+  "accession": "0000320193-24-000123",
+  "filing_date": "2024-11-01",
+  "edgartools_version": "5.58.0",
+  "unit": "USD",
+  "period_basis": "Apple September fiscal year",
+  "metric_concepts": {
+    "assets_usd": "us-gaap:Assets",
+    "liabilities_usd": "us-gaap:Liabilities",
+    "equity_usd": "us-gaap:StockholdersEquity"
+  }
+}

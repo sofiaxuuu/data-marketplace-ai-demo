@@ -1,0 +1,280 @@
+benchmark_version: 1
+name: DataScout snapshot-grounded selection benchmark
+label_status: agent-authored, mechanically snapshot-verified; human review pending
+cases:
+  - id: fred_001
+    split: development
+    category: answerable
+    question: What was the U.S. unemployment rate in January 2018?
+    expected_outcome: select
+    expected_data_products: [fred_unemployment]
+    label_reason: The monthly U.S. UNRATE observation is in the snapshot.
+    gold: {column: unemployment_rate, key: {observation_date: '2018-01-01'}, value: 4.0, unit: percent, absolute_tolerance: 0.000001}
+  - id: fred_002
+    split: development
+    category: answerable
+    question: What was the United States unemployment rate in December 2019?
+    expected_outcome: select
+    expected_data_products: [fred_unemployment]
+    label_reason: The monthly U.S. UNRATE observation is in the snapshot.
+    gold: {column: unemployment_rate, key: {observation_date: '2019-12-01'}, value: 3.6, unit: percent, absolute_tolerance: 0.000001}
+  - id: fred_003
+    split: development
+    category: answerable
+    question: What was the U.S. unemployment rate in April 2020?
+    expected_outcome: select
+    expected_data_products: [fred_unemployment]
+    label_reason: Known vertical-slice example, kept in development rather than held-out.
+    gold: {column: unemployment_rate, key: {observation_date: '2020-04-01'}, value: 14.8, unit: percent, absolute_tolerance: 0.000001}
+  - id: fred_004
+    split: development
+    category: answerable
+    question: Give the U.S. unemployment rate for June 2021.
+    expected_outcome: select
+    expected_data_products: [fred_unemployment]
+    label_reason: The monthly U.S. UNRATE observation is in the snapshot.
+    gold: {column: unemployment_rate, key: {observation_date: '2021-06-01'}, value: 5.9, unit: percent, absolute_tolerance: 0.000001}
+  - id: fred_005
+    split: held_out
+    category: answerable
+    question: For July 2023, report the civilian unemployment rate in the United States.
+    expected_outcome: select
+    expected_data_products: [fred_unemployment]
+    label_reason: The monthly U.S. UNRATE observation is in the snapshot.
+    gold: {column: unemployment_rate, key: {observation_date: '2023-07-01'}, value: 3.5, unit: percent, absolute_tolerance: 0.000001}
+  - id: fred_006
+    split: held_out
+    category: answerable
+    question: What percentage of the U.S. labor force was unemployed in December 2024?
+    expected_outcome: select
+    expected_data_products: [fred_unemployment]
+    label_reason: A paraphrase of the unemployment rate, not an unsupported measure.
+    gold: {column: unemployment_rate, key: {observation_date: '2024-12-01'}, value: 4.1, unit: percent, absolute_tolerance: 0.000001}
+  - id: wb_001
+    split: development
+    category: answerable
+    question: What was U.S. GDP per capita in 2000?
+    expected_outcome: select
+    expected_data_products: [world_bank_us_gdp_per_capita]
+    label_reason: Annual U.S. GDP per capita in current USD is in the snapshot.
+    gold: {column: gdp_per_capita_usd, key: {year: 2000}, value: 36329.9702595751, unit: current USD, absolute_tolerance: 0.000001}
+  - id: wb_002
+    split: development
+    category: answerable
+    question: Give the United States GDP per capita for 2008 in current U.S. dollars.
+    expected_outcome: select
+    expected_data_products: [world_bank_us_gdp_per_capita]
+    label_reason: Annual U.S. GDP per capita in current USD is in the snapshot.
+    gold: {column: gdp_per_capita_usd, key: {year: 2008}, value: 48570.0594269601, unit: current USD, absolute_tolerance: 0.000001}
+  - id: wb_003
+    split: development
+    category: answerable
+    question: What was GDP per capita in the USA in 2015?
+    expected_outcome: select
+    expected_data_products: [world_bank_us_gdp_per_capita]
+    label_reason: Annual U.S. GDP per capita in current USD is in the snapshot.
+    gold: {column: gdp_per_capita_usd, key: {year: 2015}, value: 56849.4697923159, unit: current USD, absolute_tolerance: 0.000001}
+  - id: wb_004
+    split: development
+    category: answerable
+    question: What was U.S. GDP per capita in 2020?
+    expected_outcome: select
+    expected_data_products: [world_bank_us_gdp_per_capita]
+    label_reason: Known vertical-slice example, kept in development rather than held-out.
+    gold: {column: gdp_per_capita_usd, key: {year: 2020}, value: 64465.2971415748, unit: current USD, absolute_tolerance: 0.000001}
+  - id: wb_005
+    split: held_out
+    category: answerable
+    question: What was economic output per person in the United States in 2023?
+    expected_outcome: select
+    expected_data_products: [world_bank_us_gdp_per_capita]
+    label_reason: A GDP-per-capita paraphrase, measured in current USD.
+    gold: {column: gdp_per_capita_usd, key: {year: 2023}, value: 82586.7847707894, unit: current USD, absolute_tolerance: 0.000001}
+  - id: wb_006
+    split: held_out
+    category: answerable
+    question: How many current U.S. dollars of GDP were produced per resident in 2024?
+    expected_outcome: select
+    expected_data_products: [world_bank_us_gdp_per_capita]
+    label_reason: A GDP-per-capita paraphrase with explicit geography and units.
+    gold: {column: gdp_per_capita_usd, key: {year: 2024}, value: 86169.6641581917, unit: current USD, absolute_tolerance: 0.000001}
+  - id: sec_001
+    split: development
+    category: answerable
+    question: What was Apple's consolidated revenue in fiscal year 2022?
+    expected_outcome: select
+    expected_data_products: [sec_apple_income_statement]
+    label_reason: Revenue is available in Apple's fiscal annual income statement.
+    gold: {column: revenue_usd, key: {fiscal_year: 2022}, value: 394328000000, unit: USD, absolute_tolerance: 0}
+  - id: sec_002
+    split: development
+    category: answerable
+    question: What was Apple revenue in fiscal year 2024?
+    expected_outcome: select
+    expected_data_products: [sec_apple_income_statement]
+    label_reason: Revenue is available even though the current execution adapter is missing.
+    gold: {column: revenue_usd, key: {fiscal_year: 2024}, value: 391035000000, unit: USD, absolute_tolerance: 0}
+  - id: sec_003
+    split: development
+    category: answerable
+    question: What was Apple's net income for fiscal year 2023?
+    expected_outcome: select
+    expected_data_products: [sec_apple_income_statement]
+    label_reason: Consolidated fiscal net income is available, in whole USD.
+    gold: {column: net_income_usd, key: {fiscal_year: 2023}, value: 96995000000, unit: USD, absolute_tolerance: 0}
+  - id: sec_004
+    split: development
+    category: answerable
+    question: How much operating income did Apple report for fiscal year 2024?
+    expected_outcome: select
+    expected_data_products: [sec_apple_income_statement]
+    label_reason: Consolidated fiscal operating income is available, in whole USD.
+    gold: {column: operating_income_usd, key: {fiscal_year: 2024}, value: 123216000000, unit: USD, absolute_tolerance: 0}
+  - id: sec_005
+    split: held_out
+    category: answerable
+    question: What was Apple's consolidated gross profit in fiscal year 2022?
+    expected_outcome: select
+    expected_data_products: [sec_apple_income_statement]
+    label_reason: Consolidated fiscal gross profit is available, in whole USD.
+    gold: {column: gross_profit_usd, key: {fiscal_year: 2022}, value: 170782000000, unit: USD, absolute_tolerance: 0}
+  - id: sec_006
+    split: held_out
+    category: answerable
+    question: How much did AAPL earn in net income for its fiscal year ending September 28, 2024?
+    expected_outcome: select
+    expected_data_products: [sec_apple_income_statement]
+    label_reason: The exact fiscal period end and net income are available.
+    gold: {column: net_income_usd, key: {fiscal_year: 2024}, value: 93736000000, unit: USD, absolute_tolerance: 0}
+  - id: negative_001
+    split: development
+    category: unavailable_geography
+    question: What was Canada's unemployment rate in April 2020?
+    expected_outcome: abstain
+    expected_data_products: []
+    label_reason: FRED sample covers only the United States.
+  - id: negative_002
+    split: development
+    category: unavailable_field
+    question: What was total U.S. GDP in 2020?
+    expected_outcome: abstain
+    expected_data_products: []
+    label_reason: GDP per capita cannot answer total GDP without unavailable population data.
+  - id: negative_003
+    split: development
+    category: unavailable_field
+    question: What was Apple's operating cash flow in fiscal year 2024?
+    expected_outcome: abstain
+    expected_data_products: []
+    label_reason: Income-statement snapshot has no cash flow statement.
+  - id: negative_004
+    split: development
+    category: no_match
+    question: What was U.S. CPI inflation in April 2020?
+    expected_outcome: abstain
+    expected_data_products: []
+    label_reason: No inflation product is in this catalog.
+  - id: negative_005
+    split: development
+    category: unavailable_coverage
+    question: What was the U.S. unemployment rate in April 2010?
+    expected_outcome: abstain
+    expected_data_products: []
+    label_reason: FRED sample starts in January 2018.
+  - id: negative_006
+    split: development
+    category: unavailable_coverage
+    question: What was U.S. GDP per capita in 2025?
+    expected_outcome: abstain
+    expected_data_products: []
+    label_reason: World Bank sample ends in 2024.
+  - id: negative_007
+    split: development
+    category: multi_product
+    question: Report the U.S. unemployment rate in April 2020 and U.S. GDP per capita in 2020.
+    expected_outcome: abstain
+    expected_data_products: []
+    label_reason: Requires two products, outside V1's single-product contract.
+  - id: negative_008
+    split: development
+    category: ambiguous
+    question: What was the unemployment rate in April 2020?
+    expected_outcome: abstain
+    expected_data_products: []
+    label_reason: Benchmark policy requires clarification when geography is unspecified.
+  - id: negative_009
+    split: held_out
+    category: unavailable_period_basis
+    question: What was Apple's calendar-year revenue for 2024?
+    expected_outcome: abstain
+    expected_data_products: []
+    label_reason: Apple fiscal-year totals are not calendar-year totals.
+  - id: negative_010
+    split: held_out
+    category: unavailable_field
+    question: What was Apple's iPhone revenue in fiscal year 2024?
+    expected_outcome: abstain
+    expected_data_products: []
+    label_reason: Consolidated revenue does not provide product-segment revenue.
+  - id: negative_011
+    split: held_out
+    category: multi_product
+    question: Compare Apple revenue in fiscal year 2024 with U.S. GDP per capita in 2024.
+    expected_outcome: abstain
+    expected_data_products: []
+    label_reason: Requires SEC and World Bank products, outside V1's contract.
+  - id: negative_012
+    split: held_out
+    category: ambiguous
+    question: What was the U.S. unemployment rate?
+    expected_outcome: abstain
+    expected_data_products: []
+    label_reason: No requested period; do not substitute today's rate or the snapshot's last row.
+  - id: finsearchcomp_512
+    split: development
+    category: unavailable_geography
+    question: In 2016, what was the unemployment as a percentage of the total labor force in South Korea? (answer in percentage, rounded to one decimal place)
+    expected_outcome: abstain
+    expected_data_products: []
+    label_reason: South Korea and 2016 are both outside the local FRED sample.
+    origin: {kind: finsearchcomp, source_id: '(T2)Simple_Historical_Lookup_512'}
+  - id: finsearchcomp_514
+    split: development
+    category: unavailable_geography
+    question: In 2020, what was the GDP per capita of Israel? (answer in dollars, rounded to one decimal place)
+    expected_outcome: abstain
+    expected_data_products: []
+    label_reason: World Bank sample contains only the United States, not Israel.
+    origin: {kind: finsearchcomp, source_id: '(T2)Simple_Historical_Lookup_514'}
+  - id: finsearchcomp_576
+    split: development
+    category: unavailable_geography
+    question: In August 2009, what was the unemployment rate of Japan? (answer in percentage, rounded to one decimal place)
+    expected_outcome: abstain
+    expected_data_products: []
+    label_reason: Japan and 2009 are both outside the local FRED sample.
+    origin: {kind: finsearchcomp, source_id: '(T2)Simple_Historical_Lookup_576'}
+  - id: finsearchcomp_615
+    split: development
+    category: unavailable_field
+    question: How much cash was generated from operating activities by Apple in the 2021 fiscal year?(answer in Millions of dollars, rounded to  nearest integer)
+    expected_outcome: abstain
+    expected_data_products: []
+    label_reason: Both operating cash flow and FY2021 are absent from the local Apple snapshot.
+    origin: {kind: finsearchcomp, source_id: '(T2)Simple_Historical_Lookup_615'}
+  - id: finsearchcomp_616
+    split: held_out
+    category: unavailable_field
+    question: How much cash was used in investing activities by Apple in the 2021 fiscal year?(answer in Millions of dollars, rounded to  nearest integer)
+    expected_outcome: abstain
+    expected_data_products: []
+    label_reason: Both investing cash flow and FY2021 are absent from the local Apple snapshot.
+    origin: {kind: finsearchcomp, source_id: '(T2)Simple_Historical_Lookup_616'}
+  - id: finsearchcomp_617
+    split: held_out
+    category: unavailable_field
+    question: How much cash was used in financing activities by Apple in the 2021 fiscal year?(answer in Millions of dollars, rounded to nearest integer)
+    expected_outcome: abstain
+    expected_data_products: []
+    label_reason: Both financing cash flow and FY2021 are absent from the local Apple snapshot.
+    origin: {kind: finsearchcomp, source_id: '(T2)Simple_Historical_Lookup_617'}

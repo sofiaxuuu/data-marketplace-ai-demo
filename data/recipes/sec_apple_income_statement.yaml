@@ -4,6 +4,7 @@ name: Apple annual income statement
 description: Consolidated Apple Inc. annual revenue, gross profit, operating income and net income from its FY2024 SEC 10-K, extracted with EdgarTools.
 business_context: Apple only, fiscal years 2022 through 2024, whole USD. Fiscal years end in September and are not calendar years. No quarterly, segment, balance sheet or cash flow data.
 concepts: [Apple, AAPL, annual revenue, net sales, gross profit, operating income, net income, income statement, SEC 10-K]
+facets: {entity: Apple, measure: 'Revenue, gross profit, operating income and net income', unit: whole USD, frequency: annual fiscal duration, period_basis: Apple September fiscal year, coverage: 'FY2022–FY2024'}
 table_id: annual_income
 columns:
   - {name: fiscal_year, type: INTEGER, description: 'Apple fiscal year, not calendar year'}

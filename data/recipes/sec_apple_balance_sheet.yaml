@@ -1,0 +1,90 @@
+{
+  "recipe_version": 1,
+  "id": "sec_apple_balance_sheet",
+  "name": "Apple balance sheet",
+  "description": "Apple consolidated balance sheet, whole USD. Total assets, total liabilities and shareholders' equity at fiscal year end. FY2023 and FY2024 fiscal-end balances; not duration flows. Apple fiscal years are not calendar years.",
+  "business_context": "Apple consolidated balance sheet, whole USD. Total assets, total liabilities and shareholders' equity at fiscal year end. FY2023 and FY2024 fiscal-end balances; not duration flows. Apple fiscal years are not calendar years.",
+  "concepts": [
+    "Apple",
+    "Total assets, total liabilities and shareholders' equity at fiscal year end",
+    "whole USD",
+    "annual fiscal-end instant",
+    "Apple September fiscal year",
+    "FY2023–FY2024"
+  ],
+  "facets": {
+    "entity": "Apple",
+    "measure": "Total assets, total liabilities and shareholders' equity at fiscal year end",
+    "unit": "whole USD",
+    "frequency": "annual fiscal-end instant",
+    "period_basis": "Apple September fiscal year",
+    "coverage": "FY2023–FY2024"
+  },
+  "table_id": "balance_sheet",
+  "columns": [
+    {
+      "name": "fiscal_year",
+      "type": "INTEGER",
+      "description": "Fiscal year, not calendar year"
+    },
+    {
+      "name": "period_end",
+      "type": "DATE",
+      "description": "Exact fiscal balance-sheet date"
+    },
+    {
+      "name": "assets_usd",
+      "type": "BIGINT",
+      "unit": "USD",
+      "description": "assets usd consolidated whole dollars"
+    },
+    {
+      "name": "liabilities_usd",
+      "type": "BIGINT",
+      "unit": "USD",
+      "description": "liabilities usd consolidated whole dollars"
+    },
+    {
+      "name": "equity_usd",
+      "type": "BIGINT",
+      "unit": "USD",
+      "description": "equity usd consolidated whole dollars"
+    }
+  ],
+  "source_name": "SEC EDGAR via EdgarTools",
+  "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019324000123/aapl-20240928.htm",
+  "source": {
+    "adapter": "sec_xbrl",
+    "cik": 320193,
+    "accession": "0000320193-24-000123",
+    "filing_date": "2024-11-01",
+    "form": "10-K",
+    "currency": "USD",
+    "period_basis": "Apple September fiscal year",
+    "periods": [
+      {
+        "fiscal_year": 2023,
+        "end": "2023-09-30"
+      },
+      {
+        "fiscal_year": 2024,
+        "end": "2024-09-28"
+      }
+    ],
+    "metrics": {
+      "assets_usd": "us-gaap:Assets",
+      "liabilities_usd": "us-gaap:Liabilities",
+      "equity_usd": "us-gaap:StockholdersEquity"
+    }
+  },
+  "unique_key": [
+    "fiscal_year"
+  ],
+  "coverage": {
+    "column": "fiscal_year",
+    "start": "2023",
+    "end": "2024",
+    "frequency": "annual"
+  },
+  "expected_rows": 2
+}

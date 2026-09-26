@@ -1,0 +1,102 @@
+{
+  "recipe_version": 1,
+  "id": "world_bank_us_gdp_total",
+  "name": "U.S. total GDP — current USD",
+  "description": "Total economic output, not per-person output. Annual United States observations in current USD, 2015–2024. current prices.",
+  "business_context": "Total economic output, not per-person output. Annual United States observations in current USD, 2015–2024. current prices.",
+  "concepts": [
+    "United States",
+    "Total economic output, not per-person output",
+    "current USD",
+    "current prices",
+    "annual",
+    "2015–2024"
+  ],
+  "facets": {
+    "geography": "United States",
+    "measure": "Total economic output, not per-person output",
+    "unit": "current USD",
+    "price_basis": "current prices",
+    "frequency": "annual",
+    "coverage": "2015–2024"
+  },
+  "table_id": "gdp",
+  "columns": [
+    {
+      "name": "year",
+      "type": "INTEGER",
+      "description": "Calendar year",
+      "paths": [
+        [
+          "date"
+        ]
+      ]
+    },
+    {
+      "name": "gdp_usd",
+      "type": "DOUBLE",
+      "description": "Total economic output, not per-person output",
+      "unit": "current USD",
+      "paths": [
+        [
+          "value"
+        ]
+      ]
+    }
+  ],
+  "source_name": "World Bank Indicators API",
+  "source_url": "https://api.worldbank.org/v2/country/USA/indicator/NY.GDP.MKTP.CD",
+  "source": {
+    "adapter": "rest_json",
+    "url": "https://api.worldbank.org/v2/country/USA/indicator/NY.GDP.MKTP.CD",
+    "allowed_hosts": [
+      "api.worldbank.org"
+    ],
+    "params": {
+      "date": "2015:2024",
+      "format": "json",
+      "per_page": 100
+    },
+    "records_path": [
+      1
+    ],
+    "record_checks": [
+      {
+        "path": [
+          "countryiso3code"
+        ],
+        "equals": "USA"
+      },
+      {
+        "path": [
+          "indicator",
+          "id"
+        ],
+        "equals": "NY.GDP.MKTP.CD"
+      }
+    ],
+    "pagination": {
+      "mode": "page",
+      "page_parameter": "page",
+      "total_pages_path": [
+        0,
+        "pages"
+      ]
+    }
+  },
+  "unique_key": [
+    "year"
+  ],
+  "coverage": {
+    "column": "year",
+    "start": "2015",
+    "end": "2024",
+    "frequency": "annual"
+  },
+  "expected_rows": 10,
+  "skip_missing": [
+    [
+      "value"
+    ]
+  ]
+}

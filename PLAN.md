@@ -403,7 +403,56 @@ Acceptance:
 
 - retrieval results are logged
 
-## Milestone 2 — Retrieval Evaluation
+## Implemented expansion — Competing products and human choice
+
+This milestone supersedes the earlier three-product evaluation assumption.
+The active catalog now has 15 real products, acquired through reviewed recipes:
+
+| Family | Products | Active coverage |
+|---|---|---|
+| FRED | U-3 seasonally adjusted (`UNRATE`), U-3 unadjusted (`UNRATENSA`), unemployment count (`UNEMPLOY`), broader U-6 (`U6RATE`) | Monthly 2018–2024 |
+| World Bank | U.S. GDP per capita current USD, total GDP current USD, GDP per capita constant 2015 USD, GDP per capita PPP current international dollars; Canada GDP per capita current USD | Annual **2015–2024** |
+| Apple SEC | Annual income, annual cash flow, balance sheet, comparative Q3 income | Annual flows FY2022–2024; fiscal-end balances FY2023–2024; Q3 FY2023/FY2024 only |
+| Microsoft SEC | Annual income, annual cash flow | FY2022–2024 |
+
+The original U.S. GDP snapshot is retained, but its active manifest now points
+to a versioned 2015–2024 snapshot. Existing product IDs are preserved. All
+products expose reviewed comparison facets; the same metadata is embedded in
+SingleStore using the existing model. SEC duration/instant facts use exact fiscal
+contexts, not inferred calendar periods; quarterly extraction excludes YTD.
+
+The browser now has a separate candidate inspector: retrieve top five, compare
+definitions/units/coverage, explicitly choose a product/version and inspect its
+schema and source. No automatic selection or SQL runs on inspection. Clarification
+means human choice, not "no suitable data." Catalog refreshes and question changes
+clear stale choices. Retrieval/API metadata excludes local paths and credentials.
+The original question-execution workflow remains explicitly labeled a limited
+baseline supporting only adjusted U-3 and current-USD U.S. GDP-per-capita templates.
+
+The expanded benchmark has 60 cases: 30 answerable, 15 human clarification and
+15 unavailable/multi-source. Development and held-out each have 30 cases and one
+answerable question per product. Product versions, metadata and snapshot hashes
+are frozen; schema/period evidence is mechanically verified. Semantic labels
+remain agent-authored, pending human review. This is not official FinSearchComp.
+
+Measure Recall@1/3/5, full-catalog MRR, per-product/split results, clarification
+candidate coverage and latency. Do **not** claim automatic abstention, selection
+or numeric-answer accuracy from this retrieval-only benchmark. Preserve the old
+36-case benchmark as an archived three-product local smoke test.
+
+Initial untuned live baseline: Recall@1 80%, Recall@3 96.7%, Recall@5 100%,
+MRR 0.881; held-out Recall@1 73.3%. No provider errors. The six top-one misses
+include U-3 versus U-6, nominal versus real/PPP GDP, and income versus cash flow.
+These are useful failure cases, not reasons to change gold labels. The held-out
+set has now been measured; future tuning uses development only, with a new held-out
+set needed for an unbiased subsequent release decision.
+
+Still out of scope: live question-time acquisition, Exa integration, generalized
+SQL planning/execution, multi-product joins and a calibrated no-match decision.
+Next: human semantic-label review and development-only retrieval diagnosis,
+then separately design execution for a human-selected product.
+
+## Milestone 2 — Retrieval Evaluation (original specification)
 
 Create a benchmark of at least 30 questions, including questions answerable by
 each product, ambiguous questions, questions needing unavailable fields or time
@@ -795,3 +844,16 @@ abstention, answer correctness, latency, and cost. Report each separately;
 execution success alone does not establish answer correctness.
 
 Do not move to V2 infrastructure work before this works reliably.
+
+### Human-in-the-loop dataset-choice review (implemented)
+
+The `/benchmark-review` page reveals agent-authored expected choices and reasons
+on request, then accepts approval, correction, wording feedback, or uncertainty.
+Local SQLite retains shared review state and append-only revision history;
+benchmark/catalog fingerprints prevent stale submissions. Reviews are proposals,
+not automatic edits to labels or metadata. Numerical-answer review is excluded.
+
+TODO / future improvements: separate reviewer histories, disagreement resolution,
+explicit label promotion, and an approval queue for metadata improvements with
+versioning, re-embedding and development-only evaluation. Held-out feedback must
+not be used for metadata tuning. Add authentication before any public deployment.

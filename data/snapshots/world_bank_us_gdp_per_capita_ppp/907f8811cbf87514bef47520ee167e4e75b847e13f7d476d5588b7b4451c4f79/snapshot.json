@@ -1,0 +1,13 @@
+{
+  "pipeline_version": 1,
+  "adapter": "rest_json",
+  "source_url": "https://api.worldbank.org/v2/country/USA/indicator/NY.GDP.PCAP.PP.CD",
+  "retrieved_at": "2026-09-26",
+  "source_sha256": "4d03072d622a113340c52c4df53495cd93a318727f74fd1f4f1ea7aa0a212dc3",
+  "recipe_sha256": "1587a0414b6f0105248cd76d22165710c38ad1a3dc1a41b20d471f89505b1798",
+  "snapshot_sha256": "59789e03863ee8285bc22d6d5dff3590249e94bc949dd1c6c4d87ba8867164f4",
+  "start": "2015",
+  "end": "2024",
+  "rows": 10,
+  "raw_file": "source.json"
+}

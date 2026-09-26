@@ -1,0 +1,38 @@
+id: fred_unemployment_count
+version: 1
+name: U.S. unemployment count
+description: "Number of unemployed people, not a percentage or labor-force participation\
+  \ rate. Monthly United States observations, January 2018\u2013December 2024."
+business_context: "Number of unemployed people, not a percentage or labor-force participation\
+  \ rate. Monthly United States observations, January 2018\u2013December 2024."
+concepts:
+- United States
+- Number of unemployed people, not a percentage or labor-force participation rate.
+- thousands of persons
+- seasonally adjusted
+- monthly
+- 2018-01 through 2024-12
+facets:
+  geography: United States
+  measure: Number of unemployed people, not a percentage or labor-force participation
+    rate.
+  unit: thousands of persons
+  seasonal_adjustment: seasonally adjusted
+  frequency: monthly
+  coverage: 2018-01 through 2024-12
+tables:
+- id: unemployment_count
+  path: data/snapshots/fred_unemployment_count/ca0469d1b15cdb06c4a23b6d4db3eb8d49ae7eb924d8b2744c7040a3e125c893/unemployment_count.parquet
+  columns:
+  - name: observation_date
+    type: DATE
+    description: First day of observation month
+  - name: unemployed_thousands
+    type: DOUBLE
+    description: Number of unemployed people, not a percentage or labor-force participation
+      rate. seasonally adjusted
+    unit: thousands of persons
+source:
+  name: FRED, Federal Reserve Bank of St. Louis
+  url: https://fred.stlouisfed.org/series/UNEMPLOY
+  snapshot_metadata: data/snapshots/fred_unemployment_count/ca0469d1b15cdb06c4a23b6d4db3eb8d49ae7eb924d8b2744c7040a3e125c893/snapshot.json

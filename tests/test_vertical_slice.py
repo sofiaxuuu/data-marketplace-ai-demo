@@ -16,7 +16,7 @@ def offline_retrieval(monkeypatch):
 
 def test_manifest_matches_real_snapshot():
     products = catalog()
-    assert {item["id"] for item in products} == {
+    assert {item["id"] for item in products} >= {
         "fred_unemployment",
         "world_bank_us_gdp_per_capita",
         "sec_apple_income_statement",
@@ -79,8 +79,9 @@ def test_world_bank_question_uses_its_own_local_snapshot():
 
 
 def test_stale_confirmation_is_rejected():
+    version = next(item["version"] for item in catalog() if item["id"] == "fred_unemployment")
     response = client.post(
         "/runs/execute",
-        json={"question": QUESTION, "product_id": "fred_unemployment", "manifest_version": 2},
+        json={"question": QUESTION, "product_id": "fred_unemployment", "manifest_version": version + 1},
     )
     assert response.status_code == 400

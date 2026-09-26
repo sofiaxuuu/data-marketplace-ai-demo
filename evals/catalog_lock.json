@@ -1,0 +1,8 @@
+{
+  "benchmark_version": 1,
+  "products": {
+    "fred_unemployment": "16bb76db877eb351ac6706deace6bf4890a0d676cae51bdbe774848706954c72",
+    "world_bank_us_gdp_per_capita": "c9e299493e2aa72f53364a67c1228c0479c1ffeacdbc9c2272870be61c019476",
+    "sec_apple_income_statement": "62b909287975e0aa590530210e28bc58ee18dd6137b4ada5e80d2420cddf3e78"
+  }
+}

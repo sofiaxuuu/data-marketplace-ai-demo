@@ -1,0 +1,112 @@
+{
+  "recipe_version": 1,
+  "id": "sec_apple_quarterly_income_statement",
+  "name": "Apple Q3 quarterly income statement",
+  "description": "Apple consolidated Q3 quarterly income statement, whole USD. Revenue, gross profit, operating income and net income. Q3 FY2023 and Q3 FY2024 only; three-month results, not nine-month year-to-date totals. Apple fiscal years are not calendar years.",
+  "business_context": "Apple consolidated Q3 quarterly income statement, whole USD. Revenue, gross profit, operating income and net income. Q3 FY2023 and Q3 FY2024 only; three-month results, not nine-month year-to-date totals. Apple fiscal years are not calendar years.",
+  "concepts": [
+    "Apple",
+    "Revenue, gross profit, operating income and net income",
+    "whole USD",
+    "quarterly, Q3 only",
+    "Apple September fiscal year",
+    "Q3 FY2023 and Q3 FY2024"
+  ],
+  "facets": {
+    "entity": "Apple",
+    "measure": "Revenue, gross profit, operating income and net income",
+    "unit": "whole USD",
+    "frequency": "quarterly, Q3 only",
+    "period_basis": "Apple September fiscal year",
+    "coverage": "Q3 FY2023 and Q3 FY2024"
+  },
+  "table_id": "quarterly_income",
+  "columns": [
+    {
+      "name": "fiscal_year",
+      "type": "INTEGER",
+      "description": "Fiscal year, not calendar year"
+    },
+    {
+      "name": "fiscal_quarter",
+      "type": "INTEGER",
+      "description": "Fiscal quarter, not calendar quarter"
+    },
+    {
+      "name": "period_start",
+      "type": "DATE",
+      "description": "Exact fiscal duration start"
+    },
+    {
+      "name": "period_end",
+      "type": "DATE",
+      "description": "Exact fiscal duration end"
+    },
+    {
+      "name": "revenue_usd",
+      "type": "BIGINT",
+      "unit": "USD",
+      "description": "revenue usd consolidated whole dollars"
+    },
+    {
+      "name": "gross_profit_usd",
+      "type": "BIGINT",
+      "unit": "USD",
+      "description": "gross profit usd consolidated whole dollars"
+    },
+    {
+      "name": "operating_income_usd",
+      "type": "BIGINT",
+      "unit": "USD",
+      "description": "operating income usd consolidated whole dollars"
+    },
+    {
+      "name": "net_income_usd",
+      "type": "BIGINT",
+      "unit": "USD",
+      "description": "net income usd consolidated whole dollars"
+    }
+  ],
+  "source_name": "SEC EDGAR via EdgarTools",
+  "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019324000081/aapl-20240629.htm",
+  "source": {
+    "adapter": "sec_xbrl",
+    "cik": 320193,
+    "accession": "0000320193-24-000081",
+    "filing_date": "2024-08-02",
+    "form": "10-Q",
+    "currency": "USD",
+    "period_basis": "Apple September fiscal year",
+    "periods": [
+      {
+        "fiscal_year": 2023,
+        "fiscal_quarter": 3,
+        "start": "2023-04-02",
+        "end": "2023-07-01"
+      },
+      {
+        "fiscal_year": 2024,
+        "fiscal_quarter": 3,
+        "start": "2024-03-31",
+        "end": "2024-06-29"
+      }
+    ],
+    "metrics": {
+      "revenue_usd": "us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax",
+      "gross_profit_usd": "us-gaap:GrossProfit",
+      "operating_income_usd": "us-gaap:OperatingIncomeLoss",
+      "net_income_usd": "us-gaap:NetIncomeLoss"
+    }
+  },
+  "unique_key": [
+    "fiscal_year",
+    "fiscal_quarter"
+  ],
+  "coverage": {
+    "column": "fiscal_year",
+    "start": "2023",
+    "end": "2024",
+    "frequency": "annual"
+  },
+  "expected_rows": 2
+}

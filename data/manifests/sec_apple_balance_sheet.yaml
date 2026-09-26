@@ -1,0 +1,50 @@
+id: sec_apple_balance_sheet
+version: 1
+name: Apple balance sheet
+description: Apple consolidated balance sheet, whole USD. Total assets, total liabilities
+  and shareholders' equity at fiscal year end. FY2023 and FY2024 fiscal-end balances;
+  not duration flows. Apple fiscal years are not calendar years.
+business_context: Apple consolidated balance sheet, whole USD. Total assets, total
+  liabilities and shareholders' equity at fiscal year end. FY2023 and FY2024 fiscal-end
+  balances; not duration flows. Apple fiscal years are not calendar years.
+concepts:
+- Apple
+- Total assets, total liabilities and shareholders' equity at fiscal year end
+- whole USD
+- annual fiscal-end instant
+- Apple September fiscal year
+- "FY2023\u2013FY2024"
+facets:
+  entity: Apple
+  measure: Total assets, total liabilities and shareholders' equity at fiscal year
+    end
+  unit: whole USD
+  frequency: annual fiscal-end instant
+  period_basis: Apple September fiscal year
+  coverage: "FY2023\u2013FY2024"
+tables:
+- id: balance_sheet
+  path: data/snapshots/sec_apple_balance_sheet/7ac2c8294b066c112ea0f297af1fced1c97a9e50ebfeeffe694183d44b0529eb/balance_sheet.parquet
+  columns:
+  - name: fiscal_year
+    type: INTEGER
+    description: Fiscal year, not calendar year
+  - name: period_end
+    type: DATE
+    description: Exact fiscal balance-sheet date
+  - name: assets_usd
+    type: BIGINT
+    description: assets usd consolidated whole dollars
+    unit: USD
+  - name: liabilities_usd
+    type: BIGINT
+    description: liabilities usd consolidated whole dollars
+    unit: USD
+  - name: equity_usd
+    type: BIGINT
+    description: equity usd consolidated whole dollars
+    unit: USD
+source:
+  name: SEC EDGAR via EdgarTools
+  url: https://www.sec.gov/Archives/edgar/data/320193/000032019324000123/aapl-20240928.htm
+  snapshot_metadata: data/snapshots/sec_apple_balance_sheet/7ac2c8294b066c112ea0f297af1fced1c97a9e50ebfeeffe694183d44b0529eb/snapshot.json
