@@ -1,0 +1,11 @@
+duckdb>=1.4,<2
+fastapi>=0.115,<1
+httpx>=0.28,<1
+PyYAML>=6,<7
+pytest>=8,<10
+uvicorn>=0.34,<1
+singlestoredb>=1.17,<2
+python-dotenv>=1,<2
+certifi>=2025
+edgartools==5.58.0
+filelock>=3.16,<5

@@ -1,0 +1,24 @@
+id: fred_unemployment
+version: 1
+name: U.S. unemployment rate
+description: Monthly U.S. civilian unemployment rate, seasonally adjusted, from FRED series UNRATE.
+business_context: Use for historical U.S. unemployment-rate questions. This snapshot covers January 2018 through December 2024.
+concepts:
+  - unemployment
+  - unemployment rate
+  - labor market
+tables:
+  - id: unemployment_rate
+    path: data/sample_datasets/fred_unemployment/unemployment_rate.parquet
+    columns:
+      - name: observation_date
+        type: DATE
+        description: First day of the observation month
+      - name: unemployment_rate
+        type: DOUBLE
+        unit: percent
+        description: U.S. civilian unemployment rate, seasonally adjusted
+source:
+  name: FRED, Federal Reserve Bank of St. Louis
+  url: https://fred.stlouisfed.org/series/UNRATE
+  snapshot_metadata: data/sample_datasets/fred_unemployment/snapshot.json

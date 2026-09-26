@@ -1,0 +1,33 @@
+recipe_version: 1
+id: sec_apple_income_statement
+name: Apple annual income statement
+description: Consolidated Apple Inc. annual revenue, gross profit, operating income and net income from its FY2024 SEC 10-K, extracted with EdgarTools.
+business_context: Apple only, fiscal years 2022 through 2024, whole USD. Fiscal years end in September and are not calendar years. No quarterly, segment, balance sheet or cash flow data.
+concepts: [Apple, AAPL, annual revenue, net sales, gross profit, operating income, net income, income statement, SEC 10-K]
+table_id: annual_income
+columns:
+  - {name: fiscal_year, type: INTEGER, description: 'Apple fiscal year, not calendar year'}
+  - {name: period_start, type: DATE, description: Exact start date of annual fiscal reporting period}
+  - {name: period_end, type: DATE, description: Exact end date of annual fiscal reporting period}
+  - {name: revenue_usd, type: BIGINT, unit: USD, description: 'Consolidated annual net sales, whole USD'}
+  - {name: gross_profit_usd, type: BIGINT, unit: USD, description: 'Consolidated annual gross profit, whole USD'}
+  - {name: operating_income_usd, type: BIGINT, unit: USD, description: 'Consolidated annual operating income, whole USD'}
+  - {name: net_income_usd, type: BIGINT, unit: USD, description: 'Consolidated annual net income, whole USD'}
+source_name: SEC EDGAR via EdgarTools
+source_url: https://www.sec.gov/Archives/edgar/data/320193/000032019324000123/aapl-20240928.htm
+source:
+  adapter: sec_xbrl
+  cik: 320193
+  accession: '0000320193-24-000123'
+  filing_date: '2024-11-01'
+  currency: USD
+  period_basis: Apple fiscal years, not calendar years
+  period_ends: {2022: '2022-09-24', 2023: '2023-09-30', 2024: '2024-09-28'}
+  metrics:
+    revenue_usd: us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax
+    gross_profit_usd: us-gaap:GrossProfit
+    operating_income_usd: us-gaap:OperatingIncomeLoss
+    net_income_usd: us-gaap:NetIncomeLoss
+unique_key: [fiscal_year]
+coverage: {column: fiscal_year, start: '2022', end: '2024', frequency: annual}
+expected_rows: 3

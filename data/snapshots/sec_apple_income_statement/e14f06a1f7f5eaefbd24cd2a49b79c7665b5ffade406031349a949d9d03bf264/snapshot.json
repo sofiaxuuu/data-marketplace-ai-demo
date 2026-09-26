@@ -1,0 +1,25 @@
+{
+  "pipeline_version": 1,
+  "adapter": "sec_xbrl",
+  "source_url": "https://www.sec.gov/Archives/edgar/data/320193/000032019324000123/aapl-20240928.htm",
+  "retrieved_at": "2026-09-25",
+  "source_sha256": "27c6f7d9e2ccb5771c13355d716e19ef1fa4b84cc9774d137566ead6d83c0526",
+  "recipe_sha256": "9a0404aa2e4b0fdd2177a83da7b24494c1e6bc18cf50c1b26218da2d65a93c7f",
+  "snapshot_sha256": "62b909287975e0aa590530210e28bc58ee18dd6137b4ada5e80d2420cddf3e78",
+  "start": "2022",
+  "end": "2024",
+  "rows": 3,
+  "raw_file": "source.json",
+  "cik": 320193,
+  "accession": "0000320193-24-000123",
+  "filing_date": "2024-11-01",
+  "edgartools_version": "5.58.0",
+  "unit": "USD",
+  "period_basis": "Apple fiscal years, not calendar years",
+  "metric_concepts": {
+    "revenue_usd": "us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax",
+    "gross_profit_usd": "us-gaap:GrossProfit",
+    "operating_income_usd": "us-gaap:OperatingIncomeLoss",
+    "net_income_usd": "us-gaap:NetIncomeLoss"
+  }
+}

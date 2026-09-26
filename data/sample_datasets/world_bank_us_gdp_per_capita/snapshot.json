@@ -1,0 +1,9 @@
+{
+  "source_url": "https://api.worldbank.org/v2/country/USA/indicator/NY.GDP.PCAP.CD?date=2000:2024&format=json&per_page=100",
+  "retrieved_at": "2026-09-25",
+  "source_sha256": "29cc95930125fe224688705aea14a16a14f21f33cd55880c1e68d09dafac0a4e",
+  "snapshot_sha256": "c9e299493e2aa72f53364a67c1228c0479c1ffeacdbc9c2272870be61c019476",
+  "start": "2000",
+  "end": "2024",
+  "rows": 25
+}

@@ -1,0 +1,12 @@
+node_modules/
+.next/
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+*.tsbuildinfo
+.env
+.env.local
+.cache/edgar/
+.cache/ingestion/
+singlestore_bundle.pem
