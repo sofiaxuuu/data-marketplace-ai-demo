@@ -1,4 +1,4 @@
-"""Evaluate full-catalog retrieval, separately from baseline SQL execution."""
+"""Evaluate full-catalog retrieval, separately from SQL planning and execution."""
 
 from __future__ import annotations
 

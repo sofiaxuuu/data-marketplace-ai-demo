@@ -2,8 +2,9 @@
 
 DataScout now has 15 real, overlapping data products. Search ranks candidates;
 you compare their definitions, units and periods and explicitly choose one to
-inspect. Samples are local Parquet; descriptive metadata is embedded in
-SingleStore. A separate limited baseline runs fixed FRED/World Bank DuckDB queries.
+inspect. Confirm the source, review generated SQL, approve execution, and see the
+local results in one home-page workflow. Samples are local Parquet; descriptive
+metadata is embedded in SingleStore.
 
 ## Run locally
 
@@ -65,16 +66,13 @@ unchanged ones. Search uses exact cosine similarity and excludes stale/deleted
 local manifests. Scores rank candidates; they are not calibrated confidence.
 
 The candidate inspector always uses SingleStore search and requires a human
-choice; it never executes SQL. The API exposes `POST /retrieval/search` with
+choice; inspection alone never generates or executes SQL. The same workflow then
+offers separate source confirmation, SQL review/approval, and local results.
+The API exposes `POST /retrieval/search` with
 `question` and optional `top_k` (default 3, maximum 10), returning comparison
 metadata and execution-support status. `GET /catalog` exposes all products and
 schemas, without repository paths. Catalog changes invalidate UI choices on
 the next refresh (every 30 seconds or on window focus).
-
-`DATASCOUT_RETRIEVAL_BACKEND=singlestore` optionally enables retrieval in the
-separate limited baseline workflow. That deterministic selector still supports
-only adjusted U-3 unemployment and current-USD U.S. GDP per capita; it is not
-the selector for the expanded catalog. Use `local` for its offline mode.
 
 ## Data provenance
 
@@ -179,8 +177,10 @@ Existing archived snapshots remain untouched. Browse recipes with the ingestion
 CLI; `.venv/bin/python scripts/build_catalog.py --download` publishes **missing**
 reviewed products only and never silently refreshes existing ones.
 
-Generalized SQL execution, automatic selection/abstention and Exa discovery
-remain future work. Catalog registration does not enable question execution.
+Human-confirmed single-table SQL planning and execution cover all 15 products.
+Broader SQL operations, calibrated automatic source decisions and Exa discovery
+remain future work. Catalog registration alone does not establish that a product
+can answer every question.
 
 ## Competing-product evaluation
 
@@ -204,11 +204,9 @@ held-out Recall@1 was 73.3%. Full-catalog MRR was 0.881. All annotated plausible
 clarification candidates appeared in the top five. Unavailable cases are
 diagnostics—not an abstention accuracy score, because a retriever always ranks.
 
-The original 36-case benchmark remains a three-product **local-only** smoke
-test, pinned to archived manifests under `evals/legacy_catalog`. Run
-`PYTHONPATH=python .venv/bin/python -m evals.run --validate-only` or
-`PYTHONPATH=python .venv/bin/python -m evals.run --mode local --execute`.
-Its labels do not evaluate the expanded index.
+The original 36-case benchmark and its frozen manifests are historical artifacts;
+its fixed-template runner has been removed. Use the expanded retrieval benchmark
+and SQL evaluation for the current workflow.
 
 ### Human benchmark review
 
@@ -229,3 +227,68 @@ public review service.
 Future improvements: separate reviewer histories and disagreement resolution;
 approved label promotion; approved, versioned metadata suggestions followed by
 re-embedding and evaluation. Never use held-out feedback for metadata tuning.
+
+### Human-approved SQL across the local catalog
+
+On the home page, enter a question in **Ask and compare sources**, choose a
+candidate (or browse the catalog), and confirm that dataset fits the question.
+**Generate SQL for review** produces the fields, formulas, interpretation, units
+and query. Approve the SQL separately, then **Execute approved SQL** shows the
+local result table, source, snapshot version, timing and trace. The four numbered
+stages share one question input; an unemployment example fills that input without
+making a request. Detailed schema inspection is collapsed by default. Changing
+the question, source, or catalog version clears downstream plans and approvals.
+Selecting or
+inspecting a product alone never generates or executes a query.
+
+The configurable planner defaults to `gpt-4.1-mini`; set `DATASCOUT_SQL_MODEL` in
+the local environment to change it. It uses `OPENAI_API_KEY` and the Responses API
+with structured output. Only the question and selected product metadata/schema
+are transmitted—not Parquet rows or local paths. Returned numbers are displayed
+from DuckDB results, not invented by a second language-model answer call.
+
+All 15 products share one engine, without per-dataset SQL adapters. The first
+grammar supports lookups, ordered time series, aggregates, conditional comparisons
+and ratios over **one registered table in one confirmed product**. It rejects
+joins, subqueries, CTEs, windows, arbitrary functions, writes, external reads,
+unknown fields, and unguarded division. Schema binding and parser checks establish
+safety/validity, not business correctness: review periods, units and formulas.
+Requests needing another source or missing concepts/coverage must be clarified
+or declined by the planner; this semantic decision is not guaranteed by SQL validation.
+
+Execution materializes only trusted snapshot tables in a disposable DuckDB
+process, disables external access, locks configuration, limits DuckDB memory to
+256 MB, disables disk spill, and imposes a 5-second process timeout. Results are
+limited to 500 rows with an explicit truncation flag. Empty results are not zero.
+Generated plans bind question, product version, metadata/snapshot fingerprint and
+SQL in `.local/sql-runs.sqlite3`; execution accepts only a saved plan ID and
+approval, not browser-supplied SQL. Plans expire after one hour; changed products
+require fresh confirmation. No automatic SQL repairs/retries or live acquisition.
+
+API: `POST /sql-runs/generate` takes `question`, `product_id`, `manifest_version`
+and `confirmed: true`; `POST /sql-runs/execute` takes `run_id` and `approved: true`.
+Next.js proxies these through `/api/sql-runs/*`. Catalog `execution_supported`
+and `execution_scope` describe the single-product SQL workflow and its limitations.
+
+Run offline safety/snapshot tests with
+`PYTHONPATH=python .venv/bin/python -m pytest tests/test_sql_runs.py -q`.
+The separate development-only SQL smoke evaluation calls OpenAI explicitly:
+
+```bash
+PYTHONPATH=python .venv/bin/python -m evals.sql_execution --output evals/results/NEW_SQL_REPORT.json
+```
+
+Its 22 cases cover all 15 confirmed products, ratios, signed cash flows, unit
+conversion, missing periods/concepts, multiple sources and ambiguity. Numeric
+result containment is only a smoke check—not full semantic accuracy or a held-out
+benchmark. Reports never overwrite prior runs or alter retrieval labels.
+
+The [current development smoke report](evals/results/sql-development-v3.json)
+passed 22/22. Earlier reports preserve provider and table-qualification failures;
+the final prompt explicitly forbids schema/product qualification. The ratio case
+now explicitly requests no rounding to match its full-precision numeric label.
+
+`npm test` runs offline frontend interaction tests for the unified workflow:
+one question input, approval gates, macroeconomic/SEC source choices, state resets,
+late responses, errors, clarification, empty results, and truncation. These use
+mocked API responses and do not call OpenAI or SingleStore.

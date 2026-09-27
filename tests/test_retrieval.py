@@ -4,7 +4,6 @@ import httpx
 import pytest
 
 from datascout import embeddings
-from datascout.analysis import preview
 from datascout.catalog import catalog
 from datascout.retrieval import content_hash, document
 
@@ -38,20 +37,6 @@ def test_document_excludes_paths_and_changes_invalidate_hash():
     changed = deepcopy(item)
     changed["description"] += " Updated definition."
     assert content_hash(changed) != content_hash(item)
-
-
-def test_semantic_candidates_are_shown_but_do_not_override_coverage_checks(monkeypatch):
-    candidates = [{"id": "fred_unemployment", "version": 1, "name": "FRED", "score": 0.9}]
-    monkeypatch.setattr("datascout.retrieval.search", lambda question: candidates)
-    result = preview("What was the U.S. unemployment rate in April 2010?", use_retrieval=True)
-    assert result["outcome"] == "abstain"
-    assert result["retrieved_products"] == candidates
-
-
-def test_product_not_in_retrieved_candidates_cannot_be_proposed(monkeypatch):
-    monkeypatch.setattr("datascout.retrieval.search", lambda question: [])
-    result = preview("What was the U.S. unemployment rate in April 2020?", use_retrieval=True)
-    assert result["outcome"] == "abstain"
 
 
 def test_stale_index_version_is_excluded(monkeypatch):

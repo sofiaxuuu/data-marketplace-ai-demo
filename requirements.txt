@@ -9,3 +9,4 @@ python-dotenv>=1,<2
 certifi>=2025
 edgartools==5.58.0
 filelock>=3.16,<5
+sqlglot>=28,<29

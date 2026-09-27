@@ -426,8 +426,9 @@ definitions/units/coverage, explicitly choose a product/version and inspect its
 schema and source. No automatic selection or SQL runs on inspection. Clarification
 means human choice, not "no suitable data." Catalog refreshes and question changes
 clear stale choices. Retrieval/API metadata excludes local paths and credentials.
-The original question-execution workflow remains explicitly labeled a limited
-baseline supporting only adjusted U-3 and current-USD U.S. GDP-per-capita templates.
+The original deterministic backend supports only adjusted U-3 and current-USD
+U.S. GDP-per-capita templates. Its endpoints and regression tests are retained
+for compatibility; its separate home-page UI has been removed.
 
 The expanded benchmark has 60 cases: 30 answerable, 15 human clarification and
 15 unavailable/multi-source. Development and held-out each have 30 cases and one
@@ -857,3 +858,44 @@ TODO / future improvements: separate reviewer histories, disagreement resolution
 explicit label promotion, and an approval queue for metadata improvements with
 versioning, re-embedding and development-only evaluation. Held-out feedback must
 not be used for metadata tuning. Add authentication before any public deployment.
+
+### Single-product SQL planning and execution (implemented)
+
+Human source confirmation now leads to model-generated fields/formulas and visible
+DuckDB SQL, followed by a separate SQL approval and local result table. All 15
+products use the same single-table engine. The old fixed-template endpoints,
+execution code, runner and baseline-specific tests have been removed.
+
+The planner defaults to configurable `gpt-4.1-mini`, using structured Responses
+output from question + metadata/schema only. Fail-closed SQLGlot grammar and
+DuckDB binding validate proposals. SQL and metadata/snapshot fingerprints are saved
+locally; execute accepts the saved plan ID, rejects drift, and never regenerates
+or accepts arbitrary browser SQL. Plans expire after one hour.
+
+Disposable DuckDB execution uses external access disabled, locked configuration,
+256 MB engine memory, no disk spill, a 5-second timeout and 500-result-row cap.
+Ratios must guard zero denominators. Empty results, truncation, provider errors
+and execution failures are explicit. No joins, CTEs, subqueries, windows, live
+acquisition or automatic repair loops. Safety validation is not semantic accuracy.
+
+Evaluation is separate from the retrieval benchmark: offline adversarial tests
+and real snapshot gold values for all 15 products, plus 22 development-only live
+model smoke cases. Neither held-out retrieval labels nor metadata are changed.
+Next: human review of generated period/unit/formula interpretations, a richer
+SQL gold-result benchmark, and repeatability/latency/cost release criteria.
+
+### Unified analysis UI (implemented)
+
+The home page now has one question input and four numbered stages: ask/compare,
+review/confirm source, generate/review SQL, and results. The unemployment example
+fills the same input. Schema details are collapsed; definitions, coverage, units,
+source and snapshot remain visible. Source confirmation and SQL approval remain
+separate gates. Question/source/version changes clear downstream state, and late
+responses cannot restore it. SQL results retain provenance and their own trace;
+the obsolete baseline form and baseline-only sidebar trace are removed.
+
+Benchmark review remains a separate navigation link. The UI consolidation did
+not change the database. Subsequent cleanup retired `/runs/preview` and
+`/runs/execute`; `/sql-runs/*` is the sole analysis API.
+`npm test` adds offline UI
+interaction coverage using mocked APIs, separate from live model evaluation.

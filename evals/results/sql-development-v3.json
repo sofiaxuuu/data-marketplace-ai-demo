@@ -1,0 +1,695 @@
+{
+  "created_at": "2026-09-26T23:23:15.270995+00:00",
+  "split": "development_only",
+  "scope": "Human-selected product; model planning + validated local execution. Numeric containment smoke check, not full semantic accuracy.",
+  "products": {
+    "fred_underemployment_u6": "a2abd0cb7c6adcd8bfe44036e170281b02f4604cc9452878e7b198473423d348",
+    "fred_unemployment": "6daa30fdf55ab642c7df4910665abef9286d93fa14a067b8076e3c2b450eed58",
+    "fred_unemployment_count": "8e42779c2b4b1114e77c18efcc5ff2916e2c2ff1e52815182ca80b5b59427b35",
+    "fred_unemployment_unadjusted": "6c9ee022914e6c3199d401bf4db339bc2b8af9cc70f09cbfe6a98efa7313fcc4",
+    "sec_apple_balance_sheet": "2763fae0a5c2e424e7364a940c5f9dbfba89b44d5201cddfb462edccda458a01",
+    "sec_apple_cash_flow": "ad721d99b57ddd7b435c27d156866ef29991e4578a3090505a01218986fcfc56",
+    "sec_apple_income_statement": "c096acd7d428c3870f5f82e3f92183f19544051cdf191991797db4df72579f3a",
+    "sec_apple_quarterly_income_statement": "16736fe03c0a233e3f4fbb8c63b0eee1c4ac477f32a4e393521fcbcfe09732a9",
+    "sec_microsoft_cash_flow": "4dc639abcf15390822ae62a2cbc60ea373264b16782673c89a49d772d6b41021",
+    "sec_microsoft_income_statement": "bdf3135ffd701e34dddc43224adba9f19da1323cced9ee91259a28e389464e25",
+    "world_bank_canada_gdp_per_capita": "b8930aeadf137b4ab1013270b164ef6aca44ce39926ea74cd9baab133a66dc73",
+    "world_bank_us_gdp_per_capita": "c8c6301252ea4c520f9a433ee4e037f069a20feba56f1d39e31074a961333810",
+    "world_bank_us_gdp_per_capita_ppp": "b83bb74980c5aba8f8d75b6a6680abd88ee86cda029e5865b2d87bc47f0a6380",
+    "world_bank_us_gdp_per_capita_real": "77387aebb6716d460a753b8c292bf98f7872c11ac8b1301d2cd7f647d83f496f",
+    "world_bank_us_gdp_total": "98cdb405bff30f87e114531c037e88b9ca9d60e752ffafe0e06c61b788ccf700"
+  },
+  "cases": [
+    {
+      "product_id": "fred_unemployment",
+      "question": "What was the seasonally adjusted U.S. U-3 unemployment percentage in December 2024?",
+      "expected": 4.1,
+      "outcome": "ready",
+      "model": "gpt-4.1-mini",
+      "usage": {
+        "input_tokens": 1008,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 227,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 1235
+      },
+      "sql": "SELECT\n  observation_date,\n  unemployment_rate AS seasonally_adjusted_u3_unemployment_percent\nFROM unemployment_rate\nWHERE\n  observation_date = CAST('2024-12-01' AS DATE)\nLIMIT 501",
+      "selected_fields": [
+        "observation_date",
+        "unemployment_rate"
+      ],
+      "rows": [
+        {
+          "observation_date": "2024-12-01",
+          "seasonally_adjusted_u3_unemployment_percent": 4.1
+        }
+      ],
+      "execution_ms": 2907.0,
+      "planning_ms": 5829.1,
+      "passed": true
+    },
+    {
+      "product_id": "fred_underemployment_u6",
+      "question": "What was the seasonally adjusted U.S. U-6 underutilization percentage in December 2024?",
+      "expected": 7.6,
+      "outcome": "ready",
+      "model": "gpt-4.1-mini",
+      "usage": {
+        "input_tokens": 1146,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 171,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 1317
+      },
+      "sql": "SELECT\n  underemployment_rate AS u6_underutilization_percent\nFROM unemployment_rate\nWHERE\n  observation_date = CAST('2024-12-01' AS DATE)\nLIMIT 501",
+      "selected_fields": [
+        "observation_date",
+        "underemployment_rate"
+      ],
+      "rows": [
+        {
+          "u6_underutilization_percent": 7.6
+        }
+      ],
+      "execution_ms": 2956.4,
+      "planning_ms": 5717.3,
+      "passed": true
+    },
+    {
+      "product_id": "fred_unemployment_unadjusted",
+      "question": "What was the unadjusted U.S. U-3 unemployment percentage in December 2024?",
+      "expected": 3.8,
+      "outcome": "ready",
+      "model": "gpt-4.1-mini",
+      "usage": {
+        "input_tokens": 1088,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 168,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 1256
+      },
+      "sql": "SELECT\n  unemployment_rate AS u_3_unemployment_percent,\n  observation_date\nFROM unemployment_rate\nWHERE\n  observation_date = CAST('2024-12-01' AS DATE)\nLIMIT 501",
+      "selected_fields": [
+        "observation_date",
+        "unemployment_rate"
+      ],
+      "rows": [
+        {
+          "u_3_unemployment_percent": 3.8,
+          "observation_date": "2024-12-01"
+        }
+      ],
+      "execution_ms": 3008.8,
+      "planning_ms": 5623.7,
+      "passed": true
+    },
+    {
+      "product_id": "fred_unemployment_count",
+      "question": "How many people were unemployed in the United States in December 2024, seasonally adjusted? Give persons, not thousands.",
+      "expected": 6920000,
+      "outcome": "ready",
+      "model": "gpt-4.1-mini",
+      "usage": {
+        "input_tokens": 1041,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 203,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 1244
+      },
+      "sql": "SELECT\n  observation_date,\n  unemployed_thousands * 1000 AS unemployed_persons\nFROM unemployment_count\nWHERE\n  observation_date = CAST('2024-12-01' AS DATE)\nLIMIT 501",
+      "selected_fields": [
+        "observation_date",
+        "unemployed_thousands"
+      ],
+      "rows": [
+        {
+          "observation_date": "2024-12-01",
+          "unemployed_persons": 6920000.0
+        }
+      ],
+      "execution_ms": 2371.3,
+      "planning_ms": 3701.3,
+      "passed": true
+    },
+    {
+      "product_id": "world_bank_us_gdp_per_capita",
+      "question": "What was U.S. GDP per capita in 2024 in current USD?",
+      "expected": 86169.6641581917,
+      "outcome": "ready",
+      "model": "gpt-4.1-mini",
+      "usage": {
+        "input_tokens": 994,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 161,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 1155
+      },
+      "sql": "SELECT\n  year,\n  gdp_per_capita_usd AS gdp_per_capita_current_usd_2024\nFROM gdp_per_capita\nWHERE\n  year = 2024\nLIMIT 501",
+      "selected_fields": [
+        "gdp_per_capita_usd",
+        "year"
+      ],
+      "rows": [
+        {
+          "year": 2024,
+          "gdp_per_capita_current_usd_2024": 86169.6641581917
+        }
+      ],
+      "execution_ms": 2363.0,
+      "planning_ms": 4673.8,
+      "passed": true
+    },
+    {
+      "product_id": "world_bank_us_gdp_total",
+      "question": "What was total U.S. GDP in 2024 in current USD?",
+      "expected": 29298013000000,
+      "outcome": "ready",
+      "model": "gpt-4.1-mini",
+      "usage": {
+        "input_tokens": 978,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 141,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 1119
+      },
+      "sql": "SELECT\n  year,\n  gdp_usd AS total_gdp_current_usd_2024\nFROM gdp\nWHERE\n  year = 2024\nLIMIT 501",
+      "selected_fields": [
+        "gdp_usd",
+        "year"
+      ],
+      "rows": [
+        {
+          "year": 2024,
+          "total_gdp_current_usd_2024": 29298013000000.0
+        }
+      ],
+      "execution_ms": 2370.4,
+      "planning_ms": 3652.1,
+      "passed": true
+    },
+    {
+      "product_id": "world_bank_us_gdp_per_capita_real",
+      "question": "What was U.S. GDP per capita in 2024 in constant 2015 USD?",
+      "expected": 66856.5131698371,
+      "outcome": "ready",
+      "model": "gpt-4.1-mini",
+      "usage": {
+        "input_tokens": 1013,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 155,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 1168
+      },
+      "sql": "SELECT\n  year,\n  gdp_per_capita_usd AS gdp_per_capita_constant_2015_usd\nFROM gdp\nWHERE\n  year = 2024\nLIMIT 501",
+      "selected_fields": [
+        "gdp_per_capita_usd",
+        "year"
+      ],
+      "rows": [
+        {
+          "year": 2024,
+          "gdp_per_capita_constant_2015_usd": 66856.5131698371
+        }
+      ],
+      "execution_ms": 2468.0,
+      "planning_ms": 3757.3,
+      "passed": true
+    },
+    {
+      "product_id": "world_bank_us_gdp_per_capita_ppp",
+      "question": "What was U.S. GDP per capita at PPP in 2024 in current international dollars?",
+      "expected": 86169.6641581914,
+      "outcome": "ready",
+      "model": "gpt-4.1-mini",
+      "usage": {
+        "input_tokens": 1018,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 179,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 1197
+      },
+      "sql": "SELECT\n  year,\n  gdp_per_capita_international_dollars AS gdp_per_capita_ppp_current_int_dollars\nFROM gdp\nWHERE\n  year = 2024\nLIMIT 501",
+      "selected_fields": [
+        "gdp_per_capita_international_dollars",
+        "year"
+      ],
+      "rows": [
+        {
+          "year": 2024,
+          "gdp_per_capita_ppp_current_int_dollars": 86169.6641581914
+        }
+      ],
+      "execution_ms": 2976.7,
+      "planning_ms": 4491.4,
+      "passed": true
+    },
+    {
+      "product_id": "world_bank_canada_gdp_per_capita",
+      "question": "What was Canadian GDP per capita in 2024 in current USD?",
+      "expected": 55015.7066917734,
+      "outcome": "ready",
+      "model": "gpt-4.1-mini",
+      "usage": {
+        "input_tokens": 981,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 173,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 1154
+      },
+      "sql": "SELECT\n  year,\n  gdp_per_capita_usd\nFROM gdp\nWHERE\n  year = 2024\nLIMIT 501",
+      "selected_fields": [
+        "gdp_per_capita_usd",
+        "year"
+      ],
+      "rows": [
+        {
+          "year": 2024,
+          "gdp_per_capita_usd": 55015.7066917734
+        }
+      ],
+      "execution_ms": 2914.8,
+      "planning_ms": 4126.0,
+      "passed": true
+    },
+    {
+      "product_id": "sec_apple_income_statement",
+      "question": "What was Apple's consolidated revenue in fiscal year 2024? Give whole USD.",
+      "expected": 391035000000,
+      "outcome": "ready",
+      "model": "gpt-4.1-mini",
+      "usage": {
+        "input_tokens": 1338,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 130,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 1468
+      },
+      "sql": "SELECT\n  fiscal_year,\n  revenue_usd AS consolidated_revenue_usd\nFROM annual_income\nWHERE\n  fiscal_year = 2024\nLIMIT 501",
+      "selected_fields": [
+        "fiscal_year",
+        "revenue_usd"
+      ],
+      "rows": [
+        {
+          "fiscal_year": 2024,
+          "consolidated_revenue_usd": 391035000000
+        }
+      ],
+      "execution_ms": 2309.7,
+      "planning_ms": 4186.9,
+      "passed": true
+    },
+    {
+      "product_id": "sec_apple_cash_flow",
+      "question": "What was Apple's net operating cash flow in fiscal year 2024? Give whole USD.",
+      "expected": 118254000000,
+      "outcome": "ready",
+      "model": "gpt-4.1-mini",
+      "usage": {
+        "input_tokens": 1284,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 152,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 1436
+      },
+      "sql": "SELECT\n  operating_cash_flow_usd AS net_operating_cash_flow_usd_2024\nFROM annual_cash_flow\nWHERE\n  fiscal_year = 2024\nLIMIT 501",
+      "selected_fields": [
+        "fiscal_year",
+        "operating_cash_flow_usd"
+      ],
+      "rows": [
+        {
+          "net_operating_cash_flow_usd_2024": 118254000000
+        }
+      ],
+      "execution_ms": 2353.7,
+      "planning_ms": 3711.1,
+      "passed": true
+    },
+    {
+      "product_id": "sec_apple_balance_sheet",
+      "question": "What were Apple's total assets at its FY2024 fiscal year end? Give whole USD.",
+      "expected": 364980000000,
+      "outcome": "ready",
+      "model": "gpt-4.1-mini",
+      "usage": {
+        "input_tokens": 1206,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 155,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 1361
+      },
+      "sql": "SELECT\n  fiscal_year,\n  assets_usd AS total_assets_usd\nFROM balance_sheet\nWHERE\n  fiscal_year = 2024\nLIMIT 501",
+      "selected_fields": [
+        "assets_usd",
+        "fiscal_year"
+      ],
+      "rows": [
+        {
+          "fiscal_year": 2024,
+          "total_assets_usd": 364980000000
+        }
+      ],
+      "execution_ms": 2396.8,
+      "planning_ms": 3703.8,
+      "passed": true
+    },
+    {
+      "product_id": "sec_apple_quarterly_income_statement",
+      "question": "What was Apple's revenue for Q3 FY2024 only, not nine-month YTD? Give whole USD.",
+      "expected": 85777000000,
+      "outcome": "ready",
+      "model": "gpt-4.1-mini",
+      "usage": {
+        "input_tokens": 1407,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 217,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 1624
+      },
+      "sql": "SELECT\n  revenue_usd AS apple_revenue_usd_q3_fy2024\nFROM quarterly_income\nWHERE\n  fiscal_year = 2024 AND fiscal_quarter = 3\nLIMIT 501",
+      "selected_fields": [
+        "fiscal_quarter",
+        "fiscal_year",
+        "revenue_usd"
+      ],
+      "rows": [
+        {
+          "apple_revenue_usd_q3_fy2024": 85777000000
+        }
+      ],
+      "execution_ms": 11173.9,
+      "planning_ms": 4006.6,
+      "passed": true
+    },
+    {
+      "product_id": "sec_microsoft_income_statement",
+      "question": "What was Microsoft's revenue in fiscal year 2024? Give whole USD.",
+      "expected": 245122000000,
+      "outcome": "ready",
+      "model": "gpt-4.1-mini",
+      "usage": {
+        "input_tokens": 1315,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 160,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 1475
+      },
+      "sql": "SELECT\n  fiscal_year,\n  revenue_usd AS microsoft_revenue_fy2024_usd\nFROM annual_income\nWHERE\n  fiscal_year = 2024\nLIMIT 501",
+      "selected_fields": [
+        "fiscal_year",
+        "revenue_usd"
+      ],
+      "rows": [
+        {
+          "fiscal_year": 2024,
+          "microsoft_revenue_fy2024_usd": 245122000000
+        }
+      ],
+      "execution_ms": 5737.0,
+      "planning_ms": 9051.4,
+      "passed": true
+    },
+    {
+      "product_id": "sec_microsoft_cash_flow",
+      "question": "What was Microsoft's net financing cash flow in fiscal year 2024? Preserve the sign and give whole USD.",
+      "expected": -37757000000,
+      "outcome": "ready",
+      "model": "gpt-4.1-mini",
+      "usage": {
+        "input_tokens": 1293,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 146,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 1439
+      },
+      "sql": "SELECT\n  fiscal_year,\n  financing_cash_flow_usd AS net_financing_cash_flow_usd\nFROM annual_cash_flow\nWHERE\n  fiscal_year = 2024\nLIMIT 501",
+      "selected_fields": [
+        "financing_cash_flow_usd",
+        "fiscal_year"
+      ],
+      "rows": [
+        {
+          "fiscal_year": 2024,
+          "net_financing_cash_flow_usd": -37757000000
+        }
+      ],
+      "execution_ms": 7439.3,
+      "planning_ms": 6649.3,
+      "passed": true
+    },
+    {
+      "product_id": "sec_apple_income_statement",
+      "question": "What was Apple's operating margin in FY2024? Calculate operating income divided by revenue as a percentage without rounding.",
+      "expected": 31.51022287007557,
+      "outcome": "ready",
+      "model": "gpt-4.1-mini",
+      "usage": {
+        "input_tokens": 1344,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 191,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 1535
+      },
+      "sql": "SELECT\n  fiscal_year,\n  (\n    operating_income_usd * 100.0\n  ) / NULLIF(revenue_usd, 0) AS operating_margin_percent\nFROM annual_income\nWHERE\n  fiscal_year = 2024\nLIMIT 501",
+      "selected_fields": [
+        "fiscal_year",
+        "operating_income_usd",
+        "revenue_usd"
+      ],
+      "rows": [
+        {
+          "fiscal_year": 2024,
+          "operating_margin_percent": 31.51022287007557
+        }
+      ],
+      "execution_ms": 2912.4,
+      "planning_ms": 6101.2,
+      "passed": true
+    },
+    {
+      "product_id": "sec_apple_income_statement",
+      "question": "How much did Apple's revenue increase from FY2023 to FY2024 in whole USD?",
+      "expected": 7750000000,
+      "outcome": "ready",
+      "model": "gpt-4.1-mini",
+      "usage": {
+        "input_tokens": 1340,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 203,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 1543
+      },
+      "sql": "SELECT\n  MAX(CASE WHEN fiscal_year = 2024 THEN revenue_usd END) - MAX(CASE WHEN fiscal_year = 2023 THEN revenue_usd END) AS revenue_increase_usd\nFROM annual_income\nLIMIT 501",
+      "selected_fields": [
+        "fiscal_year",
+        "revenue_usd"
+      ],
+      "rows": [
+        {
+          "revenue_increase_usd": 7750000000
+        }
+      ],
+      "execution_ms": 2735.4,
+      "planning_ms": 6344.1,
+      "passed": true
+    },
+    {
+      "product_id": "sec_apple_quarterly_income_statement",
+      "question": "What was Apple's revenue for Q1 FY2024?",
+      "expected": "abstain",
+      "outcome": "abstain",
+      "model": "gpt-4.1-mini",
+      "usage": {
+        "input_tokens": 1396,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 62,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 1458
+      },
+      "sql": "",
+      "selected_fields": [],
+      "passed": true
+    },
+    {
+      "product_id": "fred_unemployment",
+      "question": "What was the U.S. unemployment percentage in April 2010?",
+      "expected": "abstain",
+      "outcome": "abstain",
+      "model": "gpt-4.1-mini",
+      "usage": {
+        "input_tokens": 1002,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 69,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 1071
+      },
+      "sql": "",
+      "selected_fields": [],
+      "passed": true
+    },
+    {
+      "product_id": "sec_apple_income_statement",
+      "question": "What was Apple's operating cash flow in FY2024?",
+      "expected": "abstain",
+      "outcome": "abstain",
+      "model": "gpt-4.1-mini",
+      "usage": {
+        "input_tokens": 1333,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 61,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 1394
+      },
+      "sql": "",
+      "selected_fields": [],
+      "passed": true
+    },
+    {
+      "product_id": "sec_apple_income_statement",
+      "question": "Compare Apple's and Microsoft's revenue in fiscal 2024.",
+      "expected": "abstain",
+      "outcome": "abstain",
+      "model": "gpt-4.1-mini",
+      "usage": {
+        "input_tokens": 1333,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 95,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 1428
+      },
+      "sql": "",
+      "selected_fields": [],
+      "passed": true
+    },
+    {
+      "product_id": "sec_apple_income_statement",
+      "question": "What was Apple's revenue in 2024? I haven't decided whether to use calendar or fiscal year.",
+      "expected": "clarify",
+      "outcome": "clarify",
+      "model": "gpt-4.1-mini",
+      "usage": {
+        "input_tokens": 1342,
+        "input_tokens_details": {
+          "cache_write_tokens": 0,
+          "cached_tokens": 0
+        },
+        "output_tokens": 109,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 1451
+      },
+      "sql": "",
+      "selected_fields": [],
+      "passed": true
+    }
+  ],
+  "passed": 22,
+  "total": 22
+}

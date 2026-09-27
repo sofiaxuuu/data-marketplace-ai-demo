@@ -35,8 +35,25 @@ def test_public_catalog_has_schema_not_local_paths():
     serialized = json.dumps(products)
     assert "data/snapshots/" not in serialized
     assert "source_sha256" not in serialized
-    assert sum(p["execution_supported"] for p in products) == 2
+    assert all(p["execution_supported"] for p in products)
     assert all(p["tables"][0]["columns"] for p in products)
+
+
+def test_manifest_matches_real_snapshot():
+    products = catalog()
+    assert {item["id"] for item in products} >= {
+        "fred_unemployment", "world_bank_us_gdp_per_capita", "sec_apple_income_statement",
+    }
+    fred = next(item for item in products if item["id"] == "fred_unemployment")
+    assert fred["snapshot"]["rows"] == 84
+    assert fred["tables"][0]["columns"][1]["name"] == "unemployment_rate"
+
+
+def test_retired_baseline_routes_are_absent():
+    paths = set(app.openapi()["paths"])
+    assert "/runs/preview" not in paths
+    assert "/runs/execute" not in paths
+    assert {"/sql-runs/generate", "/sql-runs/execute"} <= paths
 
 
 def quarterly_facts(source):
