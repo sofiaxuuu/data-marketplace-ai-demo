@@ -42,7 +42,7 @@ export default function Home() {
         <div className="intro">
           <p className="eyebrow">ASK THE DATA</p>
           <h1>Ask a question. Choose the source. Review the SQL.</h1>
-          <p>Compare local datasets, confirm one source, then review and approve its query before seeing results.</p>
+          <p>Get explained source recommendations, confirm one dataset, then review and approve its query. Discover external sources only when you choose to.</p>
         </div>
         {catalogError && <p role="alert" className="notice error">{catalogError}</p>}
         <CandidateInspector products={catalog} />
@@ -52,7 +52,7 @@ export default function Home() {
           <p className="eyebrow">CURRENT CATALOG</p>
           <h2>{catalog.length} local {catalog.length === 1 ? "product" : "products"}</h2>
           {catalog.length ? <ul className="catalog-list">{catalog.map(item => <li key={item.id}>{item.name}</li>)}</ul> : <p>{catalogError ? "Catalog unavailable." : "Loading the catalog…"}</p>}
-          <div className="catalog-note">All 15 products support the single-product SQL workflow, subject to available fields, periods and supported operations. Real observations are saved as local Parquet snapshots. No live data calls or cross-product joins.</div>
+          <div className="catalog-note">All 15 products support the single-product SQL workflow, subject to available fields, periods and supported operations. Real observations are local Parquet snapshots. External discovery returns candidate links only; no live data acquisition or cross-product joins.</div>
         </div>
       </aside>
     </div>

@@ -1,10 +1,11 @@
 # DataScout
 
-DataScout now has 15 real, overlapping data products. Search ranks candidates;
-you compare their definitions, units and periods and explicitly choose one to
-inspect. Confirm the source, review generated SQL, approve execution, and see the
-local results in one home-page workflow. Samples are local Parquet; descriptive
-metadata is embedded in SingleStore.
+DataScout has 15 real, overlapping data products. A Source Advisor recommends
+local products with reasons; you inspect and confirm one, review SQL, approve
+execution and see local results. LangGraph persists human pauses so refreshing
+the current tab restores its run. Explicit Exa discovery finds external candidate
+sources, never SQL-ready tables. Samples are local Parquet; descriptive metadata
+is also embedded in SingleStore for retrieval and evaluation.
 
 ## Run locally
 
@@ -65,9 +66,9 @@ model name, and a normalized vector. Ingestion updates changed products and skip
 unchanged ones. Search uses exact cosine similarity and excludes stale/deleted
 local manifests. Scores rank candidates; they are not calibrated confidence.
 
-The candidate inspector always uses SingleStore search and requires a human
-choice; inspection alone never generates or executes SQL. The same workflow then
-offers separate source confirmation, SQL review/approval, and local results.
+The home page’s advisor assesses all local metadata/schema without depending on
+SingleStore. Recommendations require a human choice; inspection alone never
+generates or executes SQL. Manual catalog selection bypasses the advisor.
 The API exposes `POST /retrieval/search` with
 `question` and optional `top_k` (default 3, maximum 10), returning comparison
 metadata and execution-support status. `GET /catalog` exposes all products and
@@ -151,13 +152,15 @@ work, but now publish through this pipeline; offline CSV/JSON inputs require
 their original `--retrieved-at YYYY-MM-DD` unless a matching sidecar supplies it.
 
 Adding a recipe enables acquisition/catalog metadata, not automatic question
-execution. Exa onboarding, arbitrary SQL sources and generalized query planning
-remain future work. Questions still never initiate live source acquisition.
+execution. Exa onboarding/acquisition and arbitrary SQL sources remain future
+work. Questions never initiate live source acquisition; external searches require
+an explicit user action and return candidate links only.
 
 ## Verify
 
 ```bash
 PYTHONPATH=python .venv/bin/pytest -q
+npm test
 npm run typecheck
 npm run build
 ```
@@ -178,9 +181,9 @@ CLI; `.venv/bin/python scripts/build_catalog.py --download` publishes **missing*
 reviewed products only and never silently refreshes existing ones.
 
 Human-confirmed single-table SQL planning and execution cover all 15 products.
-Broader SQL operations, calibrated automatic source decisions and Exa discovery
-remain future work. Catalog registration alone does not establish that a product
-can answer every question.
+Broader SQL operations, calibrated automatic source decisions and acquisition
+from discovered sources remain future work. Catalog registration alone does not
+establish that a product can answer every question.
 
 ## Competing-product evaluation
 
@@ -269,6 +272,8 @@ API: `POST /sql-runs/generate` takes `question`, `product_id`, `manifest_version
 and `confirmed: true`; `POST /sql-runs/execute` takes `run_id` and `approved: true`.
 Next.js proxies these through `/api/sql-runs/*`. Catalog `execution_supported`
 and `execution_scope` describe the single-product SQL workflow and its limitations.
+These endpoints remain available to existing callers; the home page uses the
+persisted workflow API below and shares the same SQL service implementation.
 
 Run offline safety/snapshot tests with
 `PYTHONPATH=python .venv/bin/python -m pytest tests/test_sql_runs.py -q`.
@@ -292,3 +297,67 @@ now explicitly requests no rounding to match its full-precision numeric label.
 one question input, approval gates, macroeconomic/SEC source choices, state resets,
 late responses, errors, clarification, empty results, and truncation. These use
 mocked API responses and do not call OpenAI or SingleStore.
+
+## LangGraph workflow and external discovery
+
+The graph coordinates three specialists: Source Advisor, SQL Planner and External
+Discovery. Catalog checks, routing, approval gates and execution are deterministic.
+Specialists cannot approve their own proposals. Human interrupts are separate from
+provider/execution nodes, so resuming a pause does not repeat a completed call.
+No CrewAI, autonomous supervisor, agent SDK integration or LangSmith account is
+required (LangGraph installs its own transitive dependencies).
+
+The Source Advisor makes one bounded structured OpenAI call with all 15 products’
+public metadata/schema, never sample rows, local paths, keys or benchmark labels.
+`DATASCOUT_SOURCE_ADVISOR_MODEL` overrides the existing SQL-model default.
+Advice distinguishes recommendations, ambiguity, missing local data and
+unsupported operations. Planner abstention offers explicit local recovery and
+excludes previously rejected products. Errors and empty results do not trigger
+automatic external search.
+
+“None of these fit” or a data-gap assessment offers external discovery. Clicking
+“Find external sources” sends the question to Exa using server-side `EXA_API_KEY`.
+One search returns at most five HTTPS candidate links and bounded excerpts.
+Publisher authority/suitability need human review; unknown coverage, units,
+access and terms remain unknown. Candidates cannot enter SQL, ingestion,
+registration or indexing. The backend never fetches arbitrary discovered URLs.
+
+API (proxied under `/api/workflows`):
+
+- `POST /workflows`: UUID `request_id`, question, optional product ID/version for manual choice.
+- `GET /workflows/{id}`: read authoritative stage, artifacts, allowed actions and sanitized trace; no provider calls.
+- `POST /workflows/{id}/actions`: UUID `request_id`, `expected_revision`, and a typed `action`.
+- `DELETE /workflows/{id}`: cancel the run and suppress late results.
+
+Actions are `select_source`, `choose_again`, `confirm_source` (`confirmed: true`),
+`approve_sql` (`approved: true`, exact `plan_id`), `recover_local`, `none_fit`,
+`discover_external` (`consent: true`) and `retry`. Source selection needs product
+ID/version. Only currently allowed actions are accepted; duplicates replay saved
+responses without repeating work and conflicting revisions return HTTP 409.
+
+`.local/workflows.sqlite3` holds checkpoints/action records; the existing
+`.local/sql-runs.sqlite3` remains the SQL-plan authority. The current tab stores
+only its run ID in sessionStorage. Paused/completed runs restore after refresh;
+reads never retry uncertain provider work. A crashed operation requires explicit
+retry and can repeat a call whose outcome was uncertain—not an exactly-once claim.
+Run creation returns its ID before the initial assessment, and the UI polls the
+persisted state while the local background worker assesses the catalog.
+Question edits retire the old run; source changes clear downstream approvals and
+results. Catalog drift invalidates a run. SQL plans expire after one hour;
+workflow checkpoints/results expire after 24 hours and are pruned on later access.
+Traces show stage, duration, model/provider and available token counts, not hidden
+reasoning or estimated cost. Local SQLite and unguessable run IDs are development
+defaults, not multi-user authentication: add authentication and production-grade
+storage/worker management before public deployment.
+
+Development-only advisor evaluation (no held-out tuning):
+
+```bash
+PYTHONPATH=python .venv/bin/python -m evals.source_advisor
+# Explicitly calls OpenAI; choose a new output filename:
+PYTHONPATH=python .venv/bin/python -m evals.source_advisor --live --output evals/results/NEW_ADVISOR_REPORT.json
+```
+
+The default command validates frozen benchmark evidence without model calls.
+Live grading checks advisor outcomes and first-choice products against development
+labels; it is not numerical-answer validation or held-out accuracy.

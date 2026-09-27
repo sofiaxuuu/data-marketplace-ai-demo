@@ -1,67 +1,26 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import type { InspectProduct } from "./candidate-inspector";
+import { useEffect, useState } from "react";
+import type { Workflow } from "./use-workflow";
 
-type Plan = {
-  outcome: "ready" | "clarify" | "abstain"; reason: string; sql: string;
-  selected_fields: string[]; formulas: string[]; assumptions: string[]; result_units: string[];
-  run_id?: string; model: string; planning_ms?: number; row_limit?: number;
-  trace?: { stage: string; result: string }[];
-};
-type Result = { outcome: "answered" | "no_data"; answer: string; columns: string[];
-  rows: Record<string, string | number | boolean | null>[]; truncated: boolean;
-  execution_ms: number; trace: { stage: string; result: string }[] };
-
-export default function SqlWorkflow({ product, question }: { product: InspectProduct; question: string }) {
-  const [confirmed, setConfirmed] = useState(false);
-  const [approved, setApproved] = useState(false);
-  const [plan, setPlan] = useState<Plan | null>(null);
-  const [result, setResult] = useState<Result | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  const generation = useRef(0);
-  useEffect(() => {
-    generation.current += 1;
-    setConfirmed(false); setApproved(false); setPlan(null); setResult(null); setBusy(false); setError("");
-    return () => { generation.current += 1; };
-  }, [question, product.id, product.version]);
-
-  async function request(action: "generate" | "execute") {
-    const current = ++generation.current;
-    setBusy(true); setError(""); setResult(null);
-    if (action === "generate") { setPlan(null); setApproved(false); }
-    try {
-      const response = await fetch(`/api/sql-runs/${action}`, {
-        method: "POST", headers: { "content-type": "application/json" },
-        signal: AbortSignal.timeout(75000),
-        body: JSON.stringify(action === "generate" ? {
-          question: question.trim(), product_id: product.id, manifest_version: product.version, confirmed: true,
-        } : { run_id: plan?.run_id, approved: true }),
-      });
-      const value = await response.json();
-      if (!response.ok) throw new Error(typeof value.detail === "string" ? value.detail : "Request failed. Check the question and try again.");
-      if (generation.current === current) {
-        if (action === "generate") setPlan(value);
-        else setResult(value);
-      }
-    } catch (e) {
-      if (generation.current === current) setError(e instanceof Error ? e.message : "SQL workflow unavailable");
-    } finally { if (generation.current === current) setBusy(false); }
-  }
+export default function SqlWorkflow({ run, busy, onAction }: { run: Workflow; busy: boolean; onAction: (action: object) => void }) {
+  const [confirmed, setConfirmed] = useState(run.confirmed);
+  const [approved, setApproved] = useState(run.approved);
+  const product = run.selected!;
+  const { plan, result } = run;
+  useEffect(() => { setConfirmed(run.confirmed); setApproved(run.approved); }, [run.id, product.id, product.version, run.plan?.run_id, run.confirmed, run.approved]);
 
   return <section className="sql-workflow" aria-label="Generate and execute SQL">
-    <label><input type="checkbox" checked={confirmed} disabled={busy} onChange={e => {
-      generation.current += 1; setConfirmed(e.target.checked); setPlan(null); setResult(null); setApproved(false);
-    }} /> I confirm {product.name} (version {product.version}) fits this question.</label>
+    <label><input type="checkbox" checked={confirmed} disabled={busy || !run.allowed_actions.includes("confirm_source")} onChange={e => setConfirmed(e.target.checked)} /> I confirm {product.name} (version {product.version}) fits this question.</label>
     <p className="catalog-note">Generating sends your question and this product’s metadata/schema to OpenAI—not sample rows. Execution stays local.</p>
     <div className="section-heading"><span className="step-number" aria-hidden="true">03</span><h2>Generate and review SQL</h2></div>
-    {!question.trim() && <p>Enter a business question above before generating SQL.</p>}
-    <button className="primary" disabled={busy || !confirmed || !question.trim()} onClick={() => void request("generate")}>{busy && !plan ? "Planning SQL…" : "Generate SQL for review"}</button>
-    {error && <p role="alert" className="notice error">{error}</p>}
+    <button className="primary" disabled={busy || !confirmed || !run.allowed_actions.includes("confirm_source")} onClick={() => onAction({ type: "confirm_source", confirmed: true })}>Generate SQL for review</button>
     {plan && <div aria-live="polite">
       <h4>{plan.outcome === "ready" ? "Review the query plan" : plan.outcome === "clarify" ? "Please clarify your question" : "This dataset cannot answer that question"}</h4>
       <p>{plan.reason}</p>
+      {plan.outcome === "clarify" && <p>Update the question above, then choose and confirm a source again.</p>}
+      {plan.outcome === "abstain" && <><p>The advisor can suggest alternatives. A different dataset may not help with an unsupported SQL operation.</p>
+        <button disabled={busy || !run.allowed_actions.includes("recover_local")} onClick={() => onAction({ type: "recover_local" })}>Suggest another local dataset</button></>}
       {plan.outcome === "ready" && <>
         <p><strong>Input fields:</strong> {plan.selected_fields.join(", ")}</p>
         {!!plan.formulas.length && <><h4>Formulas</h4><ul>{plan.formulas.map((s, i) => <li key={i}>{s}</li>)}</ul></>}
@@ -70,8 +29,8 @@ export default function SqlWorkflow({ product, question }: { product: InspectPro
         <pre className="review-sql"><code>{plan.sql}</code></pre>
         <p>Model: {plan.model} · Planning: {plan.planning_ms?.toFixed(0)} ms · Up to {plan.row_limit} result rows · Plans expire after one hour.</p>
         <p>Safety and schema checks passed. This does not prove the analysis is correct: verify periods, units and formulas.</p>
-        <label><input type="checkbox" checked={approved} disabled={busy} onChange={e => setApproved(e.target.checked)} /> I approve this SQL and its interpretation.</label>
-        <div><button className="primary" disabled={busy || !approved} onClick={() => void request("execute")}>{busy ? "Executing locally…" : "Execute approved SQL"}</button></div>
+        <label><input type="checkbox" checked={approved} disabled={busy || !run.allowed_actions.includes("approve_sql")} onChange={e => setApproved(e.target.checked)} /> I approve this SQL and its interpretation.</label>
+        <div><button className="primary" disabled={busy || !approved || !run.allowed_actions.includes("approve_sql")} onClick={() => onAction({ type: "approve_sql", approved: true, plan_id: plan.run_id })}>Execute approved SQL</button></div>
       </>}
     </div>}
     {result && <section aria-live="polite">

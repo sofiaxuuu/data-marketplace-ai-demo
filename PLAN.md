@@ -330,7 +330,7 @@ sample Parquet files remain valid without forced migration. Catalog registration
 does not imply the deterministic question selector/SQL execution supports a new
 product; generalizing those components remains separate work.
 
-Future discovery, including Exa, produces candidates, not queryable tables.
+External discovery, including Exa, produces candidates, not queryable tables.
 Lifecycle: discovered → reviewed/configured → acquired/validated → registered →
 indexed. Record discovery provider, URL, time and evidence; inspect source
 access/terms; select an existing adapter or report unsupported capabilities.
@@ -448,7 +448,7 @@ These are useful failure cases, not reasons to change gold labels. The held-out
 set has now been measured; future tuning uses development only, with a new held-out
 set needed for an unbiased subsequent release decision.
 
-Still out of scope: live question-time acquisition, Exa integration, generalized
+At that milestone, out of scope: live question-time acquisition, Exa integration, generalized
 SQL planning/execution, multi-product joins and a calibrated no-match decision.
 Next: human semantic-label review and development-only retrieval diagnosis,
 then separately design execution for a human-selected product.
@@ -819,7 +819,7 @@ Do not:
 
 V1 is complete when a user can:
 
-1. ask a question answerable by one of the three sample products
+1. ask a question answerable by one of the 15 local sample products
 
 2. see the top retrieved data products
 
@@ -896,6 +896,46 @@ the obsolete baseline form and baseline-only sidebar trace are removed.
 
 Benchmark review remains a separate navigation link. The UI consolidation did
 not change the database. Subsequent cleanup retired `/runs/preview` and
-`/runs/execute`; `/sql-runs/*` is the sole analysis API.
+`/runs/execute`; `/sql-runs/*` remains the saved-plan API. The home page now uses
+the persisted `/workflows` API described below.
 `npm test` adds offline UI
 interaction coverage using mocked APIs, separate from live model evaluation.
+
+### LangGraph-guided source selection (implemented)
+
+LangGraph StateGraph owns the full local workflow and human pauses using a SQLite
+checkpointer in `.local/workflows.sqlite3`. Bounded Source Advisor, SQL Planner
+and External Discovery specialists have typed boundaries; catalog/fingerprint
+checks, routing, approvals and DuckDB execution are deterministic. Human interrupts
+are separate from provider calls so resume never repeats a completed specialist.
+Existing SQL APIs and their saved-plan store/safety checks remain shared services.
+
+The advisor assesses all 15 public metadata/schema summaries, independently of
+SingleStore, and returns at most three explained recommendations, one clarification,
+or no local fit with data-gap/unsupported-operation distinction. Manual browsing
+bypasses advice. Planner abstention offers explicit recovery excluding rejected
+sources. Recommendations, source selection and recovery never execute SQL.
+
+Exa discovery is now implemented as an explicit consent-based, candidate-only
+branch. One bounded request returns up to five links/evidence excerpts with
+provenance; unknown coverage, units, access and terms stay unknown. External
+candidates are not SQL products. No arbitrary URL fetching, acquisition,
+executable recipes, catalog registration or indexing occurs.
+
+POST /workflows creates; GET inspects; POST /workflows/{id}/actions resumes through
+typed, stage-validated human actions; DELETE cancels. Revisions, request IDs and
+per-run locks prevent conflicting actions and repeat completed requests. Late
+responses are ignored; question edits retire old runs; source/catalog changes
+invalidate downstream artifacts and approvals. The current tab stores only its
+run ID and restores paused/completed state on refresh, without provider calls.
+Run creation returns its ID before assessment; the UI polls persisted state
+while a local background worker runs. Interrupted work needs explicit
+retry; arbitrary process crashes do not have exactly-once provider semantics.
+SQL-plan TTL stays one hour; run TTL is 24 hours with access-time checkpoint
+pruning. Traces expose status, duration, provider/model and token counts only.
+
+Offline graph/API/UI tests mock providers and exercise gates, refresh/restart,
+recovery, consent, invalid outputs, conflicts, cancellation, drift, expiration and
+failures. `evals.source_advisor` evaluates development cases separately; live calls
+require --live and a new report filename. No held-out tuning or automatic label
+updates. Runtime harness selection remains separate from LangGraph orchestration.

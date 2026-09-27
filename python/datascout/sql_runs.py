@@ -227,8 +227,7 @@ class Execute(BaseModel):
     approved: Literal[True]
 
 
-@router.post("/generate")
-def generate(request: Generate):
+def generate_saved_plan(request: Generate):
     started = time.perf_counter()
     try:
         if not request.question.strip():
@@ -275,8 +274,7 @@ def generate(request: Generate):
         raise HTTPException(503, "SQL planning storage unavailable.") from None
 
 
-@router.post("/execute")
-def execute(request: Execute):
+def execute_saved_plan(request: Execute):
     started = time.perf_counter()
     try:
         conn = connection()
@@ -321,3 +319,13 @@ def execute(request: Execute):
         raise HTTPException(422, str(exc)) from None
     except (OSError, sqlite3.Error):
         raise HTTPException(503, "Local SQL storage unavailable.") from None
+
+
+@router.post("/generate")
+def generate(request: Generate):
+    return generate_saved_plan(request)
+
+
+@router.post("/execute")
+def execute(request: Execute):
+    return execute_saved_plan(request)

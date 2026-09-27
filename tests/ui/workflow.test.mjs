@@ -9,7 +9,7 @@ globalThis.document = dom.window.document;
 Object.defineProperty(globalThis, "navigator", { value: dom.window.navigator, configurable: true });
 globalThis.HTMLElement = dom.window.HTMLElement;
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
-const { render, screen, fireEvent, cleanup, act } = await import("@testing-library/react");
+const { render, screen, fireEvent, cleanup, act, waitFor } = await import("@testing-library/react");
 const { default: Home } = await import("../../app/page.tsx");
 const { default: CandidateInspector } = await import("../../app/candidate-inspector.tsx");
 
@@ -18,189 +18,272 @@ const fred = {
   business_context: "U.S. monthly percentage", facets: { unit: "percent", geography: "United States" },
   coverage: { start: "2018-01-01", end: "2024-12-01", rows: 84 },
   source_url: "https://fred.stlouisfed.org/series/UNRATE", source_name: "FRED", snapshot_date: "2026-09-26",
-  execution_supported: true, execution_scope: "Single-product SQL; subject to supported operations and snapshot coverage",
+  execution_supported: true, execution_scope: "Single-product SQL",
   tables: [{ id: "unemployment_rate", columns: [{ name: "observation_date", type: "DATE", description: "Monthly date" }, { name: "unemployment_rate", type: "DOUBLE", description: "U-3", unit: "percent" }] }],
 };
-const sec = { ...fred, id: "sec_apple_income_statement", version: 2, name: "Apple annual income statement",
-  description: "Apple fiscal annual income", business_context: "Fiscal years, not calendar years", facets: { unit: "whole USD" },
-  execution_supported: true };
+const sec = { ...fred, id: "sec_apple_income_statement", name: "Apple annual income statement",
+  business_context: "Fiscal years, not calendar years", facets: { unit: "whole USD" } };
 const products = [fred, sec];
+const advice = { outcome: "recommend", limitation: "none", reason: "Assessing all catalog products",
+  clarification: "", recommendations: products.map(product => ({ product, reason: "Fields and period fit", caveats: ["Review reporting basis"] })) };
 const plan = { outcome: "ready", reason: "Requested period is covered", sql: "SELECT unemployment_rate FROM unemployment_rate",
   selected_fields: ["unemployment_rate"], formulas: [], assumptions: ["Seasonally adjusted"], result_units: ["percent"],
-  run_id: "saved-plan", model: "fixture", planning_ms: 10, row_limit: 500, trace: [] };
+  run_id: "saved-plan", model: "fixture", planning_ms: 10, row_limit: 500 };
 const result = { outcome: "answered", answer: "Returned 1 row", columns: ["rate"], rows: [{ rate: 14.8 }],
   truncated: false, execution_ms: 2, trace: [{ stage: "DuckDB execution", result: "1 row" }] };
-let calls = [];
+const external = { title: "Official data API", publisher: "example.org", url: "https://example.org/data",
+  evidence: "Dataset documentation", relevance: "Review suitability", provider: "exa", discovered_at: "2026-09-27",
+  coverage: "Unknown", units: "Unknown", access: "Unknown", licensing: "Unknown" };
+let calls = [], serverRun;
 const realFetch = globalThis.fetch;
 const json = (data, status = 200) => Promise.resolve(new Response(JSON.stringify(data), { status, headers: { "content-type": "application/json" } }));
-function mockFetch(overrides = {}) {
-  calls = [];
+function state(extra = {}) {
+  return { id: "11111111-1111-4111-8111-111111111111", revision: 1, status: "ready", stage: "recommendations",
+    question: "What was unemployment in April 2020?", allowed_actions: ["select_source", "none_fit"],
+    selected: null, confirmed: false, approved: false, advice, plan: null, result: null, external: null, error: null,
+    trace: [{ stage: "advisor", status: "completed", result: "recommend", model: "fixture", duration_ms: 10, usage: { total_tokens: 12 } }], ...extra };
+}
+function mockFetch(overrides = {}, initialRun = null) {
+  calls = []; serverRun = initialRun; window.sessionStorage.clear();
   globalThis.fetch = (url, options = {}) => {
-    calls.push({ url, body: options.body ? JSON.parse(options.body) : null });
-    if (overrides[url]) return overrides[url](options);
-    if (url === "/api/catalog") return json(products);
-    if (url === "/api/retrieval/search") return json({ products });
-    if (url === "/api/sql-runs/generate") return json(plan);
-    if (url === "/api/sql-runs/execute") return json(result);
-    throw new Error(`Unexpected API: ${url}`);
+    const body = options.body ? JSON.parse(options.body) : null;
+    const method = options.method ?? "GET";
+    calls.push({ url, method, body });
+    if (url === "/api/catalog") return overrides.catalog?.() ?? json(products);
+    if (url === "/api/workflows") {
+      if (overrides.create) return overrides.create(body);
+      serverRun = state({ question: body.question });
+      if (body.product_id) serverRun = { ...serverRun, advice: null, selected: products.find(p => p.id === body.product_id),
+        stage: "source_review", allowed_actions: ["select_source", "choose_again", "confirm_source"] };
+      return json(serverRun);
+    }
+    if (url.endsWith("/actions")) {
+      if (overrides[body.action.type]) return overrides[body.action.type](body);
+      const kind = body.action.type;
+      const next = { ...serverRun, revision: serverRun.revision + 1, error: null };
+      if (kind === "select_source") Object.assign(next, { selected: products.find(p => p.id === body.action.product_id),
+        confirmed: false, approved: false, plan: null, result: null, external: null, stage: "source_review",
+        allowed_actions: ["select_source", "choose_again", "confirm_source", "none_fit"] });
+      if (kind === "choose_again") Object.assign(next, { selected: null, plan: null, result: null, stage: "recommendations", allowed_actions: ["select_source", "none_fit"] });
+      if (kind === "confirm_source") Object.assign(next, { confirmed: true, plan, stage: "sql_review", allowed_actions: ["select_source", "choose_again", "approve_sql"] });
+      if (kind === "approve_sql") Object.assign(next, { approved: true, result, stage: "results", allowed_actions: ["select_source", "choose_again"] });
+      if (kind === "none_fit") Object.assign(next, { selected: null, plan: null, stage: "external_offer", allowed_actions: ["select_source", "discover_external"] });
+      if (kind === "discover_external") Object.assign(next, { external: [external], stage: "external_review", allowed_actions: ["select_source", "discover_external"] });
+      if (kind === "recover_local") Object.assign(next, { selected: null, plan: null, confirmed: false, stage: "recommendations", advice, allowed_actions: ["select_source", "none_fit"] });
+      serverRun = next; return json(next);
+    }
+    if (url.startsWith("/api/workflows/")) {
+      if (method === "DELETE") return json({ ...serverRun, status: "cancelled", selected: null, plan: null, result: null, allowed_actions: [] });
+      return overrides.get?.() ?? json(serverRun);
+    }
+    throw new Error("Unexpected API: " + url);
   };
 }
-afterEach(() => { cleanup(); globalThis.fetch = realFetch; });
-
+afterEach(() => { cleanup(); window.sessionStorage.clear(); globalThis.fetch = realFetch; });
 async function choose(name = fred.name) {
   fireEvent.change(screen.getByLabelText("Your question"), { target: { value: "What was unemployment in April 2020?" } });
   fireEvent.click(screen.getByRole("button", { name: "Find candidates" }));
-  await screen.findByText("Top candidates — please choose");
-  fireEvent.click(screen.getAllByRole("button", { name })[0]);
+  await screen.findByText("Recommended local sources — please choose");
+  fireEvent.click(screen.getByRole("button", { name: "Review this dataset: " + name }));
+  await screen.findByRole("checkbox", { name: /I confirm/ });
 }
 async function generate() {
   fireEvent.click(screen.getByRole("checkbox", { name: /I confirm/ }));
   fireEvent.click(screen.getByRole("button", { name: "Generate SQL for review" }));
   await screen.findByText("Review the query plan");
 }
-function deferred() {
-  let resolve;
-  const promise = new Promise(r => { resolve = r; });
-  return { promise, resolve };
+async function execute() {
+  fireEvent.click(screen.getByRole("checkbox", { name: /I approve this SQL/ }));
+  fireEvent.click(screen.getByRole("button", { name: "Execute approved SQL" }));
+  await screen.findByRole("heading", { name: "Results" });
 }
+function deferred() { let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve }; }
 
-test("home has one question input, updated catalog copy and no legacy baseline or sidebar trace", async () => {
+test("home has one question, example makes no provider call and benchmark stays separate", async () => {
   mockFetch(); render(React.createElement(Home));
   await screen.findByText("2 local products");
   assert.equal(screen.getAllByRole("textbox").length, 1);
   assert.equal(screen.queryByText("Limited execution baseline"), null);
-  assert.equal(screen.queryByText("RUN TRACE"), null);
   assert.ok(screen.getByRole("link", { name: "Review benchmark →" }));
-  assert.ok(screen.getByText(/All 15 products support/));
   fireEvent.click(screen.getByRole("button", { name: /Try an example/ }));
   assert.equal(screen.getByLabelText("Your question").value, "What was the U.S. unemployment rate in April 2020?");
   assert.ok(calls.every(c => c.url === "/api/catalog"));
 });
 
 for (const source of products) {
-  test(`${source.name}: source and SQL approvals gate calls and results retain provenance/trace`, async () => {
+  test(source.name + ": recommendations and selection cannot generate or execute SQL", async () => {
     mockFetch(); render(React.createElement(CandidateInspector, { products }));
     await choose(source.name);
-    assert.equal(calls.some(c => c.url.includes("sql-runs")), false);
+    assert.equal(calls.filter(c => c.body?.action?.type === "confirm_source").length, 0);
     assert.equal(screen.getByText("Inspect schema and fields").closest("details").open, false);
     assert.equal(screen.getByRole("button", { name: "Generate SQL for review" }).disabled, true);
     await generate();
-    assert.equal(calls.find(c => c.url.endsWith("generate")).body.product_id, source.id);
+    assert.deepEqual(calls.find(c => c.body?.action?.type === "confirm_source").body.action, { type: "confirm_source", confirmed: true });
     assert.equal(screen.getByRole("button", { name: "Execute approved SQL" }).disabled, true);
-    assert.equal(calls.some(c => c.url.endsWith("execute")), false);
-    fireEvent.click(screen.getByRole("checkbox", { name: /I approve this SQL/ }));
-    fireEvent.click(screen.getByRole("button", { name: "Execute approved SQL" }));
-    await screen.findByText("Returned 1 row");
-    assert.deepEqual(calls.find(c => c.url.endsWith("execute")).body, { run_id: "saved-plan", approved: true });
+    await execute();
+    assert.deepEqual(calls.find(c => c.body?.action?.type === "approve_sql").body.action,
+      { type: "approve_sql", approved: true, plan_id: "saved-plan" });
     assert.ok(screen.getByText("14.8"));
     assert.equal(screen.getAllByText(/Snapshot 2026-09-26/).length, 2);
     assert.ok(screen.getByText("Run trace"));
-    assert.ok(calls.every(c => !c.url.startsWith("/api/runs/")));
-    fireEvent.change(screen.getByLabelText("Your question"), { target: { value: "Different question" } });
-    assert.equal(screen.queryByText("Returned 1 row"), null);
-    assert.equal(screen.queryByRole("checkbox", { name: /I approve/ }), null);
+    assert.ok(screen.getByText("Agent workflow trace"));
+    assert.ok(calls.every(c => !c.url.includes("sql-runs") && !c.url.includes("retrieval/search")));
   });
 }
-
-test("switching source clears generated SQL and both approvals", async () => {
+test("manual catalog choice bypasses advisor", async () => {
+  mockFetch(); render(React.createElement(CandidateInspector, { products }));
+  fireEvent.change(screen.getByLabelText("Your question"), { target: { value: "Apple revenue" } });
+  fireEvent.click(screen.getByText("Browse all 2 local products"));
+  fireEvent.click(screen.getByRole("button", { name: sec.name }));
+  await screen.findByRole("checkbox", { name: /I confirm/ });
+  assert.equal(calls.find(c => c.url === "/api/workflows").body.product_id, sec.id);
+  assert.equal(screen.queryByText("Recommended local sources — please choose"), null);
+});
+test("source switch immediately clears SQL and resets both approvals", async () => {
   mockFetch(); render(React.createElement(CandidateInspector, { products }));
   await choose(); await generate();
   fireEvent.click(screen.getByRole("checkbox", { name: /I approve/ }));
-  fireEvent.click(screen.getAllByRole("button", { name: sec.name })[0]);
+  fireEvent.click(screen.getByRole("button", { name: "Review this dataset: " + sec.name }));
   assert.equal(screen.queryByText("Review the query plan"), null);
+  await screen.findByRole("checkbox", { name: /I confirm Apple/ });
   assert.equal(screen.getByRole("checkbox", { name: /I confirm/ }).checked, false);
-  assert.equal(screen.getByRole("button", { name: "Generate SQL for review" }).disabled, true);
 });
-
-test("catalog version change clears downstream state; identical catalog does not", async () => {
+test("catalog change retires run; identical catalog preserves it", async () => {
   mockFetch(); const view = render(React.createElement(CandidateInspector, { products }));
   await choose(); await generate();
   view.rerender(React.createElement(CandidateInspector, { products }));
   assert.ok(screen.getByText("Review the query plan"));
   view.rerender(React.createElement(CandidateInspector, { products: [{ ...fred, version: 3 }, sec] }));
   assert.equal(screen.queryByText("Review the query plan"), null);
-  assert.equal(screen.queryByRole("checkbox", { name: /I confirm/ }), null);
+  assert.ok(calls.some(c => c.method === "DELETE"));
 });
-
-for (const phase of ["search", "generate", "execute"]) {
-  test(`late ${phase} response cannot restore old state after the question changes`, async () => {
+for (const phase of ["create", "confirm_source", "approve_sql"]) {
+  test("late " + phase + " cannot restore state after question edit", async () => {
     const pending = deferred();
-    mockFetch({ [`/api/${phase === "search" ? "retrieval/search" : `sql-runs/${phase}`}`]: () => pending.promise });
+    mockFetch({ [phase]: () => pending.promise });
     render(React.createElement(CandidateInspector, { products }));
-    if (phase === "search") {
+    if (phase === "create") {
       fireEvent.change(screen.getByLabelText("Your question"), { target: { value: "Old question" } });
       fireEvent.click(screen.getByRole("button", { name: "Find candidates" }));
     } else {
       await choose();
-      fireEvent.click(screen.getByRole("checkbox", { name: /I confirm/ }));
-      fireEvent.click(screen.getByRole("button", { name: "Generate SQL for review" }));
-      if (phase === "execute") {
-        await screen.findByText("Review the query plan");
-        fireEvent.click(screen.getByRole("checkbox", { name: /I approve/ }));
-        fireEvent.click(screen.getByRole("button", { name: "Execute approved SQL" }));
-      }
+      if (phase === "approve_sql") await generate();
+      fireEvent.click(screen.getByRole("checkbox", { name: phase === "approve_sql" ? /I approve/ : /I confirm/ }));
+      fireEvent.click(screen.getByRole("button", { name: phase === "approve_sql" ? "Execute approved SQL" : "Generate SQL for review" }));
     }
     fireEvent.change(screen.getByLabelText("Your question"), { target: { value: "New question" } });
-    await act(async () => { pending.resolve(await json(phase === "search" ? { products } : phase === "generate" ? plan : result)); });
-    assert.equal(screen.queryByText("Top candidates — please choose"), null);
+    await act(async () => pending.resolve(await json(state({ selected: fred, plan, result }))));
+    assert.equal(screen.getByLabelText("Your question").value, "New question");
     assert.equal(screen.queryByText("Review the query plan"), null);
     assert.equal(screen.queryByText("Returned 1 row"), null);
+    assert.equal(window.sessionStorage.getItem("datascout.active-workflow"), null);
   });
 }
-
-for (const outcome of ["clarify", "abstain"]) {
-  test(`${outcome} stays visible without an execution button`, async () => {
-    mockFetch({ "/api/sql-runs/generate": () => json({ ...plan, outcome, reason: "Reporting period needs attention", sql: "" }) });
-    render(React.createElement(CandidateInspector, { products })); await choose();
-    fireEvent.click(screen.getByRole("checkbox", { name: /I confirm/ }));
-    fireEvent.click(screen.getByRole("button", { name: "Generate SQL for review" }));
-    await screen.findByText("Reporting period needs attention");
-    assert.equal(screen.queryByRole("button", { name: "Execute approved SQL" }), null);
+for (const stage of ["source_review", "sql_review", "results", "external_review"]) {
+  test("refresh restores " + stage + " without provider calls", async () => {
+    const restored = state({ stage, selected: stage === "external_review" ? null : fred,
+      plan: ["sql_review", "results"].includes(stage) ? plan : null, result: stage === "results" ? result : null,
+      external: stage === "external_review" ? [external] : null,
+      confirmed: ["sql_review", "results"].includes(stage), approved: stage === "results",
+      allowed_actions: stage === "source_review" ? ["confirm_source"] : stage === "sql_review" ? ["approve_sql"] : ["select_source"] });
+    mockFetch({}, restored);
+    window.sessionStorage.setItem("datascout.active-workflow", restored.id);
+    render(React.createElement(CandidateInspector, { products }));
+    await waitFor(() => assert.equal(screen.getByLabelText("Your question").value, restored.question));
+    assert.ok(calls.every(c => c.method === "GET"));
+    if (stage === "results") assert.ok(screen.getByText("Returned 1 row"));
+    if (stage === "external_review") assert.ok(screen.getByRole("link", { name: /Official data API/ }));
   });
 }
-
-for (const variant of ["empty", "truncated"]) {
-  test(`${variant} results remain explicit`, async () => {
-    mockFetch({ "/api/sql-runs/execute": () => json(variant === "empty" ? { ...result, outcome: "no_data", rows: [], answer: "No matching observations. Empty results are not zero." } : { ...result, truncated: true }) });
-    render(React.createElement(CandidateInspector, { products })); await choose(); await generate();
-    fireEvent.click(screen.getByRole("checkbox", { name: /I approve/ }));
-    fireEvent.click(screen.getByRole("button", { name: "Execute approved SQL" }));
-    await screen.findByRole("heading", { name: "Results" });
-    assert.ok(screen.getByText(variant === "empty" ? /Empty results are not zero/ : /Results truncated/));
-  });
-}
-
-test("catalog, retrieval and SQL failures are visible", async () => {
-  mockFetch({ "/api/catalog": () => json({ detail: "Unavailable" }, 503) });
-  render(React.createElement(Home)); await screen.findByRole("alert"); cleanup();
-  mockFetch({ "/api/retrieval/search": () => json({ detail: "Retrieval unavailable" }, 503) });
+test("none fit offers discovery; only explicit click sends consent", async () => {
+  mockFetch(); render(React.createElement(CandidateInspector, { products }));
+  await choose();
+  fireEvent.click(screen.getByRole("button", { name: "None of these fit" }));
+  await screen.findByRole("button", { name: "Find external sources" });
+  assert.equal(calls.some(c => c.body?.action?.type === "discover_external"), false);
+  fireEvent.click(screen.getByRole("button", { name: "Find external sources" }));
+  await screen.findByRole("link", { name: /Official data API/ });
+  assert.deepEqual(calls.find(c => c.body?.action?.type === "discover_external").body.action, { type: "discover_external", consent: true });
+  assert.ok(screen.getByText(/Not available for SQL/));
+  assert.equal(screen.queryByRole("button", { name: "Generate SQL for review" }), null);
+});
+test("late discovery cannot restore candidates after switching to local source", async () => {
+  const pending = deferred();
+  mockFetch({ discover_external: () => pending.promise });
   render(React.createElement(CandidateInspector, { products }));
-  fireEvent.change(screen.getByLabelText("Your question"), { target: { value: "GDP 2024" } });
-  fireEvent.click(screen.getByRole("button", { name: "Find candidates" }));
-  await screen.findByText("Retrieval unavailable"); cleanup();
-  mockFetch({ "/api/sql-runs/generate": () => json({ detail: "Planner unavailable" }, 503) });
+  await choose();
+  fireEvent.click(screen.getByRole("button", { name: "None of these fit" }));
+  await screen.findByRole("button", { name: "Find external sources" });
+  fireEvent.click(screen.getByRole("button", { name: "Find external sources" }));
+  fireEvent.change(screen.getByLabelText("Your question"), { target: { value: "New local question" } });
+  await act(async () => pending.resolve(await json(state({ stage: "external_review", external: [external] }))));
+  assert.equal(screen.queryByRole("link", { name: /Official data API/ }), null);
+});
+for (const limitation of ["ambiguous", "data_gap", "unsupported_operation"]) {
+  test(limitation + " is distinct and does not search automatically", async () => {
+    const outcome = limitation === "ambiguous" ? "clarify" : "no_local_fit";
+    mockFetch({ create: body => json(state({ question: body.question,
+      advice: { outcome, limitation, reason: "Needs attention", clarification: "Which reporting period?", recommendations: [] },
+      stage: limitation === "ambiguous" ? "clarification" : "no_local_fit",
+      allowed_actions: limitation === "data_gap" ? ["select_source", "discover_external"] : ["select_source"] })) });
+    render(React.createElement(CandidateInspector, { products }));
+    fireEvent.change(screen.getByLabelText("Your question"), { target: { value: "Some question" } });
+    fireEvent.click(screen.getByRole("button", { name: "Find candidates" }));
+    await screen.findByText("Needs attention");
+    assert.equal(!!screen.queryByRole("button", { name: "Find external sources" }), limitation === "data_gap");
+    assert.equal(calls.some(c => c.body?.action?.type === "discover_external"), false);
+  });
+}
+test("planner abstention offers local recovery, not automatic search", async () => {
+  mockFetch({ confirm_source: () => {
+    serverRun = { ...serverRun, revision: 3, plan: { ...plan, outcome: "abstain", reason: "Need counts not rate", sql: "" },
+      stage: "sql_abstain", allowed_actions: ["select_source", "recover_local", "none_fit"] };
+    return json(serverRun);
+  } });
   render(React.createElement(CandidateInspector, { products })); await choose();
   fireEvent.click(screen.getByRole("checkbox", { name: /I confirm/ }));
   fireEvent.click(screen.getByRole("button", { name: "Generate SQL for review" }));
-  await screen.findByText("Planner unavailable");
+  await screen.findByText("Need counts not rate");
+  assert.equal(calls.some(c => c.body?.action?.type === "recover_local"), false);
+  fireEvent.click(screen.getByRole("button", { name: "Suggest another local dataset" }));
+  await waitFor(() => assert.equal(screen.queryByText("Need counts not rate"), null));
+  assert.ok(calls.some(c => c.body?.action?.type === "recover_local"));
 });
-
-test("empty retrieval does not claim no suitable source and leaves catalog browsing available", async () => {
-  mockFetch({ "/api/retrieval/search": () => json({ products: [] }) });
+for (const variant of ["empty", "truncated"]) {
+  test(variant + " results remain visible", async () => {
+    mockFetch({ approve_sql: () => json({ ...serverRun, revision: 4, stage: "results", approved: true,
+      allowed_actions: ["select_source"], result: variant === "empty" ? { ...result, rows: [], outcome: "no_data",
+        answer: "Empty results are not zero." } : { ...result, truncated: true } }) });
+    render(React.createElement(CandidateInspector, { products })); await choose(); await generate(); await execute();
+    assert.ok(screen.getByText(variant === "empty" ? "Empty results are not zero." : /Results truncated/));
+  });
+}
+test("catalog and advisor failures visible; retry is explicit", async () => {
+  mockFetch({ catalog: () => json({ detail: "Catalog unavailable" }, 503) });
+  render(React.createElement(Home)); await screen.findByRole("alert"); cleanup();
+  mockFetch({ create: () => json(state({ advice: null, stage: "error", error: "Advisor unavailable", allowed_actions: ["retry", "select_source"] })) });
   render(React.createElement(CandidateInspector, { products }));
-  fireEvent.change(screen.getByLabelText("Your question"), { target: { value: "Unclear measure" } });
+  fireEvent.change(screen.getByLabelText("Your question"), { target: { value: "GDP" } });
   fireEvent.click(screen.getByRole("button", { name: "Find candidates" }));
-  await screen.findByText(/not proof that no source fits/);
-  assert.ok(screen.getByText("Browse all 2 local products"));
-  assert.equal(calls.some(c => c.url.includes("sql-runs")), false);
+  await screen.findByText("Advisor unavailable");
+  assert.ok(screen.getByRole("button", { name: "Retry failed step" }));
+  assert.equal(calls.filter(c => c.method === "POST").length, 1);
 });
-
-test("execution failure is visible without displaying invented results", async () => {
-  mockFetch({ "/api/sql-runs/execute": () => json({ detail: "Query exceeded the execution timeout" }, 422) });
+test("failed execution cannot invent results", async () => {
+  mockFetch({ approve_sql: () => json({ ...serverRun, revision: 4, stage: "error", error: "Execution timed out", allowed_actions: ["retry", "select_source"] }) });
   render(React.createElement(CandidateInspector, { products })); await choose(); await generate();
   fireEvent.click(screen.getByRole("checkbox", { name: /I approve/ }));
   fireEvent.click(screen.getByRole("button", { name: "Execute approved SQL" }));
-  await screen.findByText("Query exceeded the execution timeout");
+  await screen.findByText("Execution timed out");
   assert.equal(screen.queryByRole("heading", { name: "Results" }), null);
-  assert.ok(screen.getByText("Review the query plan"));
+});
+
+test("running initial workflow persists its ID before recommendations arrive", async () => {
+  mockFetch({ create: body => json(state({ question: body.question, status: "running", stage: "starting", advice: null, allowed_actions: [] })) });
+  render(React.createElement(CandidateInspector, { products }));
+  fireEvent.change(screen.getByLabelText("Your question"), { target: { value: "GDP" } });
+  fireEvent.click(screen.getByRole("button", { name: "Find candidates" }));
+  await waitFor(() => assert.equal(window.sessionStorage.getItem("datascout.active-workflow"), state().id));
+  assert.equal(screen.getByRole("button", { name: "Working…" }).disabled, true);
+  assert.equal(calls.some(c => c.body?.action), false);
 });

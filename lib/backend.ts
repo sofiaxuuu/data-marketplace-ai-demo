@@ -2,10 +2,11 @@ export async function forwardToBackend(path: string, request: Request): Promise<
   const base = process.env.DATASCOUT_API_URL ?? "http://127.0.0.1:8000";
   try {
     const upstream = await fetch(`${base}${path}`, {
-      method: "POST",
+      method: request.method,
       headers: { "content-type": "application/json" },
-      body: await request.text(),
+      body: request.method === "POST" ? await request.text() : undefined,
       cache: "no-store",
+      signal: AbortSignal.timeout(80000),
     });
     return new Response(await upstream.text(), {
       status: upstream.status,
