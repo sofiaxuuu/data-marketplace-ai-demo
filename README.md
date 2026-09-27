@@ -3,8 +3,9 @@
 DataScout has 15 real, overlapping data products. A Source Advisor recommends
 local products with reasons; you inspect and confirm one, review SQL, approve
 execution and see local results. LangGraph persists human pauses so refreshing
-the current tab restores its run. Explicit Exa discovery finds external candidate
-sources, never SQL-ready tables. Samples are local Parquet; descriptive metadata
+the current tab restores its run. Explicit Exa discovery recommends external
+sources; a separately approved CSV/ZIP can support one-off SQL before optional
+catalog registration. Samples are local Parquet; descriptive metadata
 is also embedded in SingleStore for retrieval and evaluation.
 
 ## Run locally
@@ -304,6 +305,9 @@ The graph coordinates three specialists: Source Advisor, SQL Planner and Externa
 Discovery. Catalog checks, routing, approval gates and execution are deterministic.
 Specialists cannot approve their own proposals. Human interrupts are separate from
 provider/execution nodes, so resuming a pause does not repeat a completed call.
+The Next.js proxy permits up to three minutes for a long approved action; the
+browser action timeout is ten seconds longer. Status reads remain short and
+refreshing a paused run never repeats completed work.
 No CrewAI, autonomous supervisor, agent SDK integration or LangSmith account is
 required (LangGraph installs its own transitive dependencies).
 
@@ -317,10 +321,32 @@ automatic external search.
 
 “None of these fit” or a data-gap assessment offers external discovery. Clicking
 “Find external sources” sends the question to Exa using server-side `EXA_API_KEY`.
-One search returns at most five HTTPS candidate links and bounded excerpts.
-Publisher authority/suitability need human review; unknown coverage, units,
-access and terms remain unknown. Candidates cannot enter SQL, ingestion,
-registration or indexing. The backend never fetches arbitrary discovered URLs.
+One search returns at most five HTTPS candidate links and bounded excerpts. A
+second, structured OpenAI call (`DATASCOUT_EXTERNAL_ADVISOR_MODEL`) recommends
+a source only when the excerpts support the requested measure, place, period and
+granularity; otherwise it reports insufficient evidence. This is source-finding
+advice, not a numerical answer or independent verification of linked pages.
+
+After reviewing a candidate, **Analyze this source** inspects only that selected
+page for CSV/ZIP links. The user must approve an exact file URL before a bounded
+download. Public HTTPS is required; DNS addresses are checked and pinned for
+the request, redirects are not followed, and CSV/ZIP size and extraction limits
+apply. ZIP archives must contain exactly one CSV. The inspected file becomes a
+temporary single-table Parquet snapshot under `.local/external-runs/{run ID}`.
+Its schema, sample rows, observed units and date bounds are shown for review.
+Confirming the temporary source generates SQL; approving that saved SQL executes
+it under the same local DuckDB restrictions as catalog products. The answer is
+derived from executed rows, not search excerpts. Ambiguous geography, measures
+or units still require human judgment; an unrelated page or unsupported file is
+not silently made queryable.
+
+After a successful one-off result, **Add to catalog for repeatable use** opens a
+separate review of the product name, reporting basis, geography, measure/unit,
+coverage column and unique observation key. Explicit approval replays the saved
+CSV bytes through the existing ingestion pipeline, publishes a versioned snapshot
+and manifest, and saves a CSV/ZIP refresh recipe. It does not re-download or index
+metadata in SingleStore. Future refresh is a separate explicit command. API,
+PDF and HTML-chart ingestion are not supported by this milestone.
 
 API (proxied under `/api/workflows`):
 
@@ -331,7 +357,9 @@ API (proxied under `/api/workflows`):
 
 Actions are `select_source`, `choose_again`, `confirm_source` (`confirmed: true`),
 `approve_sql` (`approved: true`, exact `plan_id`), `recover_local`, `none_fit`,
-`discover_external` (`consent: true`) and `retry`. Source selection needs product
+`discover_external` (`consent: true`), `select_external` (candidate index),
+`approve_external_file` (exact reviewed URL), `confirm_external`,
+`propose_registration`, `register_product` (reviewed metadata), and `retry`. Source selection needs product
 ID/version. Only currently allowed actions are accepted; duplicates replay saved
 responses without repeating work and conflicting revisions return HTTP 409.
 
@@ -345,6 +373,8 @@ persisted state while the local background worker assesses the catalog.
 Question edits retire the old run; source changes clear downstream approvals and
 results. Catalog drift invalidates a run. SQL plans expire after one hour;
 workflow checkpoints/results expire after 24 hours and are pruned on later access.
+Run-scoped external files are removed on cancellation or expiry; a registered
+snapshot is separate and remains available.
 Traces show stage, duration, model/provider and available token counts, not hidden
 reasoning or estimated cost. Local SQLite and unguessable run IDs are development
 defaults, not multi-user authentication: add authentication and production-grade
@@ -361,3 +391,16 @@ PYTHONPATH=python .venv/bin/python -m evals.source_advisor --live --output evals
 The default command validates frozen benchmark evidence without model calls.
 Live grading checks advisor outcomes and first-choice products against development
 labels; it is not numerical-answer validation or held-out accuracy.
+
+Explicit one-off live evaluation (direct public CSV/ZIP URL only):
+
+```bash
+PYTHONPATH=python .venv/bin/python -m evals.external_one_off \
+  --url 'https://example.org/approved-data.csv' --question 'What is the requested value?'
+# Add --live only when ready to download the file and call the configured SQL model.
+```
+
+Without `--live`, the command does not call providers or download data. In live
+mode it prints the inspected schema and SQL, then requires typing the exact saved
+plan ID before executing; it removes the temporary file afterward. The browser
+workflow is the normal way to discover, choose, and inspect a source.

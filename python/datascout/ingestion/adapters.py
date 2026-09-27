@@ -78,6 +78,10 @@ def acquire(recipe: Recipe, client: httpx.Client | None = None) -> bytes:
     source = recipe.source
     if source.adapter == "sec_xbrl":
         return acquire_sec(recipe)
+    if recipe.id.startswith("external_") and source.adapter in ("csv", "csv_zip"):
+        from ..external_files import DOWNLOAD_LIMIT, extract_csv, fetch
+        raw = fetch(source.url, DOWNLOAD_LIMIT)
+        return extract_csv(raw) if source.adapter == "csv_zip" else raw
     headers = {}
     for header, env_name in source.headers_env.items():
         value = os.getenv(env_name)
@@ -91,6 +95,9 @@ def acquire(recipe: Recipe, client: httpx.Client | None = None) -> bytes:
         if source.pagination.mode == "page":
             params[source.pagination.page_parameter] = source.pagination.first_page
         raw = http_get(client, source, params, headers)
+        if source.adapter == "csv_zip":
+            from ..external_files import extract_csv
+            return extract_csv(raw)
         if source.adapter == "csv":
             return raw
         first = json.loads(raw, parse_float=Decimal)
@@ -144,10 +151,10 @@ def acquire_sec(recipe: Recipe) -> bytes:
 
 
 def records(recipe: Recipe, raw: bytes) -> list[dict]:
-    if len(raw) > MAX_BYTES:
+    if len(raw) > (250_000_000 if recipe.source.adapter == "csv_zip" else MAX_BYTES):
         raise ValueError("Source exceeds the 20 MiB snapshot limit")
     source = recipe.source
-    if source.adapter == "csv":
+    if source.adapter in ("csv", "csv_zip"):
         reader = csv.DictReader(io.StringIO(raw.decode(source.encoding)), delimiter=source.delimiter)
         fields = reader.fieldnames or []
         if len(fields) != len(set(fields)):

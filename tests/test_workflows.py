@@ -44,6 +44,9 @@ def client(tmp_path, monkeypatch):
     monkeypatch.setattr(discovery.ExaProvider, "search", lambda self, q: [discovery.Candidate(
         title="Official dataset", publisher="example.org", url="https://example.org/data", evidence="Dataset documentation",
         relevance="Review suitability", provider="exa", discovered_at="2026-09-27T00:00:00Z")])
+    monkeypatch.setattr(w, "recommend_external", lambda q, candidates: ({"outcome": "recommend", "answer": "Review the listed dataset.",
+        "primary_index": 0, "assessments": [{"candidate_index": 0, "fit": "strong", "reason": "Relevant source", "caveat": "Verify details", "evidence_quote": "Dataset documentation"}],
+        "unresolved": []}, "fixture", {}))
     return TestClient(app)
 
 
@@ -171,6 +174,40 @@ def test_discovery_requires_consent_and_never_becomes_sql_product(client):
     assert run["external"][0]["coverage"].startswith("Unknown")
     assert client.get(f"/workflows/{run['id']}").json()["external"] == run["external"]
     assert action(client, run, "confirm_source", confirmed=True).status_code == 409
+
+
+def test_external_csv_one_off_requires_exact_file_and_sql_approval(client, monkeypatch):
+    from datascout import external_files
+    csv = b"Date,Sample Measurement,Units of Measure\n2024-01-01,7.2,ug/m3\n"
+    monkeypatch.setattr(external_files, "fetch", lambda url, limit: csv)
+    monkeypatch.setattr(w, "inspect_page", lambda url, question: [{"url": "https://example.org/daily_2024.csv", "name": "daily_2024.csv"}])
+    def plan(question, item):
+        return sql_runs.Plan(outcome="ready", reason="One daily observation", sql="SELECT date, sample_measurement FROM external_data WHERE date = DATE '2024-01-01'",
+            selected_fields=["date", "sample_measurement"], formulas=[], assumptions=["Units require source review"], result_units=["unknown"]), "fixture", {}
+    monkeypatch.setattr(sql_runs, "generate_plan", plan)
+    run = advance(client, create(client), "none_fit")
+    run = advance(client, run, "discover_external", consent=True)
+    run = advance(client, run, "select_external", candidate_index=0)
+    assert run["stage"] == "external_file_review" and run["plan"] is None
+    assert action(client, run, "approve_external_file", approved=True, url="https://example.org/other.csv").status_code == 409
+    run = advance(client, run, "approve_external_file", approved=True, url="https://example.org/daily_2024.csv")
+    try:
+        assert run["stage"] == "external_snapshot_review" and run["selected"]["coverage"]["rows"] == 1
+        assert action(client, run, "approve_sql", approved=True, plan_id="wrong").status_code == 409
+        run = advance(client, run, "confirm_external", confirmed=True)
+        assert run["stage"] == "sql_review" and run["plan"]["sql"]
+        run = advance(client, run, "approve_sql", approved=True, plan_id=run["plan"]["run_id"])
+        assert run["stage"] == "results" and run["result"]["source_url"] == "https://example.org/daily_2024.csv"
+        run = advance(client, run, "propose_registration")
+        assert run["stage"] == "registration_review" and run["registration"]["columns"]
+        assert action(client, run, "register_product", approved=True).status_code == 422
+        monkeypatch.setattr(w, "register_external", lambda run_id, meta, review: {"product_id": "external_test", "version": 1, "status": "registered"})
+        run = advance(client, run, "register_product", approved=True, rights_reviewed=True,
+            name="Test data", description="Daily monitor data for this test", geography="Seattle", measure="PM2.5 concentration",
+            measure_column="sample_measurement", unit="ug/m3", coverage_column="date", unique_key=["date"])
+        assert run["stage"] == "registered" and run["registration"]["product_id"] == "external_test"
+    finally:
+        external_files.remove(run["id"])
 
 
 def test_failed_step_explicit_retry_and_empty_discovery(client, monkeypatch):

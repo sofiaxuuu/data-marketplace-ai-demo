@@ -68,7 +68,11 @@ function mockFetch(overrides = {}, initialRun = null) {
       if (kind === "confirm_source") Object.assign(next, { confirmed: true, plan, stage: "sql_review", allowed_actions: ["select_source", "choose_again", "approve_sql"] });
       if (kind === "approve_sql") Object.assign(next, { approved: true, result, stage: "results", allowed_actions: ["select_source", "choose_again"] });
       if (kind === "none_fit") Object.assign(next, { selected: null, plan: null, stage: "external_offer", allowed_actions: ["select_source", "discover_external"] });
-      if (kind === "discover_external") Object.assign(next, { external: [external], stage: "external_review", allowed_actions: ["select_source", "discover_external"] });
+      if (kind === "discover_external") Object.assign(next, { external: [external], external_advice: { outcome: "recommend", answer: "Use this dataset for daily values.", primary_index: 0,
+        assessments: [{ candidate_index: 0, fit: "strong", reason: "Daily observations", caveat: "Check units", evidence_quote: "Dataset documentation" }], unresolved: ["Access terms"] },
+        stage: "external_review", allowed_actions: ["select_source", "discover_external", "select_external"] });
+      if (kind === "select_external") Object.assign(next, { external_index: 0, external_links: [{ url: "https://example.org/data.csv", name: "data.csv" }],
+        stage: "external_file_review", allowed_actions: ["select_source", "approve_external_file"] });
       if (kind === "recover_local") Object.assign(next, { selected: null, plan: null, confirmed: false, stage: "recommendations", advice, allowed_actions: ["select_source", "none_fit"] });
       serverRun = next; return json(next);
     }
@@ -202,10 +206,24 @@ test("none fit offers discovery; only explicit click sends consent", async () =>
   await screen.findByRole("button", { name: "Find external sources" });
   assert.equal(calls.some(c => c.body?.action?.type === "discover_external"), false);
   fireEvent.click(screen.getByRole("button", { name: "Find external sources" }));
-  await screen.findByRole("link", { name: /Official data API/ });
+  await screen.findByText("Use this dataset for daily values.");
+  assert.ok(screen.getAllByRole("link", { name: /Official data API/ }).length >= 1);
   assert.deepEqual(calls.find(c => c.body?.action?.type === "discover_external").body.action, { type: "discover_external", consent: true });
-  assert.ok(screen.getByText(/Not available for SQL/));
+  assert.ok(screen.getByText(/Not yet queryable/));
   assert.equal(screen.queryByRole("button", { name: "Generate SQL for review" }), null);
+});
+
+test("external file requires exact user approval before acquisition", async () => {
+  mockFetch(); render(React.createElement(CandidateInspector, { products }));
+  await choose();
+  fireEvent.click(screen.getByRole("button", { name: "None of these fit" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Find external sources" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Analyze this source" }));
+  await screen.findByRole("heading", { name: "Choose an exact CSV or ZIP file" });
+  assert.equal(calls.some(c => c.body?.action?.type === "approve_external_file"), false);
+  await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Approve and download this file" })); });
+  assert.deepEqual(calls.find(c => c.body?.action?.type === "approve_external_file").body.action,
+    { type: "approve_external_file", approved: true, url: "https://example.org/data.csv" });
 });
 test("late discovery cannot restore candidates after switching to local source", async () => {
   const pending = deferred();

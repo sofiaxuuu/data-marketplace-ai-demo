@@ -190,7 +190,10 @@ def run_worker(item: dict, sql: str, *, validate_only: bool = False) -> dict:
         if not IDENTIFIER.fullmatch(table["id"]):
             raise ValueError("Invalid registered table name.")
         path = local_path(table["path"])
-        tables.append({"id": table["id"], "path": str(path), "sha256": hashlib.sha256(path.read_bytes()).hexdigest()})
+        digest = hashlib.sha256(path.read_bytes()).hexdigest()
+        if item.get("temporary") and digest != item["snapshot"]["snapshot_sha256"]:
+            raise ValueError("Temporary snapshot changed. Start a new analysis.")
+        tables.append({"id": table["id"], "path": str(path), "sha256": digest})
     request = {"tables": tables, "sql": sql, "row_limit": ROW_LIMIT, "validate_only": validate_only}
     try:
         result = subprocess.run([sys.executable, "-m", "datascout.sql_worker"],
@@ -228,14 +231,21 @@ class Execute(BaseModel):
 
 
 def generate_saved_plan(request: Generate):
+    try:
+        item = product(request.product_id)
+    except CatalogError:
+        raise HTTPException(409, "Selected catalog product is unavailable. Reload the catalog.") from None
+    return generate_for_item(request.question, item, request.manifest_version)
+
+
+def generate_for_item(question: str, item: dict, version: int | None = None):
     started = time.perf_counter()
     try:
-        if not request.question.strip():
+        if not question.strip():
             raise HTTPException(422, "Enter a question.")
-        item = product(request.product_id)
-        if item["version"] != request.manifest_version:
+        if version is not None and item["version"] != version:
             raise HTTPException(409, "Product version changed. Choose and confirm it again.")
-        plan, model, usage = generate_plan(request.question.strip(), item)
+        plan, model, usage = generate_plan(question.strip(), item)
         if plan.outcome != "ready":
             if plan.sql or plan.selected_fields:
                 raise ValueError("Non-ready plan must not contain executable SQL or fields.")
@@ -244,19 +254,20 @@ def generate_saved_plan(request: Generate):
         if sorted(set(plan.selected_fields)) != fields:
             raise ValueError("Planner's selected fields do not match actual SQL references.")
         run_worker(item, sql, validate_only=True)
-        current = product(item["id"])
+        current = product(item["id"]) if not item.get("temporary") else item
         if fingerprint(current) != fingerprint(item):
             raise HTTPException(409, "Product changed during planning. Confirm it again.")
         run_id = str(uuid.uuid4())
         public = {**plan.model_dump(), "sql": sql, "selected_fields": fields, "run_id": run_id,
-                  "question": request.question.strip(), "product": public_product(item), "model": model, "usage": usage,
+                  "question": question.strip(), "product": public_product(item), "model": model, "usage": usage,
                   "row_limit": ROW_LIMIT, "timeout_seconds": EXECUTION_TIMEOUT,
                   "expires_in_seconds": PLAN_TTL, "retry_count": 0,
                   "planning_ms": round((time.perf_counter() - started) * 1000, 1),
                   "trace": [{"stage": "Human source confirmation", "result": f"{item['id']} version {item['version']}"},
                             {"stage": "SQL planning", "result": model},
                             {"stage": "SQL validation", "result": "Allowlisted SELECT and DuckDB binding passed; semantic accuracy still requires review."}]}
-        payload = {"public": public, "fingerprint": fingerprint(item)}
+        payload = {"public": public, "fingerprint": fingerprint(item),
+                   "temporary_item": item if item.get("temporary") else None}
         conn = connection()
         try:
             with conn:
@@ -288,12 +299,21 @@ def execute_saved_plan(request: Execute):
             raise HTTPException(409, "SQL plan expired. Generate and review a fresh plan.")
         payload = json.loads(row[1])
         plan = payload["public"]
-        item = product(plan["product"]["id"])
+        item = payload.get("temporary_item") or product(plan["product"]["id"])
+        if item.get("temporary"):
+            from .external_files import BASE
+            path = local_path(item["tables"][0]["path"])
+            if not path.is_relative_to(BASE.resolve()) or not path.is_file():
+                raise HTTPException(409, "Temporary snapshot expired. Start a new analysis.")
+            if hashlib.sha256(path.read_bytes()).hexdigest() != item["snapshot"]["snapshot_sha256"]:
+                raise HTTPException(409, "Temporary snapshot changed. Start a new analysis.")
         if fingerprint(item) != payload["fingerprint"]:
             raise HTTPException(409, "Selected metadata or snapshot changed. Confirm and generate again.")
         sql, _ = validate_sql(plan["sql"], item)
         result = run_worker(item, sql)
-        if fingerprint(product(item["id"])) != payload["fingerprint"]:
+        if item.get("temporary") and hashlib.sha256(path.read_bytes()).hexdigest() != item["snapshot"]["snapshot_sha256"]:
+            raise HTTPException(409, "Temporary snapshot changed during execution. Discarding results.")
+        if fingerprint(product(item["id"]) if not item.get("temporary") else item) != payload["fingerprint"]:
             raise HTTPException(409, "Snapshot changed during execution. Discarding results.")
         count = len(result["rows"])
         outcome = "answered" if count else "no_data"

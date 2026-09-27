@@ -330,9 +330,10 @@ sample Parquet files remain valid without forced migration. Catalog registration
 does not imply the deterministic question selector/SQL execution supports a new
 product; generalizing those components remains separate work.
 
-External discovery, including Exa, produces candidates, not queryable tables.
-Lifecycle: discovered → reviewed/configured → acquired/validated → registered →
-indexed. Record discovery provider, URL, time and evidence; inspect source
+External discovery, including Exa, produces candidates, not immediately queryable
+tables. Lifecycle: discovered → recommended → user-selected → approved temporary
+CSV/ZIP → one-off answer → optionally reviewed/registered → optionally indexed.
+Record discovery provider, URL, time and evidence; inspect source
 access/terms; select an existing adapter or report unsupported capabilities.
 New providers are allowed through reviewed configuration. Default policy is
 explicit acquisition approval and no live source calls during questions.
@@ -340,10 +341,10 @@ LLM-generated recipes are proposals requiring review. Do not execute downloaded
 instructions, arbitrary SQL or Python from recipes. Reject private-network
 HTTP destinations; review endpoint hosts and keep credentials out of provenance.
 
-Future milestones: cursor pagination/other authentication when required, Exa
-discovery and reviewed recipe proposals, then generalized manifest-driven query
-planning. SQL-source adapters, scheduling and automatic live acquisition are
-not implemented by this milestone.
+Future improvements: API acquisition with cursor pagination or authentication
+when required, stronger metadata mappings, SQL-source adapters and scheduling.
+Automatic live acquisition is not implemented; every external file requires a
+user-selected source and exact-URL approval.
 
 ## V1 Query Contract
 
@@ -666,9 +667,10 @@ Use Exa to find:
 
 - technical documentation
 
-Do not automatically ingest arbitrary sources. External discovery yields a
-candidate with provenance, not a queryable product; it becomes queryable only
-after an approved local snapshot and manifest mapping are available.
+Do not automatically ingest arbitrary sources. External discovery first yields
+cited source-finding advice. A user-approved public CSV/ZIP can support one-off
+analysis as a temporary snapshot. Permanent publication requires a separate
+reviewed registration action and manifest mapping.
 
 Return candidate source + extracted metadata for user approval.
 
@@ -812,7 +814,7 @@ Do not:
 7. Measure retrieval and abstention baselines on the evaluation set.
 8. Add product selection from ranked candidates and the no-suitable-source path.
 9. Run end-to-end evaluation and the metadata-quality experiment.
-10. Add Exa external discovery as a candidate-only flow.
+10. Add Exa source-finding advice, approved one-off CSV/ZIP analysis, then separately reviewed catalog registration.
 11. Add SageMaker/Qwen V2 only after V1 meets its benchmark criteria.
 
 ## Definition of V1 Done
@@ -916,11 +918,26 @@ or no local fit with data-gap/unsupported-operation distinction. Manual browsing
 bypasses advice. Planner abstention offers explicit recovery excluding rejected
 sources. Recommendations, source selection and recovery never execute SQL.
 
-Exa discovery is now implemented as an explicit consent-based, candidate-only
-branch. One bounded request returns up to five links/evidence excerpts with
-provenance; unknown coverage, units, access and terms stay unknown. External
-candidates are not SQL products. No arbitrary URL fetching, acquisition,
-executable recipes, catalog registration or indexing occurs.
+Exa discovery is an explicit consent-based branch. One bounded search returns
+up to five links and excerpts. A structured external advisor call ranks only
+those candidates, distinguishes measure, geography, period and granularity,
+and abstains when evidence is inadequate. Source-finding advice is not a
+numerical answer and does not claim independent page verification.
+
+The user can select one candidate for CSV/ZIP one-off analysis. Only that page
+is inspected for supported links; the user approves the exact file URL before
+a bounded, pinned public-HTTPS download. CSV/ZIP validation creates a temporary
+Parquet snapshot under the run; schema, sample rows, observed units and coverage
+are shown before SQL planning. The existing restricted planner and saved-plan
+approval/execution path accepts either a catalog product or this immutable
+temporary snapshot. Numerical claims derive from executed rows, not snippets.
+Cancellation and expiry remove run-scoped files.
+
+After a successful one-off result, reviewed name, geography, measure, unit,
+coverage and key fields can be explicitly registered through the existing
+ingestion pipeline. This publishes a versioned snapshot and manifest plus a
+CSV/ZIP refresh recipe, without a new download or automatic SingleStore index.
+API-based acquisition, PDFs and HTML charts remain later improvements.
 
 POST /workflows creates; GET inspects; POST /workflows/{id}/actions resumes through
 typed, stage-validated human actions; DELETE cancels. Revisions, request IDs and

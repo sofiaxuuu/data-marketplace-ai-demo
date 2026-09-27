@@ -71,7 +71,7 @@ class FiscalPeriod(StrictModel):
 
 
 class Source(StrictModel):
-    adapter: Literal["csv", "rest_json", "sec_xbrl"]
+    adapter: Literal["csv", "csv_zip", "rest_json", "sec_xbrl"]
     url: str | None = None
     allowed_hosts: list[str] = Field(default_factory=list)
     params: dict[str, str | int] = Field(default_factory=dict)
@@ -124,7 +124,7 @@ class Source(StrictModel):
                 raise ValueError("XBRL options require sec_xbrl")
             if any(re.search(r"token|secret|password|api.?key|authorization", key, re.I) for key in self.params):
                 raise ValueError("Use headers_env for credentials, not literal query parameters")
-            if self.adapter == "csv" and (self.pagination.mode != "none" or self.records_path or self.checks):
+            if self.adapter in ("csv", "csv_zip") and (self.pagination.mode != "none" or self.records_path or self.checks):
                 raise ValueError("CSV does not support JSON response options or pagination")
             if self.pagination.mode == "page" and not self.pagination.total_pages_path:
                 raise ValueError("Page pagination requires total_pages_path")

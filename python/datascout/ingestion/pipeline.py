@@ -158,7 +158,7 @@ def _build_snapshot(recipe: Recipe, raw: bytes, *, retrieved_at: str,
     base.mkdir(parents=True, exist_ok=True)
     destination = confined(root, f"data/snapshots/{recipe.id}/{fingerprint}")
     parquet_name = f"{recipe.table_id}.parquet"
-    raw_name = "source.csv" if recipe.source.adapter == "csv" else "source.json"
+    raw_name = "source.csv" if recipe.source.adapter in ("csv", "csv_zip") else "source.json"
     with tempfile.TemporaryDirectory(prefix=".staging-", dir=base) as directory:
         staging = Path(directory)
         parquet = staging / parquet_name

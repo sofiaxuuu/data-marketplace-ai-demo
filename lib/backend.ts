@@ -6,7 +6,7 @@ export async function forwardToBackend(path: string, request: Request): Promise<
       headers: { "content-type": "application/json" },
       body: request.method === "POST" ? await request.text() : undefined,
       cache: "no-store",
-      signal: AbortSignal.timeout(80000),
+      signal: AbortSignal.timeout(180000),
     });
     return new Response(await upstream.text(), {
       status: upstream.status,
