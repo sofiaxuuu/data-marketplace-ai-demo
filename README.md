@@ -1,6 +1,6 @@
-# DataScout
+# data-marketplace-ai-demo
 
-DataScout is a local demo of a data analyst that first helps users choose the
+Data Marketplace AI is a local demo of a data analyst that first helps users choose the
 right dataset, then generates bounded SQL only after a human confirms the source.
 
 The app has two clean paths:
@@ -10,7 +10,7 @@ The app has two clean paths:
 - Find an evidence-backed external data source with Exa when the local catalog
   does not fit.
 
-External discovery stops at source recommendation. DataScout does not download,
+External discovery stops at source recommendation. DataMarketplace does not download,
 ingest, query, or register external data in this demo.
 
 ## Screenshots
@@ -101,7 +101,7 @@ Microsoft SEC snapshots.
 Semantic search helps users discover likely products, but search alone never
 generates SQL or executes anything.
 
-### Ask DataScout to Find a Dataset
+### Ask DataMarketplace to Find a Dataset
 
 Start a saved conversation from `/analyze` or the marketplace. A general question
 can trigger source advice across all local products.
@@ -112,14 +112,14 @@ Example:
 What was the U.S. unemployment rate in April 2020?
 ```
 
-DataScout recommends local products with reasons, coverage, units, caveats, and
+DataMarketplace recommends local products with reasons, coverage, units, caveats, and
 provenance. The user must review and confirm one dataset before SQL planning.
 
 ### Ask Questions About a Confirmed Dataset
 
 Once a dataset is confirmed, each analytical turn is planned separately.
 
-DataScout shows:
+DataMarketplace shows:
 
 - the interpreted question
 - generated SQL
@@ -141,7 +141,7 @@ Example:
 Where can I find daily PM2.5 air-quality measurements for Seattle in 2024?
 ```
 
-DataScout sends the question to Exa, reviews bounded search evidence with a
+DataMarketplace sends the question to Exa, reviews bounded search evidence with a
 model, and returns a source recommendation, alternatives, original links, and
 unknowns. These external sources are not queryable in the app.
 
@@ -166,7 +166,7 @@ World Bank, SEC, or external provider APIs at execution time.
 
 ## Boundaries
 
-DataScout currently supports:
+DataMarketplace currently supports:
 
 - one confirmed local product per analytical question
 - one registered table per SQL query
@@ -176,7 +176,7 @@ DataScout currently supports:
 - saved local conversations
 - external source finding with consent
 
-DataScout currently does not support:
+DataMarketplace currently does not support:
 
 - multi-product joins
 - automatic source selection without human review
@@ -194,7 +194,7 @@ Requires Python 3.12+, Node.js 20+, and npm.
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 npm install
-PYTHONPATH=python .venv/bin/uvicorn datascout.main:app --reload --port 8000
+PYTHONPATH=python .venv/bin/uvicorn DataMarketplace.main:app --reload --port 8000
 ```
 
 In another terminal:
@@ -205,7 +205,7 @@ npm run dev
 
 Open `http://localhost:3000`.
 
-Set `DATASCOUT_API_URL` if the Python API is running somewhere other than
+Set `DataMarketplace_API_URL` if the Python API is running somewhere other than
 `http://127.0.0.1:8000`.
 
 ## Configuration
@@ -214,16 +214,16 @@ Create a local `.env` file. It is ignored by git.
 
 ```bash
 OPENAI_API_KEY=...
-DATASCOUT_SQL_MODEL=gpt-4.1-mini
-DATASCOUT_SOURCE_ADVISOR_MODEL=gpt-4.1-mini
-DATASCOUT_EXTERNAL_ADVISOR_MODEL=gpt-4.1-mini
+DataMarketplace_SQL_MODEL=gpt-4.1-mini
+DataMarketplace_SOURCE_ADVISOR_MODEL=gpt-4.1-mini
+DataMarketplace_EXTERNAL_ADVISOR_MODEL=gpt-4.1-mini
 EXA_API_KEY=...
 
 SINGLESTORE_HOST=...
 SINGLESTORE_PORT=3333
 SINGLESTORE_USER=...
 SINGLESTORE_PASSWORD=...
-SINGLESTORE_DATABASE=datascout
+SINGLESTORE_DATABASE=DataMarketplace
 SINGLESTORE_SSL_CA=singlestore_bundle.pem
 ```
 
@@ -234,15 +234,15 @@ assess local products without SingleStore.
 Check the SingleStore connection:
 
 ```bash
-PYTHONPATH=python .venv/bin/python -m datascout.singlestore check
+PYTHONPATH=python .venv/bin/python -m DataMarketplace.singlestore check
 ```
 
 Build or refresh metadata embeddings:
 
 ```bash
-PYTHONPATH=python .venv/bin/python -m datascout.retrieval setup
-PYTHONPATH=python .venv/bin/python -m datascout.retrieval ingest
-PYTHONPATH=python .venv/bin/python -m datascout.retrieval search --question "What was U.S. GDP per capita in 2020?"
+PYTHONPATH=python .venv/bin/python -m DataMarketplace.retrieval setup
+PYTHONPATH=python .venv/bin/python -m DataMarketplace.retrieval ingest
+PYTHONPATH=python .venv/bin/python -m DataMarketplace.retrieval search --question "What was U.S. GDP per capita in 2020?"
 ```
 
 ## Ingestion
@@ -258,10 +258,10 @@ new dataset answerable by the SQL workflow.
 Useful commands:
 
 ```bash
-PYTHONPATH=python .venv/bin/python -m datascout.ingestion list
-PYTHONPATH=python .venv/bin/python -m datascout.ingestion plan fred_unemployment
-PYTHONPATH=python .venv/bin/python -m datascout.ingestion build fred_unemployment --download
-PYTHONPATH=python .venv/bin/python -m datascout.ingestion build fred_unemployment --download --publish --index
+PYTHONPATH=python .venv/bin/python -m DataMarketplace.ingestion list
+PYTHONPATH=python .venv/bin/python -m DataMarketplace.ingestion plan fred_unemployment
+PYTHONPATH=python .venv/bin/python -m DataMarketplace.ingestion build fred_unemployment --download
+PYTHONPATH=python .venv/bin/python -m DataMarketplace.ingestion build fred_unemployment --download --publish --index
 ```
 
 See [docs/ingestion.md](docs/ingestion.md) for recipe fields and ingestion
@@ -303,7 +303,7 @@ and should not require live credentials.
 
 ## Local State
 
-DataScout stores development state under `.local/`:
+DataMarketplace stores development state under `.local/`:
 
 - workflow checkpoints and saved conversations
 - saved SQL-plan approvals
