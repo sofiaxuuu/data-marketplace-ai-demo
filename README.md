@@ -17,13 +17,19 @@ ingest, query, or register external data in this demo.
 
 ### Data Marketplace
 
-![Data marketplace showing searchable catalog](pictures/marketplace.png)
+![Data marketplace showing searchable catalog 1](pictures/marketplace-1.png)
+![Data marketplace showing searchable catalog 2](pictures/marketplace-2.png)
 
 ### Dataset-Bounded Conversation
 
-![Conversation with SQL analytics](pictures/data-analytics.png)
+![Conversation with SQL analytics](pictures/analytics-1.png)
+![Conversation with SQL analytics 2](pictures/analytics-2.png)
+![Conversation with SQL analytics 3](pictures/analytics-3.png)
 
-![Conversation with external dataset recommendation and review](pictures/find-external-data.png)
+### Find external data srouces
+
+![Conversation with external dataset recommendation and review](pictures/find-external-data-1.png)
+![Conversation with external dataset recommendation and review](pictures/find-external-data-2.png)
 
 ### SQL Review
 
