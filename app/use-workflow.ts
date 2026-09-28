@@ -38,7 +38,7 @@ function saveId(id: string | null) {
   try { if (id) window.sessionStorage.setItem(STORAGE_KEY, id); else window.sessionStorage.removeItem(STORAGE_KEY); } catch { /* storage-disabled browser */ }
 }
 
-export function useWorkflow(products: InspectProduct[]) {
+export function useWorkflow(products: InspectProduct[], initialQuestion = "") {
   const [question, setQuestion] = useState("");
   const [run, setRun] = useState<Workflow | null>(null);
   const [busy, setBusy] = useState(false);
@@ -83,6 +83,12 @@ export function useWorkflow(products: InspectProduct[]) {
     }
     return () => { mounted.current = false; generation.current += 1; };
   }, [accept]);
+
+  useEffect(() => {
+    if (initialQuestion && !savedId() && !runRef.current) {
+      setQuestion(previous => previous || initialQuestion);
+    }
+  }, [initialQuestion]);
 
   useEffect(() => {
     if (!products.length && catalogRef.current === null) return;

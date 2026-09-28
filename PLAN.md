@@ -888,17 +888,20 @@ SQL gold-result benchmark, and repeatability/latency/cost release criteria.
 
 ### Unified analysis UI (implemented)
 
-The home page now has one question input and four numbered stages: ask/compare,
-review/confirm source, generate/review SQL, and results. The unemployment example
-fills the same input. Schema details are collapsed; definitions, coverage, units,
-source and snapshot remain visible. Source confirmation and SQL approval remain
-separate gates. Question/source/version changes clear downstream state, and late
-responses cannot restore it. SQL results retain provenance and their own trace;
-the obsolete baseline form and baseline-only sidebar trace are removed.
+The home page is now a data marketplace with a browsable product table, semantic
+metadata search, and product details. **Ask DataScout** opens `/analyze`, where
+one question input and four focused stages cover source comparison, dataset
+confirmation, SQL review, and results. The unemployment example fills the same
+input. Users can revisit completed stages through progress navigation; feedback
+stays with the active step. Schema details are collapsed; definitions, coverage,
+units, source and snapshot remain visible. Source confirmation and SQL approval
+remain separate gates. Question/source/version changes clear downstream state,
+and late responses cannot restore it. SQL results retain provenance and their
+own trace; the obsolete baseline form and baseline-only sidebar trace are removed.
 
 Benchmark review remains a separate navigation link. The UI consolidation did
 not change the database. Subsequent cleanup retired `/runs/preview` and
-`/runs/execute`; `/sql-runs/*` remains the saved-plan API. The home page now uses
+`/runs/execute`; `/sql-runs/*` remains the saved-plan API. The analysis page uses
 the persisted `/workflows` API described below.
 `npm test` adds offline UI
 interaction coverage using mocked APIs, separate from live model evaluation.

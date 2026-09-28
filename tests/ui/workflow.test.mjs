@@ -50,6 +50,7 @@ function mockFetch(overrides = {}, initialRun = null) {
     const method = options.method ?? "GET";
     calls.push({ url, method, body });
     if (url === "/api/catalog") return overrides.catalog?.() ?? json(products);
+    if (url === "/api/retrieval/search") return overrides.search?.(body) ?? json({ products: [fred] });
     if (url === "/api/workflows") {
       if (overrides.create) return overrides.create(body);
       serverRun = state({ question: body.question });
@@ -90,28 +91,62 @@ async function choose(name = fred.name) {
   await screen.findByText("Recommended local sources — please choose");
   fireEvent.click(screen.getByRole("button", { name: "Review this dataset: " + name }));
   await screen.findByRole("checkbox", { name: /I confirm/ });
+  await waitFor(() => assert.equal(screen.getByRole("checkbox", { name: /I confirm/ }).disabled, false));
 }
 async function generate() {
   fireEvent.click(screen.getByRole("checkbox", { name: /I confirm/ }));
+  await waitFor(() => assert.equal(screen.getByRole("button", { name: "Generate SQL for review" }).disabled, false));
   fireEvent.click(screen.getByRole("button", { name: "Generate SQL for review" }));
   await screen.findByText("Review the query plan");
 }
 async function execute() {
   fireEvent.click(screen.getByRole("checkbox", { name: /I approve this SQL/ }));
+  await waitFor(() => assert.equal(screen.getByRole("button", { name: "Execute approved SQL" }).disabled, false));
   fireEvent.click(screen.getByRole("button", { name: "Execute approved SQL" }));
   await screen.findByRole("heading", { name: "Results" });
 }
 function deferred() { let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve }; }
 
-test("home has one question, example makes no provider call and benchmark stays separate", async () => {
+test("marketplace separates semantic search from analysis and opens product details", async () => {
   mockFetch(); render(React.createElement(Home));
-  await screen.findByText("2 local products");
-  assert.equal(screen.getAllByRole("textbox").length, 1);
+  await screen.findByText("2 data products");
+  assert.equal(screen.getAllByRole("searchbox").length, 1);
   assert.equal(screen.queryByText("Limited execution baseline"), null);
   assert.ok(screen.getByRole("link", { name: "Review benchmark →" }));
-  fireEvent.click(screen.getByRole("button", { name: /Try an example/ }));
-  assert.equal(screen.getByLabelText("Your question").value, "What was the U.S. unemployment rate in April 2020?");
+  assert.ok(screen.getByRole("link", { name: "Ask a question →" }));
   assert.ok(calls.every(c => c.url === "/api/catalog"));
+  fireEvent.change(screen.getByRole("searchbox"), { target: { value: "unemployment" } });
+  fireEvent.click(screen.getByRole("button", { name: "Search datasets" }));
+  await screen.findByText("1 semantic match");
+  assert.deepEqual(calls.find(c => c.url === "/api/retrieval/search").body, { question: "unemployment", top_k: 10 });
+  assert.equal(calls.some(c => c.url === "/api/workflows"), false);
+  fireEvent.click(screen.getByRole("button", { name: fred.name }));
+  assert.ok(screen.getByRole("dialog", { name: fred.name }));
+  assert.ok(screen.getByRole("link", { name: "Analyze with this dataset →" }).getAttribute("href").includes(fred.id));
+  fireEvent.keyDown(window, { key: "Escape" });
+  assert.equal(screen.queryByRole("dialog"), null);
+});
+test("marketplace search failure leaves the full catalog browsable", async () => {
+  mockFetch({ search: () => json({ detail: "Retrieval unavailable" }, 503) });
+  render(React.createElement(Home));
+  await screen.findByText("2 data products");
+  fireEvent.change(screen.getByRole("searchbox"), { target: { value: "labor" } });
+  fireEvent.click(screen.getByRole("button", { name: "Search datasets" }));
+  await screen.findByText(/Retrieval unavailable/);
+  assert.equal(screen.getAllByRole("row").length, 3);
+  assert.equal(calls.some(c => c.url === "/api/workflows"), false);
+});
+test("late semantic results cannot replace a newer marketplace query", async () => {
+  const pending = deferred();
+  mockFetch({ search: () => pending.promise });
+  render(React.createElement(Home));
+  await screen.findByText("2 data products");
+  fireEvent.change(screen.getByRole("searchbox"), { target: { value: "labor" } });
+  fireEvent.click(screen.getByRole("button", { name: "Search datasets" }));
+  fireEvent.change(screen.getByRole("searchbox"), { target: { value: "GDP" } });
+  await act(async () => pending.resolve(await json({ products: [fred] })));
+  assert.equal(screen.queryByText("1 semantic match"), null);
+  assert.ok(screen.getByText("2 data products"));
 });
 
 for (const source of products) {
@@ -128,7 +163,7 @@ for (const source of products) {
     assert.deepEqual(calls.find(c => c.body?.action?.type === "approve_sql").body.action,
       { type: "approve_sql", approved: true, plan_id: "saved-plan" });
     assert.ok(screen.getByText("14.8"));
-    assert.equal(screen.getAllByText(/Snapshot 2026-09-26/).length, 2);
+    assert.equal(screen.getAllByText(/Snapshot 2026-09-26/).length, 1);
     assert.ok(screen.getByText("Run trace"));
     assert.ok(screen.getByText("Agent workflow trace"));
     assert.ok(calls.every(c => !c.url.includes("sql-runs") && !c.url.includes("retrieval/search")));
@@ -143,10 +178,20 @@ test("manual catalog choice bypasses advisor", async () => {
   assert.equal(calls.find(c => c.url === "/api/workflows").body.product_id, sec.id);
   assert.equal(screen.queryByText("Recommended local sources — please choose"), null);
 });
+test("marketplace product link can preselect a source without bypassing confirmation", async () => {
+  mockFetch();
+  render(React.createElement(CandidateInspector, { products, initialQuestion: "Apple revenue", initialProductId: sec.id }));
+  await waitFor(() => assert.equal(screen.getByLabelText("Your question").value, "Apple revenue"));
+  fireEvent.click(screen.getByRole("button", { name: `Review ${sec.name}` }));
+  await screen.findByRole("checkbox", { name: /I confirm Apple/ });
+  assert.equal(calls.find(c => c.url === "/api/workflows").body.product_id, sec.id);
+  assert.equal(calls.some(c => c.body?.action?.type === "confirm_source"), false);
+});
 test("source switch immediately clears SQL and resets both approvals", async () => {
   mockFetch(); render(React.createElement(CandidateInspector, { products }));
   await choose(); await generate();
   fireEvent.click(screen.getByRole("checkbox", { name: /I approve/ }));
+  fireEvent.click(screen.getByRole("button", { name: /Sources/ }));
   fireEvent.click(screen.getByRole("button", { name: "Review this dataset: " + sec.name }));
   assert.equal(screen.queryByText("Review the query plan"), null);
   await screen.findByRole("checkbox", { name: /I confirm Apple/ });
@@ -195,13 +240,14 @@ for (const stage of ["source_review", "sql_review", "results", "external_review"
     render(React.createElement(CandidateInspector, { products }));
     await waitFor(() => assert.equal(screen.getByLabelText("Your question").value, restored.question));
     assert.ok(calls.every(c => c.method === "GET"));
-    if (stage === "results") assert.ok(screen.getByText("Returned 1 row"));
+    if (stage === "results") await screen.findByText("Returned 1 row");
     if (stage === "external_review") assert.ok(screen.getByRole("link", { name: /Official data API/ }));
   });
 }
 test("none fit offers discovery; only explicit click sends consent", async () => {
   mockFetch(); render(React.createElement(CandidateInspector, { products }));
   await choose();
+  fireEvent.click(screen.getByRole("button", { name: /Sources/ }));
   fireEvent.click(screen.getByRole("button", { name: "None of these fit" }));
   await screen.findByRole("button", { name: "Find external sources" });
   assert.equal(calls.some(c => c.body?.action?.type === "discover_external"), false);
@@ -216,6 +262,7 @@ test("none fit offers discovery; only explicit click sends consent", async () =>
 test("external file requires exact user approval before acquisition", async () => {
   mockFetch(); render(React.createElement(CandidateInspector, { products }));
   await choose();
+  fireEvent.click(screen.getByRole("button", { name: /Sources/ }));
   fireEvent.click(screen.getByRole("button", { name: "None of these fit" }));
   fireEvent.click(await screen.findByRole("button", { name: "Find external sources" }));
   fireEvent.click(await screen.findByRole("button", { name: "Analyze this source" }));
@@ -242,6 +289,7 @@ test("late discovery cannot restore candidates after switching to local source",
   mockFetch({ discover_external: () => pending.promise });
   render(React.createElement(CandidateInspector, { products }));
   await choose();
+  fireEvent.click(screen.getByRole("button", { name: /Sources/ }));
   fireEvent.click(screen.getByRole("button", { name: "None of these fit" }));
   await screen.findByRole("button", { name: "Find external sources" });
   fireEvent.click(screen.getByRole("button", { name: "Find external sources" }));

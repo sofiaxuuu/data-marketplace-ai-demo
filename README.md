@@ -25,8 +25,9 @@ In another terminal:
 npm run dev
 ```
 
-Open `http://localhost:3000` and try “What was the U.S. unemployment rate in
-April 2020?” or “What was U.S. GDP per capita in 2020?” The UI proxies requests
+Open `http://localhost:3000` to browse the data marketplace. Select **Ask
+DataScout** (or visit `/analyze`) and try “What was the U.S. unemployment rate
+in April 2020?” or “What was U.S. GDP per capita in 2020?” The UI proxies requests
 to the local Python API. Set
 `DATASCOUT_API_URL` if the API uses another host or port.
 
@@ -247,13 +248,18 @@ re-embedding and evaluation. Never use held-out feedback for metadata tuning.
 
 ### Human-approved SQL across the local catalog
 
-On the home page, enter a question in **Ask and compare sources**, choose a
-candidate (or browse the catalog), and confirm that dataset fits the question.
+The marketplace home page lists local products and offers semantic metadata
+search; searching does not start analysis. Product details show coverage, fields,
+units and provenance, with a link to start analysis using that product. On
+`/analyze`, enter a question, choose an advised candidate (or browse the catalog),
+and confirm that dataset fits the question.
 **Generate SQL for review** produces the fields, formulas, interpretation, units
 and query. Approve the SQL separately, then **Execute approved SQL** shows the
 local result table, source, snapshot version, timing and trace. The four numbered
-stages share one question input; an unemployment example fills that input without
-making a request. Detailed schema inspection is collapsed by default. Changing
+stages share one question input and show only the current step; earlier steps are
+available through the progress navigation. Status and errors stay with the active
+step. An unemployment example fills that input without making a request. Detailed
+schema inspection is collapsed by default. Changing
 the question, source, or catalog version clears downstream plans and approvals.
 Selecting or
 inspecting a product alone never generates or executes a query.
@@ -307,8 +313,8 @@ passed 22/22. Earlier reports preserve provider and table-qualification failures
 the final prompt explicitly forbids schema/product qualification. The ratio case
 now explicitly requests no rounding to match its full-precision numeric label.
 
-`npm test` runs offline frontend interaction tests for the unified workflow:
-one question input, approval gates, macroeconomic/SEC source choices, state resets,
+`npm test` runs offline frontend interaction tests for the marketplace and workflow:
+semantic search, approval gates, macroeconomic/SEC source choices, state resets,
 late responses, errors, clarification, empty results, and truncation. These use
 mocked API responses and do not call OpenAI or SingleStore.
 

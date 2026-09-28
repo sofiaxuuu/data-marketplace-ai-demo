@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import SqlWorkflow from "./sql-workflow";
 import ExternalRegistration from "./external-registration";
 import { useWorkflow } from "./use-workflow";
@@ -13,9 +13,22 @@ export type InspectProduct = {
   tables: { id: string; columns: { name: string; type: string; description: string; unit?: string }[] }[];
 };
 
-export default function CandidateInspector({ products }: { products: InspectProduct[] }) {
-  const flow = useWorkflow(products);
+export default function CandidateInspector({ products, initialQuestion = "", initialProductId = "" }: { products: InspectProduct[]; initialQuestion?: string; initialProductId?: string }) {
+  const flow = useWorkflow(products, initialQuestion);
   const { run, question, busy, error } = flow;
+  const [view, setView] = useState<1 | 2 | 3 | 4>(1);
+  const activeStep = useRef<HTMLElement>(null);
+  const fileReview = useRef<HTMLElement>(null);
+  const preferred = products.find(product => product.id === initialProductId);
+  useEffect(() => {
+    setView(run?.result ? 4 : run?.plan ? 3 : run?.selected ? 2 : 1);
+  }, [run?.id, run?.revision, run?.stage, run?.selected?.id, run?.plan?.run_id, run?.result]);
+  useEffect(() => {
+    if (run) activeStep.current?.scrollIntoView?.({ block: "start", behavior: "smooth" });
+  }, [view, run?.id, run?.revision]);
+  useEffect(() => {
+    if (run?.external_links) fileReview.current?.scrollIntoView?.({ block: "start", behavior: "smooth" });
+  }, [run?.external_index, run?.external_links]);
   const browse = useRef<HTMLDetailsElement>(null);
   const selected = run?.selected;
   const advice = run?.advice;
@@ -23,22 +36,23 @@ export default function CandidateInspector({ products }: { products: InspectProd
   const openBrowse = () => { if (browse.current) browse.current.open = true; browse.current?.scrollIntoView?.({ block: "nearest" }); };
   const externalOffered = !!run?.allowed_actions.includes("discover_external");
 
-  return <section className="result-card" aria-label="Human source choice">
-    <div className="section-heading"><span className="step-number" aria-hidden="true">01</span><h2>Ask and compare sources</h2></div>
-    <p>The Source Advisor checks all local products’ definitions, fields and coverage. Recommendations are proposals—not automatic source choices.</p>
-    <p className="catalog-note">Finding candidates sends your question and catalog metadata/schema to OpenAI, not sample rows. Browse locally to choose a source without an advisor call.</p>
-    <form onSubmit={e => { e.preventDefault(); void flow.start(); }}>
+  return <section className="result-card analysis-card" aria-label="Human source choice">
+    <form className="analysis-question" onSubmit={e => { e.preventDefault(); void flow.start(preferred); }}>
       <label htmlFor="source-question">Your question</label>
       <textarea id="source-question" value={question} onChange={e => flow.changeQuestion(e.target.value)} rows={3} placeholder="For example: How many Americans were unemployed in April 2020?" />
       <div className="form-footer">
         <button type="button" className="example" onClick={() => flow.changeQuestion("What was the U.S. unemployment rate in April 2020?")}>Try an example: U.S. unemployment in April 2020</button>
-        <button className="primary" disabled={busy || !question.trim() || !products.length}>{busy ? "Working…" : "Find candidates"}</button>
+        <button className="primary" disabled={busy || !question.trim() || !products.length}>{busy ? "Working…" : preferred && !run ? `Review ${preferred.name}` : "Find candidates"}</button>
       </div>
     </form>
-    {busy && <p role="status">Waiting for the current workflow…</p>}
-    {error && <p role="alert" className="notice error">{error} <button type="button" onClick={() => void flow.refresh()}>Refresh workflow state</button></p>}
-    {run?.error && <p role="alert" className="notice error">{run.error}</p>}
-    {run?.allowed_actions.includes("retry") && <button type="button" disabled={busy} onClick={() => void flow.act({ type: "retry" })}>Retry failed step{run.trace.at(-1)?.stage === "discovery" ? " (sends question to Exa again)" : ""}</button>}
+    {preferred && !run && <p className="catalog-note">Starting with {preferred.name}. You will still review and confirm it before SQL generation.</p>}
+    {run && <nav className="analysis-steps" aria-label="Analysis progress">{([1, 2, 3, 4] as const).map((step) => {
+      const available = step === 1 || step === 2 && !!selected || step === 3 && !!run.plan || step === 4 && !!run.result;
+      return <button key={step} type="button" disabled={!available} aria-current={view === step ? "step" : undefined} onClick={() => setView(step)}><span>{step}</span>{["Sources", "Review dataset", "Review SQL", "Results"][step - 1]}</button>;
+    })}</nav>}
+    {view === 1 && <div ref={activeStep as React.RefObject<HTMLDivElement>} className="active-step"><div className="section-heading"><span className="step-number" aria-hidden="true">01</span><h2>Compare sources</h2></div>
+    <p>The Source Advisor checks all local products’ definitions, fields and coverage. Recommendations are proposals—not automatic source choices.</p>
+    <p className="catalog-note">Finding candidates sends your question and catalog metadata/schema to OpenAI, not sample rows. Browse locally to choose a source without an advisor call.</p>
     {advice && <div aria-live="polite">
       <h3>{advice.outcome === "recommend" ? "Recommended local sources — please choose" : advice.outcome === "clarify" ? "Please clarify your question" : advice.limitation === "unsupported_operation" ? "This operation is not supported" : "No suitable local product identified"}</h3>
       <p>{advice.reason}</p>
@@ -80,7 +94,7 @@ export default function CandidateInspector({ products }: { products: InspectProd
         <button type="button" disabled={!can("select_external")} onClick={() => void flow.act({ type: "select_external", candidate_index: index })}>Analyze this source</button>
       </li>)}</ul>
     </section>}
-    {run?.external_index !== null && run?.external_index !== undefined && run.external_links && <section className="external-discovery" aria-label="Review external file">
+    {run?.external_index !== null && run?.external_index !== undefined && run.external_links && <section ref={fileReview as React.RefObject<HTMLElement>} className="external-discovery" aria-label="Review external file">
       <h3>Choose an exact CSV or ZIP file</h3>
       <p>Only this selected source page was inspected. Approving a file downloads a temporary copy for this run; it does not add a catalog product.</p>
       {!run.external_links.length && <p>No public CSV/ZIP links were found on this page. Choose another external source above; the EPA AirData download page is one option if it appears in your results.</p>}
@@ -91,7 +105,9 @@ export default function CandidateInspector({ products }: { products: InspectProd
     <details ref={browse}><summary>Browse all {products.length} local products</summary>
       <ul className="candidate-list">{products.map(p => <li key={p.id + ":" + p.version}><button type="button" disabled={busy || !question.trim() || !!run && !can("select_source")} onClick={() => void flow.select(p)}>{p.name}</button></li>)}</ul>
     </details>
-    {selected && <article className="source-inspection" aria-live="polite">
+    </div>}
+    {selected && view > 1 && <article ref={activeStep as React.RefObject<HTMLElement>} className="source-inspection active-step" aria-live="polite">
+      {view === 2 && <>
       <div className="section-heading"><span className="step-number" aria-hidden="true">02</span><h2>Review and confirm the source</h2></div>
       <h3>{selected.name}</h3><p>{selected.business_context}</p>
       {run?.external_file && <div className="notice"><p>Temporary source: {run.external_file.rows} rows, {run.external_file.start}–{run.external_file.end}. Observed units: {run.external_file.units_observed?.join(", ") || "unknown"}. Geography and units may vary by row; verify filters and interpretation in the SQL plan.</p>
@@ -101,10 +117,17 @@ export default function CandidateInspector({ products }: { products: InspectProd
       <a href={selected.source_url} target="_blank" rel="noreferrer">View original source ↗</a>
       <details className="schema-details"><summary>Inspect schema and fields</summary>{selected.tables.map(t => <div key={t.id}><h4>Schema: {t.id}</h4><ul>{t.columns.map(c => <li key={c.name}><code>{c.name}</code> ({c.type}{c.unit ? ", " + c.unit : ""}) — {c.description}</li>)}</ul></div>)}</details>
       <button type="button" disabled={!can("choose_again")} onClick={() => void flow.act({ type: "choose_again" })}>Choose another source</button>
-      <SqlWorkflow run={run} busy={busy || !products.length} onAction={action => void flow.act(action)} />
-      {run.external_file && run.allowed_actions.includes("propose_registration") && <button type="button" className="secondary" disabled={busy} onClick={() => void flow.act({ type: "propose_registration" })}>Add to catalog for repeatable use</button>}
-      {run.external_file && run.registration && <ExternalRegistration run={run} busy={busy} onAction={action => void flow.act(action)} />}
+      </>}
+      <SqlWorkflow run={run} busy={busy || !products.length} step={view as 2 | 3 | 4} onAction={action => void flow.act(action)} />
+      {view === 4 && run.external_file && run.allowed_actions.includes("propose_registration") && <button type="button" className="secondary" disabled={busy} onClick={() => void flow.act({ type: "propose_registration" })}>Add to catalog for repeatable use</button>}
+      {view === 4 && run.external_file && run.registration && <ExternalRegistration run={run} busy={busy} onAction={action => void flow.act(action)} />}
     </article>}
+    {(busy || error || run?.error || run?.allowed_actions.includes("retry")) && <div className="workflow-feedback" aria-live="polite">
+      {busy && <p role="status" className="notice">Working on this step… The result will appear here.</p>}
+      {error && <p role="alert" className="notice error">{error} <button type="button" onClick={() => void flow.refresh()}>Refresh workflow state</button></p>}
+      {run?.error && <p role="alert" className="notice error">{run.error}</p>}
+      {run?.allowed_actions.includes("retry") && <button type="button" disabled={busy} onClick={() => void flow.act({ type: "retry" })}>Retry failed step{run.trace.at(-1)?.stage === "discovery" ? " (sends question to Exa again)" : ""}</button>}
+    </div>}
     {run && <details className="workflow-trace"><summary>Agent workflow trace</summary><ol>{run.trace.map((t, i) => <li key={i}>
       {t.stage}: {t.status} — {t.result} · {t.model ?? t.provider ?? "local"} · {t.duration_ms.toFixed(0)} ms
       {t.usage?.total_tokens !== undefined && " · " + t.usage.total_tokens + " tokens"}
