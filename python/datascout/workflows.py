@@ -13,7 +13,7 @@ import uuid
 from contextlib import contextmanager
 from typing import Annotated, Literal, TypedDict
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, HTTPException
 from filelock import FileLock, Timeout
 from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.graph import START, StateGraph
@@ -24,8 +24,7 @@ from . import sql_runs
 from .catalog import ROOT, CatalogError, catalog, product
 from .discovery import DiscoveryError, ExaProvider
 from .external_advice import ExternalAdviceError, recommend as recommend_external
-from .external_files import ExternalFileError, inspect_page, acquire, acquire_uploaded, remove as remove_external, BASE as EXTERNAL_BASE, DOWNLOAD_LIMIT
-from .external_registration import proposal as registration_proposal, register as register_external
+from .legacy_external import remove_legacy_files
 from .inspection import public_product
 from .source_advice import AdviceError, advise, validate_advice
 from . import conversation_store as conversations
@@ -39,7 +38,6 @@ RUN_TTL = 86400
 class State(TypedDict, total=False):
     run_id: str
     conversation_id: str | None
-    upload_pending: bool
     initial_product_pinned: bool
     question: str
     intent: str
@@ -57,11 +55,6 @@ class State(TypedDict, total=False):
     result: dict | None
     external: list[dict] | None
     external_advice: dict | None
-    external_links: list[dict] | None
-    external_index: int | None
-    approved_external_url: str | None
-    external_file: dict | None
-    registration: dict | None
     rejected: list[str]
     recovery_reason: str
     confirmed: bool
@@ -83,7 +76,6 @@ class Create(Strict):
     product_id: str | None = Field(default=None, max_length=128)
     manifest_version: int | None = Field(default=None, ge=1)
     conversation_id: uuid.UUID | None = None
-    upload_pending: bool = False
 
     @field_validator("question")
     @classmethod
@@ -96,8 +88,6 @@ class Create(Strict):
     def paired_source(self):
         if (self.product_id is None) != (self.manifest_version is None):
             raise ValueError("Product and version must be supplied together")
-        if self.upload_pending and (self.conversation_id is None or self.product_id is not None):
-            raise ValueError("Pending upload requires an existing unpinned conversation")
         return self
 
 
@@ -123,38 +113,8 @@ class Discover(Strict):
     consent: Literal[True]
 
 
-class SelectExternal(Strict):
-    type: Literal["select_external"]
-    candidate_index: int = Field(ge=0, le=4)
-
-
-class ApproveFile(Strict):
-    type: Literal["approve_external_file"]
-    approved: Literal[True]
-    url: str = Field(min_length=1, max_length=2048)
-
-
-class ConfirmExternal(Strict):
-    type: Literal["confirm_external"]
-    confirmed: Literal[True]
-
-
-class RegisterProduct(Strict):
-    type: Literal["register_product"]
-    name: str = Field(min_length=3, max_length=160)
-    description: str = Field(min_length=10, max_length=1000)
-    geography: str = Field(min_length=2, max_length=160)
-    measure: str = Field(min_length=2, max_length=160)
-    measure_column: str = Field(min_length=1, max_length=100)
-    unit: str = Field(min_length=1, max_length=160)
-    coverage_column: str = Field(min_length=1, max_length=100)
-    unique_key: list[str] = Field(min_length=1, max_length=20)
-    approved: Literal[True]
-    rights_reviewed: Literal[True]
-
-
 class Simple(Strict):
-    type: Literal["recover_local", "none_fit", "choose_again", "retry", "propose_registration"]
+    type: Literal["recover_local", "none_fit", "choose_again", "retry"]
 
 
 class AskQuestion(Strict):
@@ -175,7 +135,7 @@ class ConfirmInterpretation(Strict):
 class ActionRequest(Strict):
     request_id: uuid.UUID
     expected_revision: int = Field(ge=1)
-    action: Annotated[Select | Confirm | Approve | Discover | SelectExternal | ApproveFile | ConfirmExternal | RegisterProduct | AskQuestion | ReviseQuestion | ConfirmInterpretation | Simple, Field(discriminator="type")]
+    action: Annotated[Select | Confirm | Approve | Discover | AskQuestion | ReviseQuestion | ConfirmInterpretation | Simple, Field(discriminator="type")]
 
 
 def revision_of(items: list[dict]) -> str:
@@ -197,32 +157,14 @@ def allowed(state: State) -> list[str]:
         actions += ["approve_sql"]
     if stage == "question_review":
         actions += ["confirm_interpretation", "ask_question"]
-    if stage in ("recommendations", "no_local_fit", "external_offer", "external_review",
-                 "external_file_review", "awaiting_upload", "upload_error", "error") and not state.get("confirmed"):
-        actions += ["upload_file"]
     if state.get("selected") and state.get("confirmed") and stage in (
-            "ready_for_question", "results", "registered", "sql_abstain", "sql_clarification", "question_clarification"):
+            "ready_for_question", "results", "sql_abstain", "sql_clarification", "question_clarification"):
         actions += ["ask_question"]
     if not state.get("confirmed") and stage in ("clarification", "recommendations", "no_local_fit", "external_offer", "error"):
         actions += ["revise_question"]
-    if (stage in ("external_review", "external_file_review") or
-            (stage == "error" and state.get("retry_node") in ("external_recommender", "external_page", "external_acquire"))) and state.get("external"):
-        actions += ["select_external"]
-    if (stage == "external_file_review" or
-            (stage == "error" and state.get("retry_node") == "external_acquire")) and state.get("external_links"):
-        actions += ["approve_external_file"]
-    if stage == "external_snapshot_review":
-        actions += ["confirm_external"]
-    meta = state.get("external_file")
-    if stage == "results" and meta and meta.get("origin") != "upload" and (state.get("result") or {}).get("outcome") == "answered":
-        from urllib.parse import urlsplit
-        if meta["start"] != "Unknown" and meta["end"] != "Unknown" and not urlsplit(meta["url"]).query and not urlsplit(meta["url"]).fragment:
-            actions += ["propose_registration"]
-    if stage == "registration_review":
-        actions += ["register_product"]
     if stage == "sql_abstain" and not pinned:
         actions += ["recover_local"]
-    if stage == "error" and state.get("retry_node") and (state.get("retry_node") != "external_acquire" or state.get("approved_external_url")):
+    if stage == "error" and state.get("retry_node") in ("advisor", "planner", "interpretation", "executor", "discovery", "external_recommender"):
         actions += ["retry"]
     if not pinned and stage in ("recommendations", "source_review", "sql_abstain", "external_review", "no_local_fit"):
         actions += ["none_fit"]
@@ -239,30 +181,10 @@ def trace(state: State, stage: str, status: str, result: str, start: float, **ex
 def catalog_node(state: State):
     check_active(state)
     items = catalog()
-    if state.get("upload_pending"):
-        return {"catalog_fingerprint": revision_of(items), "stage": "awaiting_upload"}
     if state.get("selected"):
         source = product(state["selected"]["id"])
         return {"catalog_fingerprint": revision_of(items), "selected_fingerprint": sql_runs.fingerprint(source), "stage": "source_review"}
     return {"catalog_fingerprint": revision_of(items)}
-
-
-def external_item(state: State) -> dict:
-    meta = state["external_file"]
-    path = (EXTERNAL_BASE / state["run_id"] / "snapshot.parquet").resolve()
-    if not path.is_relative_to(EXTERNAL_BASE.resolve()) or not path.is_file():
-        raise HTTPException(409, "Temporary external snapshot is unavailable. Start a new analysis.")
-    if hashlib.sha256(path.read_bytes()).hexdigest() != meta["sha256"]:
-        raise HTTPException(409, "Temporary external snapshot changed. Start a new analysis.")
-    return {"id": "external_" + state["run_id"].replace("-", ""), "version": 1,
-        "name": "Temporary external CSV", "description": "User-approved public CSV for one-off analysis; not a catalog product.",
-        "business_context": "One-off source; verify geography, measure and units in the rows before interpreting results.",
-        "facets": {"unit": meta["units_observed"][0] if len(meta.get("units_observed", [])) == 1 else "Varies or unknown; inspect source columns", "frequency": "Source CSV"},
-        "source": {"url": meta["url"], "name": meta["url"].split("/")[2]},
-        "snapshot": {"start": meta["start"], "end": meta["end"], "rows": meta["rows"],
-                     "retrieved_at": meta["retrieved_at"], "snapshot_sha256": meta["sha256"]},
-        "tables": [{"id": "external_data", "path": str(path.relative_to(ROOT)), "columns": meta["columns"]}],
-        "temporary": True}
 
 
 def check_active(state: State):
@@ -278,10 +200,7 @@ def check_current(state: State):
     if state.get("catalog_fingerprint") and not state.get("confirmed") and revision_of(catalog()) != state["catalog_fingerprint"]:
         raise HTTPException(409, "Catalog changed. Start a new analysis and confirm the source again.")
     if state.get("selected"):
-        if state.get("external_file"):
-            source = external_item(state)
-        else:
-            source = product(state["selected"]["id"])
+        source = product(state["selected"]["id"])
         if source["version"] != state["selected"]["version"] or sql_runs.fingerprint(source) != state.get("selected_fingerprint"):
             raise HTTPException(409, "Selected product changed. Start a new analysis.")
 
@@ -299,7 +218,7 @@ def specialist(state: State, node: str, operation):
             raise
         return {"stage": "error", "error": str(exc.detail), "retry_node": node,
                 "trace": trace(state, node, "failed", str(exc.detail), started)}
-    except (AdviceError, DiscoveryError, ExternalAdviceError, ExternalFileError, InterpretationError) as exc:
+    except (AdviceError, DiscoveryError, ExternalAdviceError, InterpretationError) as exc:
         return {"stage": "error", "error": str(exc), "retry_node": node,
                 "trace": trace(state, node, "failed", str(exc), started)}
 
@@ -323,8 +242,7 @@ def planner_node(state: State):
     def call():
         source = state["selected"]
         question = state.get("interpreted_question") or state.get("analysis_question") or state["question"]
-        plan = (sql_runs.generate_for_item(question, external_item(state)) if state.get("external_file")
-                else sql_runs.generate_saved_plan(sql_runs.Generate(question=question, product_id=source["id"], manifest_version=source["version"], confirmed=True)))
+        plan = sql_runs.generate_saved_plan(sql_runs.Generate(question=question, product_id=source["id"], manifest_version=source["version"], confirmed=True))
         stage = {"ready": "sql_review", "clarify": "sql_clarification", "abstain": "sql_abstain"}[plan["outcome"]]
         return {"plan": plan, "stage": stage}, plan["outcome"], {"model": plan["model"], "usage": token_usage(plan.get("usage", {}))}
     if not state.get("confirmed"):
@@ -339,15 +257,6 @@ def token_usage(usage):
 def executor_node(state: State):
     def call():
         result = sql_runs.execute_saved_plan(sql_runs.Execute(run_id=state["plan"]["run_id"], approved=True))
-        if state.get("external_file"):
-            rows = result["rows"]
-            if len(rows) == 1 and not result["truncated"]:
-                observations = "; ".join(f"{name.replace('_', ' ')}: {value}" for name, value in rows[0].items())
-                result["answer"] = f"From the approved external CSV, {observations}. Check source units and aggregation basis below."
-            elif rows:
-                result["answer"] = f"The approved external CSV returned {len(rows)} rows. Review the dated observations and units below."
-            result["source_url"] = state["external_file"]["url"]
-            result["snapshot_date"] = state["external_file"]["retrieved_at"]
         history = [*state.get("turn_history", []),
                    {"asked": state.get("analysis_question") or state["question"],
                     "interpreted": state.get("interpreted_question") or state.get("analysis_question") or state["question"]}][-5:]
@@ -370,7 +279,7 @@ def discovery_node(state: State):
     def call():
         candidates = ExaProvider().search(state["question"])
         return {"external": [c.model_dump() for c in candidates], "external_advice": None,
-                "stage": "external_recommending" if candidates else "external_review"}, f"{len(candidates)} candidates; none acquired", {"provider": "exa"}
+                "stage": "external_recommending" if candidates else "external_review"}, f"{len(candidates)} candidates found", {"provider": "exa"}
     if state.get("command", {}).get("consent") is not True:
         raise HTTPException(409, "External-search consent required.")
     return specialist(state, "discovery", call)
@@ -383,65 +292,6 @@ def external_recommender_node(state: State):
     return specialist(state, "external_recommender", call)
 
 
-def external_page_node(state: State):
-    def call():
-        candidate = state["external"][state["external_index"]]
-        links = inspect_page(candidate["url"], state["question"])
-        return {"external_links": links, "stage": "external_file_review"}, f"{len(links)} CSV/ZIP links", {}
-    return specialist(state, "external_page", call)
-
-
-def external_acquire_node(state: State):
-    def call():
-        meta = acquire(state["run_id"], state["approved_external_url"])
-        item = external_item({**state, "external_file": meta})
-        return {"external_file": meta, "selected": public_product(item), "selected_fingerprint": sql_runs.fingerprint(item),
-                "stage": "external_snapshot_review"}, f"{meta['rows']} rows validated", {}
-    return specialist(state, "external_acquire", call)
-
-
-def external_upload_node(state: State):
-    started = time.perf_counter()
-    staged = EXTERNAL_BASE / state["run_id"] / "incoming.upload"
-    try:
-        check_current(state)
-        raw = staged.read_bytes()
-        if hashlib.sha256(raw).hexdigest() != state["command"]["sha256"]:
-            raise ExternalFileError("Uploaded bytes changed. Please choose the file again.")
-        meta = acquire_uploaded(state["run_id"], state["command"]["filename"], raw,
-                                state["command"].get("source_page"))
-        item = external_item({**state, "external_file": meta})
-        return {"external_file": meta, "selected": public_product(item),
-                "selected_fingerprint": sql_runs.fingerprint(item), "stage": "external_snapshot_review",
-                "error": None, "retry_node": None,
-                "trace": trace(state, "external_upload", "completed", f"{meta['rows']} rows validated", started)}
-    except (OSError, ExternalFileError) as exc:
-        return {"stage": "upload_error", "error": str(exc), "retry_node": None,
-                "trace": trace(state, "external_upload", "failed", str(exc), started)}
-    finally:
-        staged.unlink(missing_ok=True)
-
-
-def registration_node(state: State):
-    started = time.perf_counter()
-    try:
-        check_current(state)
-        result = register_external(state["run_id"], state["external_file"], state["command"])
-        return {"registration": {**state["registration"], **result}, "catalog_fingerprint": revision_of(catalog()),
-                "stage": "registered", "error": None,
-                "trace": trace(state, "registration", "completed", result["product_id"], started)}
-    except ExternalFileError as exc:
-        return {"stage": "registration_review", "error": str(exc),
-                "trace": trace(state, "registration", "failed", str(exc), started)}
-    except ValueError:
-        message = "Registration validation failed. Review the source schema, coverage and unique observation key."
-        return {"stage": "registration_review", "error": message,
-                "trace": trace(state, "registration", "failed", message, started)}
-    except Exception:
-        return {"stage": "registration_review", "error": "Registration failed; the source remains a temporary one-off result.",
-                "trace": trace(state, "registration", "failed", "Registration failed", started)}
-
-
 def human_gate(state: State):
     # No specialist calls or writes before interrupt: this node restarts on resume.
     action = interrupt({"stage": state["stage"], "allowed_actions": allowed(state)})
@@ -452,7 +302,6 @@ def dispatch(state: State):
     action = state["command"]
     kind = action["type"]
     cleared = {"plan": None, "result": None, "external": None, "external_advice": None,
-               "external_links": None, "external_index": None, "approved_external_url": None, "external_file": None, "registration": None,
                "confirmed": False, "approved": False, "error": None, "retry_node": None}
     if kind == "select_source":
         p = product(action["product_id"])
@@ -474,28 +323,11 @@ def dispatch(state: State):
         return Command(update={**cleared, "selected": None, "selected_fingerprint": None, "stage": "external_offer"}, goto="settle")
     if kind == "discover_external":
         return Command(update={**cleared, "selected": None, "selected_fingerprint": None}, goto="discovery")
-    if kind == "select_external":
-        return Command(update={"external_index": action["candidate_index"], "external_links": None, "approved_external_url": None,
-                               "external_file": None, "registration": None, "selected": None, "selected_fingerprint": None,
-                               "plan": None, "result": None, "confirmed": False, "approved": False,
-                               "error": None, "retry_node": None}, goto="external_page")
-    if kind == "approve_external_file":
-        return Command(update={"approved_external_url": action["url"], "plan": None, "result": None,
-                               "confirmed": False, "approved": False, "error": None, "retry_node": None}, goto="external_acquire")
-    if kind == "upload_file":
-        return Command(update={"selected": None, "selected_fingerprint": None, "external_file": None,
-                               "plan": None, "result": None, "confirmed": False, "approved": False,
-                               "error": None, "retry_node": None}, goto="external_upload")
-    if kind == "confirm_external":
-        source_only = state.get("intent") == "source_finding" and not state.get("analysis_question")
-        return Command(update={"confirmed": True, "plan": None, "result": None,
-                               "stage": "ready_for_question" if source_only else state["stage"]},
-                       goto="settle" if source_only else "planner")
     if kind == "ask_question":
         question = action["question"].strip()
         return Command(update={"analysis_question": question, "interpreted_question": None,
                                "interpretation_clarification": None, "turn_index": state.get("turn_index", 0) + 1,
-                               "plan": None, "result": None, "registration": None,
+                               "plan": None, "result": None,
                                "approved": False, "error": None, "retry_node": None},
                        goto="interpretation")
     if kind == "revise_question":
@@ -506,11 +338,6 @@ def dispatch(state: State):
                                "source_question_index": state.get("source_question_index", 1) + 1}, goto="advisor")
     if kind == "confirm_interpretation":
         return Command(update={"error": None}, goto="planner")
-    if kind == "propose_registration":
-        return Command(update={"registration": registration_proposal(state["run_id"], state["external_file"]),
-                               "stage": "registration_review", "error": None}, goto="settle")
-    if kind == "register_product":
-        return Command(goto="registration")
     if kind == "retry":
         # Explicit retry after an uncertain process interruption may repeat a call.
         return Command(update={"error": None}, goto=state["retry_node"])
@@ -526,16 +353,12 @@ def build_graph(saver):
     builder.add_node("executor", executor_node)
     builder.add_node("discovery", discovery_node)
     builder.add_node("external_recommender", external_recommender_node)
-    builder.add_node("external_page", external_page_node)
-    builder.add_node("external_acquire", external_acquire_node)
-    builder.add_node("external_upload", external_upload_node)
-    builder.add_node("registration", registration_node)
     builder.add_node("human_gate", human_gate)
     builder.add_node("dispatch", dispatch)
     builder.add_node("settle", lambda state: {})
     builder.add_edge(START, "catalog")
-    builder.add_conditional_edges("catalog", lambda state: "settle" if state.get("selected") or state.get("upload_pending") else "advisor")
-    for node in ("advisor", "planner", "interpretation", "executor", "external_recommender", "external_page", "external_acquire", "external_upload", "registration"):
+    builder.add_conditional_edges("catalog", lambda state: "settle" if state.get("selected") else "advisor")
+    for node in ("advisor", "planner", "interpretation", "executor", "external_recommender"):
         builder.add_edge(node, "settle")
     builder.add_conditional_edges("discovery", lambda state: "external_recommender" if state.get("stage") == "external_recommending" else "settle")
     builder.add_edge("settle", "human_gate")
@@ -584,7 +407,7 @@ def prune(conn, saver):
                 if row["conversation_id"]:
                     sync_conversation(conn, build_graph(saver).get_state(config(row["id"])).values)
                 saver.delete_thread(row["id"])
-                remove_external(row["id"])
+                remove_legacy_files(row["id"])
                 with conn:
                     if row["conversation_id"]:
                         conversations.detach_run(conn, row["conversation_id"], row["id"])
@@ -625,10 +448,6 @@ def public_state(conn, graph, run_id):
             "plan": None if terminal else state.get("plan"), "result": None if terminal else state.get("result"),
             "external": None if terminal else state.get("external"),
             "external_advice": None if terminal else state.get("external_advice"),
-            "external_links": None if terminal else state.get("external_links"),
-            "external_index": None if terminal else state.get("external_index"),
-            "external_file": None if terminal else state.get("external_file"),
-            "registration": None if terminal else state.get("registration"),
             "confirmed": state.get("confirmed", False) if active else False,
             "approved": state.get("approved", False) if active else False,
             "error": (state.get("error") or "Catalog changed. Start a new analysis.") if row["status"] == "invalidated" else state.get("error"),
@@ -651,22 +470,12 @@ def sync_conversation(conn, state: State) -> None:
     selected = state.get("selected")
     if selected and state.get("confirmed"):
         existing = conversations.get(conn, conversation_id)
-        if state.get("external_file"):
-            meta = state["external_file"]
-            if not existing["product_id"]:
-                conversations.pin(conn, conversation_id, upload_sha256=meta.get("upload_sha256") or meta["raw_sha256"])
-            source = {"name": selected["name"], "temporary": True, "rows": meta["rows"],
-                      "coverage": {"start": meta["start"], "end": meta["end"]},
-                      "units_observed": meta["units_observed"], "source_url": meta["url"],
-                      "raw_sha256": meta["raw_sha256"], "upload_sha256": meta.get("upload_sha256"),
-                      "source_page": meta.get("source_page")}
-        else:
-            if not existing["product_id"]:
-                conversations.pin(conn, conversation_id, product_id=selected["id"],
-                                  product_version=selected["version"], fingerprint=state["selected_fingerprint"])
-            source = {"name": selected["name"], "temporary": False, "id": selected["id"],
-                      "version": selected["version"], "fingerprint": state["selected_fingerprint"],
-                      "coverage": selected["coverage"], "source_url": selected["source_url"]}
+        if not existing["product_id"]:
+            conversations.pin(conn, conversation_id, product_id=selected["id"],
+                              product_version=selected["version"], fingerprint=state["selected_fingerprint"])
+        source = {"name": selected["name"], "id": selected["id"],
+                  "version": selected["version"], "fingerprint": state["selected_fingerprint"],
+                  "coverage": selected["coverage"], "source_url": selected["source_url"]}
         conversations.put_event(conn, conversation_id, f"{run_id}:selected", "source", source)
     index = state.get("turn_index", 0)
     asked = state.get("analysis_question")
@@ -690,11 +499,6 @@ def sync_conversation(conn, state: State) -> None:
     if state.get("error"):
         conversations.put_event(conn, conversation_id, f"{run_id}:trace:{len(state.get('trace', []))}:error", "error",
                                 {"message": state["error"]})
-    if state.get("stage") == "registered" and state.get("registration"):
-        registration = state["registration"]
-        conversations.put_event(conn, conversation_id, f"{run_id}:registration", "registration",
-                                {"product_id": registration.get("product_id"), "name": registration.get("name"),
-                                 "status": registration.get("status")})
 
 
 def recover_interrupted(conn, graph, run_id):
@@ -710,7 +514,7 @@ def recover_interrupted(conn, graph, run_id):
         if not snapshot.interrupts:
             graph.invoke(None, config(run_id))
     else:
-        node = next((n for n in snapshot.next if n in ("catalog", "advisor", "planner", "interpretation", "executor", "discovery", "external_recommender", "external_page", "external_acquire", "external_upload")), row["pending"] or "advisor")
+        node = next((n for n in snapshot.next if n in ("catalog", "advisor", "planner", "interpretation", "executor", "discovery", "external_recommender")), row["pending"] or "advisor")
         graph.update_state(config(run_id), {"stage": "error", "error": "The previous operation was interrupted. Its outcome may be uncertain; explicitly retry or choose another source.", "retry_node": node}, as_node="settle")
         graph.invoke(None, config(run_id))  # human_gate only; no provider or execution call
     mark(conn, run_id, "ready")
@@ -725,10 +529,6 @@ def validate_action(state, action):
             raise HTTPException(409, "Source version changed. Reload the catalog.")
     if action["type"] == "approve_sql" and action["plan_id"] != state["plan"].get("run_id"):
         raise HTTPException(409, "Approval does not match the reviewed SQL plan.")
-    if action["type"] == "select_external" and action["candidate_index"] >= len(state.get("external") or []):
-        raise HTTPException(409, "External candidate changed. Review the current results.")
-    if action["type"] == "approve_external_file" and action["url"] not in {f["url"] for f in state.get("external_links") or []}:
-        raise HTTPException(409, "Approve an exact file URL from the reviewed list.")
 
 
 def request_hash(request):
@@ -745,13 +545,13 @@ def run_operation(conn, graph, run_id, input_value):
         if row_for(conn, run_id)["status"] != "cancelled":
             mark(conn, run_id, "ready")
         else:
-            remove_external(run_id)
+            remove_legacy_files(run_id)
     except (HTTPException, CatalogError) as exc:
         if row_for(conn, run_id)["status"] != "cancelled":
             graph.update_state(config(run_id), {"error": str(exc.detail) if isinstance(exc, HTTPException) else "Catalog unavailable. Start a new analysis."}, as_node="settle")
             mark(conn, run_id, "invalidated")
         else:
-            remove_external(run_id)
+            remove_legacy_files(run_id)
         if isinstance(exc, HTTPException) and exc.status_code != 409:
             raise
     except Exception:
@@ -761,7 +561,7 @@ def run_operation(conn, graph, run_id, input_value):
         if row_for(conn, run_id)["status"] != "cancelled":
             mark(conn, run_id, "ready")
         else:
-            remove_external(run_id)
+            remove_legacy_files(run_id)
 
 
 def start_background(run_id):
@@ -817,7 +617,6 @@ def create(request: Create, background_tasks: BackgroundTasks):
                         conversations.attach_run(conn, conversation_id, run_id,
                                                  request.question if conv["title"] == "New conversation" else None)
                     graph.update_state(config(run_id), {"run_id": run_id, "question": request.question, "selected": selected,
-                        "upload_pending": request.upload_pending,
                         "initial_product_pinned": bool(conversation_id and conv["product_id"]),
                         "conversation_id": conversation_id, "intent": "analysis" if selected else "source_finding",
                         "analysis_question": request.question if selected else None,
@@ -826,8 +625,7 @@ def create(request: Create, background_tasks: BackgroundTasks):
                         "source_question_index": 1,
                         "turn_history": [],
                         "advice": None, "plan": None, "result": None, "external": None, "external_advice": None,
-                        "external_links": None, "external_index": None, "approved_external_url": None,
-                        "external_file": None, "registration": None, "rejected": [],
+                        "rejected": [],
                         "confirmed": False, "approved": False, "trace": [], "stage": "starting"}, as_node=START)
                     background_tasks.add_task(start_background, run_id)
                     return public_state(conn, graph, run_id)
@@ -890,11 +688,10 @@ def act(run_id: uuid.UUID, request: ActionRequest):
                 raise HTTPException(409, "Workflow changed. Reload before taking another action.")
             action = request.action.model_dump()
             validate_action(state, action)
-            pending = {"confirm_source": "planner", "confirm_external": "planner", "confirm_interpretation": "planner",
+            pending = {"confirm_source": "planner", "confirm_interpretation": "planner",
                        "revise_question": "advisor",
                        "ask_question": "interpretation", "approve_sql": "executor", "recover_local": "advisor", "discover_external": "discovery",
-                       "select_external": "external_page", "approve_external_file": "external_acquire",
-                       "register_product": "registration"}.get(action["type"], state.get("retry_node") or "advisor")
+                       }.get(action["type"], state.get("retry_node") or "advisor")
             if action["type"] == "retry" and pending == "discovery":
                 # Retry is a renewed explicit user action, not an automatic search.
                 action["consent"] = True
@@ -902,8 +699,6 @@ def act(run_id: uuid.UUID, request: ActionRequest):
                 conn.execute("INSERT INTO workflow_actions VALUES (?, ?, ?, NULL)", [run_id, key, digest])
                 conn.execute("UPDATE workflow_runs SET revision = revision + 1, status = 'running', pending = ? WHERE id = ?", [pending, run_id])
             run_operation(conn, graph, run_id, Command(resume=action))
-            if state.get("external_file") and not graph.get_state(config(run_id)).values.get("external_file"):
-                remove_external(run_id)
             sync_conversation(conn, graph.get_state(config(run_id)).values)
             response = public_state(conn, graph, run_id)
             with conn:
@@ -917,65 +712,6 @@ def act(run_id: uuid.UUID, request: ActionRequest):
         raise HTTPException(503, "Local workflow storage unavailable.") from None
 
 
-@router.post("/{run_id}/upload")
-async def upload(run_id: uuid.UUID, request: Request, request_id: uuid.UUID, expected_revision: int):
-    """Explicit, bounded raw-body upload. Client filenames never become filesystem paths."""
-    run_id = str(run_id)
-    filename = request.headers.get("x-datascout-filename", "")
-    source_page = request.headers.get("x-datascout-source-page") or None
-    if not filename or len(filename) > 160 or not filename.lower().endswith((".csv", ".zip")):
-        raise HTTPException(422, "Choose one CSV or ZIP file.")
-    if source_page and (len(source_page) > 2048 or not source_page.startswith("https://")):
-        raise HTTPException(422, "Source page must be a public HTTPS URL.")
-    if int(request.headers.get("content-length", "0") or 0) > DOWNLOAD_LIMIT:
-        raise HTTPException(413, "Uploaded file exceeds the size limit.")
-    raw = bytearray()
-    async for chunk in request.stream():
-        raw.extend(chunk)
-        if len(raw) > DOWNLOAD_LIMIT:
-            raise HTTPException(413, "Uploaded file exceeds the size limit.")
-    digest = hashlib.sha256(raw).hexdigest()
-    action = {"type": "upload_file", "filename": filename, "source_page": source_page, "sha256": digest}
-    body_hash = hashlib.sha256(json.dumps(action, sort_keys=True).encode()).hexdigest()
-    try:
-        with storage() as (conn, saver, graph), lock(run_id):
-            prune(conn, saver)
-            recover_interrupted(conn, graph, run_id)
-            row = row_for(conn, run_id)
-            key = str(request_id)
-            previous = conn.execute("SELECT * FROM workflow_actions WHERE run_id = ? AND request_id = ?", [run_id, key]).fetchone()
-            if previous:
-                if previous["body_hash"] != body_hash:
-                    raise HTTPException(409, "Request ID was used for a different upload.")
-                return json.loads(previous["response"]) if previous["response"] else public_state(conn, graph, run_id)
-            if row["revision"] != expected_revision or row["status"] != "ready":
-                raise HTTPException(409, "Workflow changed. Reload before uploading.")
-            state = graph.get_state(config(run_id)).values
-            check_current(state)
-            if "upload_file" not in allowed(state):
-                raise HTTPException(409, "Upload is not available at this workflow stage.")
-            if row["conversation_id"]:
-                expected_sha = conversations.get(conn, row["conversation_id"])["upload_sha256"]
-                if expected_sha and digest != expected_sha:
-                    raise HTTPException(409, "This conversation is pinned to a different uploaded file. Start a new conversation.")
-            target = EXTERNAL_BASE / run_id
-            target.mkdir(parents=True, exist_ok=True)
-            (target / "incoming.upload").write_bytes(raw)
-            with conn:
-                conn.execute("INSERT INTO workflow_actions VALUES (?, ?, ?, NULL)", [run_id, key, body_hash])
-                conn.execute("UPDATE workflow_runs SET revision = revision + 1, status = 'running', pending = 'external_upload' WHERE id = ?", [run_id])
-            run_operation(conn, graph, run_id, Command(resume=action))
-            response = public_state(conn, graph, run_id)
-            with conn:
-                conn.execute("UPDATE workflow_actions SET response = ? WHERE run_id = ? AND request_id = ?",
-                             [json.dumps(response), run_id, key])
-            return response
-    except Timeout:
-        raise HTTPException(409, "Another action is in progress. Reload before retrying.") from None
-    except (sqlite3.Error, OSError):
-        raise HTTPException(503, "Local upload storage unavailable.") from None
-
-
 @router.delete("/{run_id}")
 def cancel(run_id: uuid.UUID):
     run_id = str(run_id)
@@ -986,7 +722,7 @@ def cancel(run_id: uuid.UUID):
             if row["status"] != "cancelled":
                 with conn:
                     conn.execute("UPDATE workflow_runs SET status = 'cancelled', revision = revision + 1 WHERE id = ?", [run_id])
-                remove_external(run_id)
+                remove_legacy_files(run_id)
                 if row["conversation_id"]:
                     conversations.detach_run(conn, row["conversation_id"], run_id)
             return public_state(conn, graph, run_id)

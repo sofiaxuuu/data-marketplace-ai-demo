@@ -191,8 +191,6 @@ def run_worker(item: dict, sql: str, *, validate_only: bool = False) -> dict:
             raise ValueError("Invalid registered table name.")
         path = local_path(table["path"])
         digest = hashlib.sha256(path.read_bytes()).hexdigest()
-        if item.get("temporary") and digest != item["snapshot"]["snapshot_sha256"]:
-            raise ValueError("Temporary snapshot changed. Start a new analysis.")
         tables.append({"id": table["id"], "path": str(path), "sha256": digest})
     request = {"tables": tables, "sql": sql, "row_limit": ROW_LIMIT, "validate_only": validate_only}
     try:
@@ -245,6 +243,8 @@ def generate_for_item(question: str, item: dict, version: int | None = None):
             raise HTTPException(422, "Enter a question.")
         if version is not None and item["version"] != version:
             raise HTTPException(409, "Product version changed. Choose and confirm it again.")
+        if item.get("temporary") or fingerprint(product(item["id"])) != fingerprint(item):
+            raise HTTPException(409, "Only a current catalog product can be planned.")
         plan, model, usage = generate_plan(question.strip(), item)
         if plan.outcome != "ready":
             if plan.sql or plan.selected_fields:
@@ -254,7 +254,7 @@ def generate_for_item(question: str, item: dict, version: int | None = None):
         if sorted(set(plan.selected_fields)) != fields:
             raise ValueError("Planner's selected fields do not match actual SQL references.")
         run_worker(item, sql, validate_only=True)
-        current = product(item["id"]) if not item.get("temporary") else item
+        current = product(item["id"])
         if fingerprint(current) != fingerprint(item):
             raise HTTPException(409, "Product changed during planning. Confirm it again.")
         run_id = str(uuid.uuid4())
@@ -266,8 +266,7 @@ def generate_for_item(question: str, item: dict, version: int | None = None):
                   "trace": [{"stage": "Human source confirmation", "result": f"{item['id']} version {item['version']}"},
                             {"stage": "SQL planning", "result": model},
                             {"stage": "SQL validation", "result": "Allowlisted SELECT and DuckDB binding passed; semantic accuracy still requires review."}]}
-        payload = {"public": public, "fingerprint": fingerprint(item),
-                   "temporary_item": item if item.get("temporary") else None}
+        payload = {"public": public, "fingerprint": fingerprint(item)}
         conn = connection()
         try:
             with conn:
@@ -298,22 +297,15 @@ def execute_saved_plan(request: Execute):
         if time.time() - row[0] > PLAN_TTL:
             raise HTTPException(409, "SQL plan expired. Generate and review a fresh plan.")
         payload = json.loads(row[1])
+        if payload.get("temporary_item") is not None:
+            raise HTTPException(410, "External-file SQL plans are no longer executable. Past results remain in conversation history.")
         plan = payload["public"]
-        item = payload.get("temporary_item") or product(plan["product"]["id"])
-        if item.get("temporary"):
-            from .external_files import BASE
-            path = local_path(item["tables"][0]["path"])
-            if not path.is_relative_to(BASE.resolve()) or not path.is_file():
-                raise HTTPException(409, "Temporary snapshot expired. Start a new analysis.")
-            if hashlib.sha256(path.read_bytes()).hexdigest() != item["snapshot"]["snapshot_sha256"]:
-                raise HTTPException(409, "Temporary snapshot changed. Start a new analysis.")
+        item = product(plan["product"]["id"])
         if fingerprint(item) != payload["fingerprint"]:
             raise HTTPException(409, "Selected metadata or snapshot changed. Confirm and generate again.")
         sql, _ = validate_sql(plan["sql"], item)
         result = run_worker(item, sql)
-        if item.get("temporary") and hashlib.sha256(path.read_bytes()).hexdigest() != item["snapshot"]["snapshot_sha256"]:
-            raise HTTPException(409, "Temporary snapshot changed during execution. Discarding results.")
-        if fingerprint(product(item["id"]) if not item.get("temporary") else item) != payload["fingerprint"]:
+        if fingerprint(product(item["id"])) != payload["fingerprint"]:
             raise HTTPException(409, "Snapshot changed during execution. Discarding results.")
         count = len(result["rows"])
         outcome = "answered" if count else "no_data"

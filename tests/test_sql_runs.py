@@ -2,6 +2,7 @@
 import json
 import sqlite3
 import subprocess
+import time
 from copy import deepcopy
 
 import httpx
@@ -106,6 +107,17 @@ def test_stale_metadata_and_expired_plans(setup, monkeypatch):
     with sqlite3.connect(runs.DATABASE) as conn:
         conn.execute("UPDATE sql_runs SET created = 0")
     assert setup.post("/sql-runs/execute", json={"run_id": plan["run_id"], "approved": True}).status_code == 409
+
+
+def test_legacy_temporary_plan_is_not_executable(setup):
+    plan = generate(setup).json()
+    with sqlite3.connect(runs.DATABASE) as conn:
+        payload = json.loads(conn.execute("SELECT payload FROM sql_runs WHERE id = ?", [plan["run_id"]]).fetchone()[0])
+        payload["temporary_item"] = {"id": "legacy_external"}
+        conn.execute("UPDATE sql_runs SET created = ?, payload = ? WHERE id = ?",
+                     [time.time(), json.dumps(payload), plan["run_id"]])
+    response = setup.post("/sql-runs/execute", json={"run_id": plan["run_id"], "approved": True})
+    assert response.status_code == 410
 
 
 @pytest.mark.parametrize("outcome", ["clarify", "abstain"])

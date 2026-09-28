@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import SqlWorkflow from "./sql-workflow";
-import ExternalRegistration from "./external-registration";
 import { useWorkflow } from "./use-workflow";
 
 export type InspectProduct = {
@@ -18,7 +17,6 @@ export default function CandidateInspector({ products, initialQuestion = "", ini
   const { run, question, busy, error } = flow;
   const [view, setView] = useState<1 | 2 | 3 | 4>(1);
   const activeStep = useRef<HTMLElement>(null);
-  const fileReview = useRef<HTMLElement>(null);
   const preferred = products.find(product => product.id === initialProductId);
   useEffect(() => {
     setView(run?.result ? 4 : run?.plan ? 3 : run?.selected ? 2 : 1);
@@ -26,9 +24,6 @@ export default function CandidateInspector({ products, initialQuestion = "", ini
   useEffect(() => {
     if (run) activeStep.current?.scrollIntoView?.({ block: "start", behavior: "smooth" });
   }, [view, run?.id, run?.revision]);
-  useEffect(() => {
-    if (run?.external_links) fileReview.current?.scrollIntoView?.({ block: "start", behavior: "smooth" });
-  }, [run?.external_index, run?.external_links]);
   const browse = useRef<HTMLDetailsElement>(null);
   const selected = run?.selected;
   const advice = run?.advice;
@@ -71,7 +66,7 @@ export default function CandidateInspector({ products, initialQuestion = "", ini
     {run?.allowed_actions.includes("none_fit") && <button type="button" className="secondary" disabled={busy} onClick={() => void flow.act({ type: "none_fit" })}>None of these fit</button>}
     {externalOffered && <section className="external-discovery" aria-label="External source discovery">
       <h3>Look beyond the local catalog</h3>
-      <p>Find external sources sends your question to Exa. Recommendations are based on returned excerpts. No file is downloaded unless you review and approve its exact URL.</p>
+      <p>Find external sources sends your question to Exa. Recommendations are based on returned excerpts; DataScout does not acquire or query external data.</p>
       <div className="workflow-actions"><button type="button" className="primary" disabled={!can("discover_external")} onClick={() => void flow.act({ type: "discover_external", consent: true })}>Find external sources</button>
         <button type="button" className="secondary" onClick={openBrowse}>Browse local catalog</button></div>
     </section>}
@@ -87,19 +82,10 @@ export default function CandidateInspector({ products, initialQuestion = "", ini
       {!run.external.length && <p>No external candidates returned. Try a more specific question; this is not proof no source exists.</p>}
       <ul className="candidate-list">{run.external.map((c, index) => <li key={c.url}>
         <h4><a href={c.url} target="_blank" rel="noreferrer">{c.title} ↗</a></h4>
-        <small>{c.publisher} · {c.provider} · {c.discovered_at} · Not yet queryable</small>
+        <small>{c.publisher} · {c.provider} · {c.discovered_at} · External source, not in the catalog</small>
         {run.external_advice?.assessments.filter(a => a.candidate_index === index).map(a => <p key={a.candidate_index}><strong>{a.fit} fit:</strong> {a.reason} {a.caveat} <small>Evidence: “{a.evidence_quote}”</small></p>)}
         <p>{c.evidence}</p>
         <dl>{(["coverage", "units", "access", "licensing"] as const).map(k => <div key={k}><dt>{k}</dt><dd>{c[k]}</dd></div>)}</dl>
-        <button type="button" disabled={!can("select_external")} onClick={() => void flow.act({ type: "select_external", candidate_index: index })}>Analyze this source</button>
-      </li>)}</ul>
-    </section>}
-    {run?.external_index !== null && run?.external_index !== undefined && run.external_links && <section ref={fileReview as React.RefObject<HTMLElement>} className="external-discovery" aria-label="Review external file">
-      <h3>Choose an exact CSV or ZIP file</h3>
-      <p>Only this selected source page was inspected. Approving a file downloads a temporary copy for this run; it does not add a catalog product.</p>
-      {!run.external_links.length && <p>No public CSV/ZIP links were found on this page. Choose another external source above; the EPA AirData download page is one option if it appears in your results.</p>}
-      <ul className="candidate-list">{run.external_links.map(file => <li key={file.url}><a href={file.url} target="_blank" rel="noreferrer">{file.name} ↗</a><p><small>{file.url}</small></p>
-        <button type="button" disabled={!can("approve_external_file")} onClick={() => void flow.act({ type: "approve_external_file", approved: true, url: file.url })}>Approve and download this file</button>
       </li>)}</ul>
     </section>}
     <details ref={browse}><summary>Browse all {products.length} local products</summary>
@@ -110,8 +96,6 @@ export default function CandidateInspector({ products, initialQuestion = "", ini
       {view === 2 && <>
       <div className="section-heading"><span className="step-number" aria-hidden="true">02</span><h2>Review and confirm the source</h2></div>
       <h3>{selected.name}</h3><p>{selected.business_context}</p>
-      {run?.external_file && <div className="notice"><p>Temporary source: {run.external_file.rows} rows, {run.external_file.start}–{run.external_file.end}. Observed units: {run.external_file.units_observed?.join(", ") || "unknown"}. Geography and units may vary by row; verify filters and interpretation in the SQL plan.</p>
-        <details><summary>Inspect up to three sample rows</summary><pre className="review-sql">{JSON.stringify(run.external_file.sample_rows, null, 2)}</pre></details></div>}
       <dl>{Object.entries(selected.facets).map(([k, v]) => <div key={k}><dt>{k.replaceAll("_", " ")}</dt><dd>{v}</dd></div>)}</dl>
       <p>Version {selected.version} · {selected.coverage.start}–{selected.coverage.end} · {selected.coverage.rows} rows · Snapshot {selected.snapshot_date}</p>
       <a href={selected.source_url} target="_blank" rel="noreferrer">View original source ↗</a>
@@ -119,8 +103,6 @@ export default function CandidateInspector({ products, initialQuestion = "", ini
       <button type="button" disabled={!can("choose_again")} onClick={() => void flow.act({ type: "choose_again" })}>Choose another source</button>
       </>}
       <SqlWorkflow run={run} busy={busy || !products.length} step={view as 2 | 3 | 4} onAction={action => void flow.act(action)} />
-      {view === 4 && run.external_file && run.allowed_actions.includes("propose_registration") && <button type="button" className="secondary" disabled={busy} onClick={() => void flow.act({ type: "propose_registration" })}>Add to catalog for repeatable use</button>}
-      {view === 4 && run.external_file && run.registration && <ExternalRegistration run={run} busy={busy} onAction={action => void flow.act(action)} />}
     </article>}
     {(busy || error || run?.error || run?.allowed_actions.includes("retry")) && <div className="workflow-feedback" aria-live="polite">
       {busy && <p role="status" className="notice">Working on this step… The result will appear here.</p>}

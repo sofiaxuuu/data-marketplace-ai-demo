@@ -13,7 +13,7 @@ def ensure_schema(conn: sqlite3.Connection) -> None:
             id TEXT PRIMARY KEY, created REAL NOT NULL, updated REAL NOT NULL,
             revision INTEGER NOT NULL, title TEXT NOT NULL,
             product_id TEXT, product_version INTEGER, product_fingerprint TEXT,
-            upload_sha256 TEXT, active_run_id TEXT, create_key TEXT
+            active_run_id TEXT, create_key TEXT
         );
         CREATE TABLE IF NOT EXISTS conversation_events (
             id INTEGER PRIMARY KEY AUTOINCREMENT, conversation_id TEXT NOT NULL,
@@ -42,8 +42,8 @@ def create(conn: sqlite3.Connection, title: str, product_id: str | None = None,
     conversation_id = str(uuid.uuid4())
     with conn:
         conn.execute("INSERT INTO conversations (id, created, updated, revision, title, product_id, product_version, "
-                     "product_fingerprint, upload_sha256, active_run_id, create_key) "
-                     "VALUES (?, ?, ?, 1, ?, ?, ?, ?, NULL, NULL, ?)",
+                     "product_fingerprint, active_run_id, create_key) "
+                     "VALUES (?, ?, ?, 1, ?, ?, ?, ?, NULL, ?)",
                      [conversation_id, now, now, title[:160], product_id, product_version, product_fingerprint, create_key])
     return get(conn, conversation_id)
 
@@ -86,12 +86,11 @@ def attach_run(conn: sqlite3.Connection, conversation_id: str, run_id: str, titl
 
 
 def pin(conn: sqlite3.Connection, conversation_id: str, *, product_id: str | None = None,
-        product_version: int | None = None, fingerprint: str | None = None,
-        upload_sha256: str | None = None) -> None:
+        product_version: int | None = None, fingerprint: str | None = None) -> None:
     with conn:
         conn.execute("UPDATE conversations SET product_id = ?, product_version = ?, "
-                     "product_fingerprint = ?, upload_sha256 = ?, updated = ? WHERE id = ?",
-                     [product_id, product_version, fingerprint, upload_sha256, time.time(), conversation_id])
+                     "product_fingerprint = ?, updated = ? WHERE id = ?",
+                     [product_id, product_version, fingerprint, time.time(), conversation_id])
 
 
 def detach_run(conn: sqlite3.Connection, conversation_id: str, run_id: str) -> None:

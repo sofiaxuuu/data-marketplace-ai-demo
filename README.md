@@ -5,10 +5,10 @@ local products with reasons; you inspect and confirm one, review SQL, approve
 execution and see local results. Analysis now happens in saved, dataset-pinned
 conversations: each follow-up question gets a fresh SQL review and approval.
 LangGraph persists human pauses within a 24-hour run; conversation history remains
-until deleted. Explicit Exa discovery recommends external sources; an approved
-public CSV/ZIP download or local CSV/ZIP upload can support one-off SQL. Only
-public-URL downloads currently support optional catalog registration. Samples are local Parquet; descriptive metadata
-is also embedded in SingleStore for retrieval and evaluation.
+until deleted. Explicit Exa discovery recommends external sources with evidence,
+alternatives and uncertainties, but does not download, ingest, query or register
+external data. Samples are local Parquet; descriptive metadata is also embedded
+in SingleStore for retrieval and evaluation.
 
 ## Run locally
 
@@ -171,19 +171,6 @@ npm run typecheck
 npm run build
 ```
 
-To run the opt-in large-file integration fixture without network calls or
-changing the project catalog, place its archive at
-`data/daily_88101_2024.zip` and run:
-
-```bash
-DATASCOUT_TEST_LOCAL_EPA=1 PYTHONPATH=python .venv/bin/python -m pytest tests/test_external_epa_local.py -q
-```
-
-This fixture test performs real inspection and registration in a temporary
-catalog. Ordinary tests skip it; keep downloaded archives out of Git. The
-general processing lifecycle is documented in
-[Approved external CSV/ZIP processing](docs/external-file-processing.md).
-
 ## Current scope
 
 | Family | Products | Active sample coverage |
@@ -200,9 +187,9 @@ CLI; `.venv/bin/python scripts/build_catalog.py --download` publishes **missing*
 reviewed products only and never silently refreshes existing ones.
 
 Human-confirmed single-table SQL planning and execution cover all 15 products.
-Broader SQL operations, calibrated automatic source decisions and acquisition
-from discovered sources remain future work. Catalog registration alone does not
-establish that a product can answer every question.
+Broader SQL operations, calibrated automatic source decisions and ingestion
+from discovered sources remain future work. Turning a discovered source into a
+queryable product is a separate data-engineering project.
 
 ## Competing-product evaluation
 
@@ -348,58 +335,34 @@ a source only when the excerpts support the requested measure, place, period and
 granularity; otherwise it reports insufficient evidence. This is source-finding
 advice, not a numerical answer or independent verification of linked pages.
 
-After reviewing a candidate, **Analyze this source** inspects only that selected
-page for CSV/ZIP links. The user approves an exact file URL before acquisition.
-Bounded extraction and DuckDB validation create a temporary, single-table
-Parquet snapshot under `.local/external-runs/{run ID}`. Its schema, sample rows,
-observed units and date bounds are shown for review. See
-[the processing guide](docs/external-file-processing.md) for the safety limits,
-staging layout, cleanup, and path-based registration flow.
-The chat also accepts one explicitly selected local CSV/ZIP file (up to 25 MB
-compressed), using the same normalization and validation. It is run-scoped,
-not a catalog entry; a source-page URL is optional provenance and is never
-fetched automatically. A source-finding question waits for a new analytical
-question after temporary-source confirmation. Confirming an analytical question
-generates SQL; approving that saved SQL executes
-it under the same local DuckDB restrictions as catalog products. The answer is
-derived from executed rows, not search excerpts. Ambiguous geography, measures
-or units still require human judgment; an unrelated page or unsupported file is
-not silently made queryable.
-
-After a successful public-URL one-off result, **Add to catalog for repeatable use** opens a
-separate review of the product name, reporting basis, geography, measure/unit,
-coverage column and unique observation key. Explicit approval reads the saved
-CSV file through the existing ingestion pipeline, publishes a versioned snapshot
-and manifest, and saves a CSV/ZIP refresh recipe. It does not re-download or index
-metadata in SingleStore. Future refresh is a separate explicit command. API,
-PDF and HTML-chart ingestion are not supported by this milestone. Registration
-of a locally uploaded file is deferred because its provenance and manual-refresh
-recipe need a separate review flow.
+External discovery stops at recommendation. DataScout links to original pages,
+surfaces the evidence excerpts and records what still needs verification. It
+does not inspect candidate pages, choose files, download CSV/ZIP archives,
+create temporary queryable snapshots, answer from web snippets or register new
+catalog products. After a source-finding recommendation, the same conversation
+can accept another source-finding question, or the user can choose an existing
+local catalog product for SQL analysis.
 
 Conversation API (proxied under `/api/conversations`):
 
 - `POST /conversations`: create an empty conversation with a UUID `request_id`, optionally pinned to a product ID/version.
 - `GET /conversations` and `GET /conversations/{id}`: list and reopen saved history; detail includes the active run, if any.
 - `POST /conversations/{id}/turns`: ask a new question with a UUID `request_id` and `expected_revision`.
-- `POST /conversations/{id}/resume-upload`: start a new 24-hour run for re-uploading the exact same temporary file after expiry.
-- `DELETE /conversations/{id}`: UUID `request_id` and `expected_revision` query parameters; delete saved history, run checkpoints and temporary data.
+- `DELETE /conversations/{id}`: UUID `request_id` and `expected_revision` query parameters; delete saved history and run checkpoints.
 
 Workflow API (proxied under `/api/workflows`):
 
 - `POST /workflows`: UUID `request_id`, question, optional product ID/version for manual choice.
 - `GET /workflows/{id}`: read authoritative stage, artifacts, allowed actions and sanitized trace; no provider calls.
 - `POST /workflows/{id}/actions`: UUID `request_id`, `expected_revision`, and a typed `action`.
-- `POST /workflows/{id}/upload`: explicit raw CSV/ZIP body, filename header, UUID `request_id` and `expected_revision`; validates a bounded temporary copy.
 - `DELETE /workflows/{id}`: cancel the run and suppress late results.
 
 Actions are `select_source`, `choose_again`, `confirm_source` (`confirmed: true`),
 `approve_sql` (`approved: true`, exact `plan_id`), `recover_local`, `none_fit`,
-`discover_external` (`consent: true`), `select_external` (candidate index),
-`approve_external_file` (exact reviewed URL), `confirm_external`,
-`ask_question`, `confirm_interpretation`,
-`propose_registration`, `register_product` (reviewed metadata), and `retry`. Source selection needs product
-ID/version. Only currently allowed actions are accepted; duplicates replay saved
-responses without repeating work and conflicting revisions return HTTP 409.
+`discover_external` (`consent: true`), `ask_question`,
+`confirm_interpretation`, and `retry`. Source selection needs product ID/version.
+Only currently allowed actions are accepted; duplicates replay saved responses
+without repeating work and conflicting revisions return HTTP 409.
 
 `.local/workflows.sqlite3` holds checkpoints/action records plus separate durable
 conversation/event tables; the existing `.local/sql-runs.sqlite3` remains the
@@ -413,11 +376,10 @@ Each new analytical turn clears its active plan and approval while completed
 turns remain in the conversation. A confirmed dataset is pinned to its exact
 fingerprint; unrelated catalog additions do not invalidate it. If that product
 version changes or disappears, prior answers remain visible but new execution
-is blocked. SQL plans expire after one hour; workflow checkpoints and temporary
-files expire after 24 hours from run creation and are pruned on later access.
-Saved messages, approved SQL, bounded result rows and provenance remain until
-the conversation is deleted. An expired unregistered file needs the same bytes
-re-uploaded for further analysis. A registered snapshot is separate and persists.
+is blocked. SQL plans expire after one hour; workflow checkpoints expire after
+24 hours from run creation and are pruned on later access. Saved messages,
+approved SQL, bounded result rows and provenance remain until the conversation
+is deleted.
 Traces show stage, duration, model/provider and available token counts, not hidden
 reasoning or estimated cost. Local SQLite and unguessable run IDs are development
 defaults, not multi-user authentication: add authentication and production-grade
@@ -434,16 +396,3 @@ PYTHONPATH=python .venv/bin/python -m evals.source_advisor --live --output evals
 The default command validates frozen benchmark evidence without model calls.
 Live grading checks advisor outcomes and first-choice products against development
 labels; it is not numerical-answer validation or held-out accuracy.
-
-Explicit one-off live evaluation (direct public CSV/ZIP URL only):
-
-```bash
-PYTHONPATH=python .venv/bin/python -m evals.external_one_off \
-  --url 'https://example.org/approved-data.csv' --question 'What is the requested value?'
-# Add --live only when ready to download the file and call the configured SQL model.
-```
-
-Without `--live`, the command does not call providers or download data. In live
-mode it prints the inspected schema and SQL, then requires typing the exact saved
-plan ID before executing; it removes the temporary file afterward. The browser
-workflow is the normal way to discover, choose, and inspect a source.

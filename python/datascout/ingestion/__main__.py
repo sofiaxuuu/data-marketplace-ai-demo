@@ -10,7 +10,7 @@ import tempfile
 from datetime import date
 from pathlib import Path
 
-from .adapters import acquire, acquire_file
+from .adapters import acquire
 from .models import ROOT, load_recipe
 from .pipeline import build_snapshot, file_hash
 
@@ -58,14 +58,10 @@ def main(argv: list[str] | None = None) -> int:
             if args.download:
                 if args.retrieved_at:
                     parser.error("--retrieved-at is only for offline replay")
-                if recipe.id.startswith("external_") and recipe.source.adapter in ("csv", "csv_zip"):
-                    raw = Path(directory) / "source.csv"
-                    acquire_file(recipe, raw)
-                else:
-                    raw = acquire(recipe)
+                raw = acquire(recipe)
                 retrieved_at = date.today().isoformat()
             else:
-                raw = args.input if recipe.id.startswith("external_") and recipe.source.adapter in ("csv", "csv_zip") else args.input.read_bytes()
+                raw = args.input.read_bytes()
                 retrieved_at = input_date(args.input, raw, args.retrieved_at, recipe.source.adapter)
             result = build_snapshot(recipe, raw, retrieved_at=retrieved_at, publish=args.publish)
         if args.index:

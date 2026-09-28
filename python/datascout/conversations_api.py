@@ -14,7 +14,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from . import conversation_store as store, sql_runs, workflows
 from .catalog import CatalogError, product
-from .external_files import remove as remove_external
+from .legacy_external import remove_legacy_files
 
 router = APIRouter(prefix="/conversations")
 
@@ -39,11 +39,6 @@ class NewTurn(Strict):
     request_id: uuid.UUID
     expected_revision: int = Field(ge=1)
     question: str = Field(min_length=1, max_length=1000)
-
-
-class ResumeUpload(Strict):
-    request_id: uuid.UUID
-    expected_revision: int = Field(ge=1)
 
 
 def require(conn, conversation_id: str) -> dict:
@@ -153,22 +148,28 @@ def add_turn(conversation_id: uuid.UUID, request: NewTurn, background_tasks: Bac
                     row = None
                 if row and row["status"] == "ready":
                     state = graph.get_state(workflows.config(run_id)).values
-                    if "ask_question" not in workflows.allowed(state):
-                        raise HTTPException(409, "Finish the current source or SQL review before asking another question.")
-                    response = workflows.act(uuid.UUID(run_id), workflows.ActionRequest(
-                        request_id=request.request_id, expected_revision=row["revision"],
-                        action=workflows.AskQuestion(type="ask_question", question=question)))
-                    with conn:
-                        conn.execute("INSERT INTO conversation_requests VALUES (?, ?, ?, ?)",
-                                     [conversation_id, str(request.request_id), digest, json.dumps({"run_id": run_id})])
-                        conn.execute("UPDATE conversations SET revision = revision + 1, updated = ? WHERE id = ?",
-                                     [time.time(), conversation_id])
-                    return {"conversation": require(conn, conversation_id), "events": store.events(conn, conversation_id), "run": response}
-                if row and row["status"] not in ("cancelled", "invalidated"):
+                    if not found["product_id"] and state.get("stage") == "external_review":
+                        # Discovery is complete; preserve its event and start a new run.
+                        with workflows.lock(run_id):
+                            workflows.sync_conversation(conn, state)
+                            workflows.mark(conn, run_id, "completed")
+                            store.detach_run(conn, conversation_id, run_id)
+                        row = None
+                    else:
+                        if "ask_question" not in workflows.allowed(state):
+                            raise HTTPException(409, "Finish the current source or SQL review before asking another question.")
+                        response = workflows.act(uuid.UUID(run_id), workflows.ActionRequest(
+                            request_id=request.request_id, expected_revision=row["revision"],
+                            action=workflows.AskQuestion(type="ask_question", question=question)))
+                        with conn:
+                            conn.execute("INSERT INTO conversation_requests VALUES (?, ?, ?, ?)",
+                                         [conversation_id, str(request.request_id), digest, json.dumps({"run_id": run_id})])
+                            conn.execute("UPDATE conversations SET revision = revision + 1, updated = ? WHERE id = ?",
+                                         [time.time(), conversation_id])
+                        return {"conversation": require(conn, conversation_id), "events": store.events(conn, conversation_id), "run": response}
+                if row and row["status"] not in ("cancelled", "invalidated", "completed"):
                     raise HTTPException(409, "Finish the current workflow before sending another question.")
                 store.detach_run(conn, conversation_id, run_id)
-            if found["upload_sha256"] and not found["product_id"]:
-                raise HTTPException(409, "This temporary file expired. Re-upload the same file before another analysis.")
             if found["product_id"]:
                 source = product(found["product_id"])
                 if source["version"] != found["product_version"] or sql_runs.fingerprint(source) != found["product_fingerprint"]:
@@ -179,31 +180,6 @@ def add_turn(conversation_id: uuid.UUID, request: NewTurn, background_tasks: Bac
             with conn:
                 conn.execute("INSERT INTO conversation_requests VALUES (?, ?, ?, ?)",
                              [conversation_id, str(request.request_id), digest, json.dumps({"run_id": response["id"]})])
-            return {"conversation": require(conn, conversation_id), "events": store.events(conn, conversation_id), "run": response}
-
-
-@router.post("/{conversation_id}/resume-upload")
-def resume_upload(conversation_id: uuid.UUID, request: ResumeUpload, background_tasks: BackgroundTasks):
-    conversation_id = str(conversation_id)
-    with workflows.storage() as (conn, saver, graph):
-        workflows.prune(conn, saver)
-        with workflows.lock(conversation_id):
-            found = require(conn, conversation_id)
-            created = conn.execute("SELECT id FROM workflow_runs WHERE create_key = ? AND conversation_id = ?",
-                                   [str(request.request_id), conversation_id]).fetchone()
-            if created:
-                return detail(conn, graph, conversation_id)
-            if found["revision"] != request.expected_revision:
-                raise HTTPException(409, "Conversation changed. Reload before resuming.")
-            if not found["upload_sha256"] or found["product_id"]:
-                raise HTTPException(409, "This conversation does not have an expired uploaded dataset.")
-            if found["active_run_id"]:
-                raise HTTPException(409, "This conversation already has an active workflow.")
-            first = next((event["payload"]["text"] for event in store.events(conn, conversation_id)
-                          if event["kind"] == "question"), "Analyze this uploaded dataset")
-            response = workflows.create(workflows.Create(
-                request_id=request.request_id, question=first, conversation_id=uuid.UUID(conversation_id),
-                upload_pending=True), background_tasks)
             return {"conversation": require(conn, conversation_id), "events": store.events(conn, conversation_id), "run": response}
 
 
@@ -226,7 +202,7 @@ def delete(conversation_id: uuid.UUID, request_id: uuid.UUID, expected_revision:
                 for run_id in run_ids:
                     locks.enter_context(workflows.lock(run_id))
                 for run_id in run_ids:
-                    remove_external(run_id)
+                    remove_legacy_files(run_id)
                     saver.delete_thread(run_id)
                     with conn:
                         conn.execute("DELETE FROM workflow_actions WHERE run_id = ?", [run_id])

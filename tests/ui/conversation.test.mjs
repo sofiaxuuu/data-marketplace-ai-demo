@@ -25,12 +25,12 @@ const plan = { outcome: "ready", reason: "Covered", sql: "SELECT unemployment_ra
 const result = { outcome: "answered", answer: "Rate: 4.1 percent", columns: ["rate"], rows: [{ rate: 4.1 }],
   truncated: false, execution_ms: 1, trace: [] };
 const conversation = { id: "11111111-1111-4111-8111-111111111111", title: product.name, revision: 2,
-  product_id: product.id, product_version: product.version, upload_sha256: null, active_run_id: "22222222-2222-4222-8222-222222222222" };
+  product_id: product.id, product_version: product.version, active_run_id: "22222222-2222-4222-8222-222222222222" };
 const run = { id: conversation.active_run_id, revision: 1, status: "ready", stage: "source_review",
   question: "What was unemployment in April 2020?", analysis_question: "What was unemployment in April 2020?",
   interpreted_question: "What was unemployment in April 2020?", turn_index: 1, intent: "analysis",
   selected: product, confirmed: false, approved: false, plan: null, result: null, advice: null, external: null,
-  external_file: null, external_links: null, external_index: null, registration: null, error: null, trace: [],
+  error: null, trace: [],
   allowed_actions: ["confirm_source"] };
 let state, calls;
 const originalFetch = globalThis.fetch;
@@ -88,14 +88,14 @@ test("dataset chat requires confirmation and fresh SQL approval for each turn", 
   assert.equal(calls.filter(call => call.body?.action?.type === "approve_sql").length, 1);
 });
 
-test("upload is explicit and source-finding wording is not planned as SQL", async () => {
+test("source-finding offers discovery without upload or premature SQL", async () => {
   install({ ...run, selected: null, confirmed: false, analysis_question: null, intent: "source_finding",
     stage: "no_local_fit", advice: { outcome: "no_local_fit", reason: "No local coverage", clarification: "", recommendations: [] },
-    allowed_actions: ["discover_external", "upload_file"] });
+    allowed_actions: ["discover_external"] });
   renderChat();
-  await screen.findByText("Upload a local CSV or ZIP");
+  await screen.findByText("Look beyond the catalog");
   assert.equal(calls.filter(call => call.method === "POST").length, 0);
   assert.equal(screen.queryByText("Review the query plan"), null);
   assert.ok(screen.getByRole("button", { name: "Find external sources" }));
-  assert.ok(screen.getByRole("button", { name: "Validate this file" }).disabled);
+  assert.equal(screen.queryByRole("button", { name: "Validate this file" }), null);
 });

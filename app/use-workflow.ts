@@ -22,15 +22,6 @@ export type Workflow = {
     discovered_at: string; coverage: string; units: string; access: string; licensing: string }[] | null;
   external_advice: { outcome: "recommend" | "insufficient_evidence"; answer: string; primary_index: number | null;
     assessments: { candidate_index: number; fit: "strong" | "partial" | "poor"; reason: string; caveat: string; evidence_quote: string }[]; unresolved: string[] } | null;
-  external_links: { url: string; name: string }[] | null;
-  external_index: number | null;
-  external_file: { url: string; origin?: "download" | "upload"; filename?: string; source_page?: string | null;
-    retrieved_at: string; sha256: string; rows: number; start: string; end: string;
-    raw_sha256: string; units_observed: string[]; sample_rows: Record<string, string | null>[];
-    columns: { name: string; type: string; description: string }[] } | null;
-  registration: { id: string; name: string; description: string; source_url: string; adapter: string;
-    coverage: { start: string; end: string; rows: number }; columns: { name: string; type: string; description: string }[];
-    product_id?: string; status?: string } | null;
   error: string | null; trace: { stage: string; status: string; result: string; duration_ms: number;
     model?: string; provider?: string; usage?: { input_tokens?: number; output_tokens?: number; total_tokens?: number } }[];
 };

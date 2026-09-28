@@ -7,8 +7,7 @@ export default function SqlWorkflow({ run, busy, step, onAction }: { run: Workfl
   const [confirmed, setConfirmed] = useState(run.confirmed);
   const [approved, setApproved] = useState(run.approved);
   const product = run.selected!;
-  const external = !!run.external_file;
-  const confirmAction = external ? "confirm_external" : "confirm_source";
+  const confirmAction = "confirm_source";
   const { plan, result } = run;
   useEffect(() => { setConfirmed(run.confirmed); setApproved(run.approved); }, [run.id, product.id, product.version, run.plan?.run_id, run.confirmed, run.approved]);
 
@@ -43,7 +42,7 @@ export default function SqlWorkflow({ run, busy, step, onAction }: { run: Workfl
       {result.outcome === "no_data" && <p className="notice">No rows matched the approved query. Check its filters and the snapshot coverage.</p>}
       {!!result.rows.length && <div className="result-table-scroll"><table><thead><tr>{result.columns.map(c => <th scope="col" key={c}>{c}</th>)}</tr></thead><tbody>{result.rows.map((row, i) => <tr key={i}>{result.columns.map(c => <td key={c}>{row[c] === null ? "NULL" : String(row[c])}</td>)}</tr>)}</tbody></table></div>}
       {result.truncated && <p className="notice">Results truncated. Narrow the question to see a smaller slice.</p>}
-      <p>Source: {run.external_file?.origin === "upload" ? `Uploaded ${run.external_file.filename ?? "CSV"}` : <a href={product.source_url} target="_blank" rel="noreferrer">{product.source_name}</a>} · Snapshot {product.snapshot_date} · {external ? "Temporary CSV" : `Product v${product.version}`} · Execution {result.execution_ms.toFixed(0)} ms</p>
+      <p>Source: <a href={product.source_url} target="_blank" rel="noreferrer">{product.source_name}</a> · Snapshot {product.snapshot_date} · Product v{product.version} · Execution {result.execution_ms.toFixed(0)} ms</p>
       <details><summary>Run trace</summary><ol>{result.trace.map((step, i) => <li key={i}>{step.stage}: {step.result}</li>)}</ol></details>
     </section>}
   </section>;

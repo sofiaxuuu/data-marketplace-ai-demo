@@ -89,7 +89,7 @@ def recommend(question: str, candidates: list[dict]) -> tuple[dict, str, dict]:
         for assessment in public["assessments"]:
             # Evidence is copied from the provider result, never reproduced by the model.
             assessment["evidence_quote"] = candidates[assessment["candidate_index"]]["evidence"][:240]
-        public["answer"] = (f"Best-supported place to investigate: {candidates[data.primary_index]['title']}. Review its exact coverage and downloadable file before analysis."
+        public["answer"] = (f"Best-supported place to investigate: {candidates[data.primary_index]['title']}. Check its original documentation to verify the exact measure, geography, period and granularity."
                             if data.primary_index is not None else "The returned excerpts do not establish a suitable dataset. Inspect the links and unresolved details below.")
         return public, model, usage
     except httpx.HTTPStatusError as exc:

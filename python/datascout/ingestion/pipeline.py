@@ -3,11 +3,9 @@
 from __future__ import annotations
 
 import hashlib
-import csv
 import json
 import math
 import os
-import shutil
 import tempfile
 from datetime import date
 from decimal import Decimal, InvalidOperation
@@ -151,57 +149,7 @@ def file_hash(path: Path) -> str:
     return digest.hexdigest()
 
 
-def insert_csv_path(connection: duckdb.DuckDBPyConnection, recipe: Recipe, path: Path) -> int:
-    from ..external_files import EXTRACT_LIMIT
-    if path.stat().st_size > EXTRACT_LIMIT:
-        raise ValueError("CSV exceeds the bounded extraction limit")
-    if recipe.coverage.frequency != "bounds":
-        raise ValueError("Streaming CSV registration requires bounds coverage")
-    if recipe.filters or recipe.skip_missing or recipe.source.record_checks or any(c.scale != 1 for c in recipe.columns):
-        raise ValueError("This reviewed CSV needs unsupported streaming transformations")
-    with path.open("r", encoding=recipe.source.encoding, newline="") as handle:
-        fields = next(csv.reader(handle, delimiter=recipe.source.delimiter), [])
-        if len(fields) != len(set(fields)):
-            raise ValueError("CSV contains duplicate headers")
-        for column in recipe.columns:
-            if not any(len(p) == 1 and p[0] in fields for p in column.paths):
-                raise ValueError("CSV does not contain the configured columns")
-    expressions = []
-    for column in recipe.columns:
-        source = next((p[0] for p in column.paths if len(p) == 1 and p[0] in fields), None)
-        if source is None:
-            if not column.nullable:
-                raise ValueError("CSV does not contain the configured columns")
-            expressions.append(f'NULL AS "{column.name}"')
-            continue
-        source_sql = '"' + source.replace('"', '""') + '"'
-        missing = ", ".join("'" + value.replace("'", "''") + "'" for value in recipe.missing_values)
-        value_sql = f"CASE WHEN {source_sql} IN ({missing}) THEN NULL ELSE {source_sql} END" if missing else source_sql
-        expressions.append(f'CAST({value_sql} AS {column.type}) AS "{column.name}"')
-    projection = ", ".join(expressions)
-    connection.execute(f"INSERT INTO observations SELECT {projection} FROM read_csv(?, all_varchar=true)", [str(path)])
-    count = connection.execute("SELECT COUNT(*) FROM observations").fetchone()[0]
-    if not count or recipe.expected_rows is not None and count != recipe.expected_rows:
-        raise ValueError("CSV row count does not match the reviewed snapshot")
-    if count > 1_000_000:
-        raise ValueError("CSV exceeds one million observations")
-    for column in recipe.columns:
-        if column.type == "DOUBLE" and connection.execute(f'SELECT 1 FROM observations WHERE NOT isfinite("{column.name}") LIMIT 1').fetchone():
-            raise ValueError("Nonfinite numeric observations are not allowed")
-    keys = ", ".join('"' + name + '"' for name in recipe.unique_key)
-    if connection.execute(f"SELECT 1 FROM observations GROUP BY {keys} HAVING COUNT(*) > 1 LIMIT 1").fetchone():
-        raise ValueError("Duplicate primary-key observations")
-    if connection.execute("SELECT 1 FROM observations WHERE " + " OR ".join(f'"{name}" IS NULL' for name in recipe.unique_key) + " LIMIT 1").fetchone():
-        raise ValueError("Missing primary-key observations")
-    coverage = recipe.coverage
-    column = next(c for c in recipe.columns if c.name == coverage.column)
-    start, end = connection.execute(f'SELECT MIN("{coverage.column}"), MAX("{coverage.column}") FROM observations').fetchone()
-    if start is None or start != cast(coverage.start, column.model_copy(update={"scale": 1})) or end != cast(coverage.end, column.model_copy(update={"scale": 1})):
-        raise ValueError("Snapshot does not match configured coverage bounds")
-    return count
-
-
-def build_snapshot(recipe: Recipe, raw: bytes | Path, *, retrieved_at: str,
+def build_snapshot(recipe: Recipe, raw: bytes, *, retrieved_at: str,
                    publish: bool = False, root: Path = ROOT) -> dict:
     lock_directory = confined(root, ".cache/ingestion")
     lock_directory.mkdir(parents=True, exist_ok=True)
@@ -210,14 +158,11 @@ def build_snapshot(recipe: Recipe, raw: bytes | Path, *, retrieved_at: str,
         return _build_snapshot(recipe, raw, retrieved_at=retrieved_at, publish=publish, root=root)
 
 
-def _build_snapshot(recipe: Recipe, raw: bytes | Path, *, retrieved_at: str,
+def _build_snapshot(recipe: Recipe, raw: bytes, *, retrieved_at: str,
                    publish: bool = False, root: Path = ROOT) -> dict:
     retrieved_at = date.fromisoformat(retrieved_at).isoformat()
-    path_source = isinstance(raw, Path)
-    if path_source and recipe.source.adapter not in ("csv", "csv_zip"):
-        raise ValueError("Path-based ingestion supports CSV sources only")
-    rows = None if path_source else normalize(recipe, raw)
-    source_hash = file_hash(raw) if path_source else hashlib.sha256(raw).hexdigest()
+    rows = normalize(recipe, raw)
+    source_hash = hashlib.sha256(raw).hexdigest()
     recipe_bytes = json.dumps(recipe.model_dump(mode="json"), sort_keys=True, separators=(",", ":")).encode()
     recipe_hash = hashlib.sha256(recipe_bytes).hexdigest()
     fingerprint = hashlib.sha256(f"{PIPELINE_VERSION}:{source_hash}:{recipe_hash}:{retrieved_at}".encode()).hexdigest()
@@ -225,7 +170,7 @@ def _build_snapshot(recipe: Recipe, raw: bytes | Path, *, retrieved_at: str,
     base.mkdir(parents=True, exist_ok=True)
     destination = confined(root, f"data/snapshots/{recipe.id}/{fingerprint}")
     parquet_name = f"{recipe.table_id}.parquet"
-    raw_name = "source.csv" if recipe.source.adapter in ("csv", "csv_zip") else "source.json"
+    raw_name = "source.csv" if recipe.source.adapter == "csv" else "source.json"
     with tempfile.TemporaryDirectory(prefix=".staging-", dir=base) as directory:
         staging = Path(directory)
         parquet = staging / parquet_name
@@ -233,11 +178,8 @@ def _build_snapshot(recipe: Recipe, raw: bytes | Path, *, retrieved_at: str,
         placeholders = ", ".join("?" for _ in recipe.columns)
         with duckdb.connect() as connection:
             connection.execute(f"CREATE TABLE observations ({schema})")
-            if path_source:
-                row_count = insert_csv_path(connection, recipe, raw)
-            else:
-                connection.executemany(f"INSERT INTO observations VALUES ({placeholders})", rows)
-                row_count = len(rows)
+            connection.executemany(f"INSERT INTO observations VALUES ({placeholders})", rows)
+            row_count = len(rows)
             order = ", ".join('"' + name + '"' for name in recipe.unique_key)
             connection.execute(f"COPY (SELECT * FROM observations ORDER BY {order}) TO ? (FORMAT PARQUET)", [str(parquet)])
         metadata = {
@@ -256,10 +198,7 @@ def _build_snapshot(recipe: Recipe, raw: bytes | Path, *, retrieved_at: str,
                              "edgartools_version": payload.get("edgartools_version"),
                              "unit": recipe.source.currency, "period_basis": recipe.source.period_basis,
                              "metric_concepts": recipe.source.metrics})
-        if path_source:
-            shutil.copyfile(raw, staging / raw_name)
-        else:
-            (staging / raw_name).write_bytes(raw)
+        (staging / raw_name).write_bytes(raw)
         (staging / "recipe.json").write_bytes(recipe_bytes)
         (staging / "snapshot.json").write_text(json.dumps(metadata, indent=2) + "\n")
         if destination.exists():

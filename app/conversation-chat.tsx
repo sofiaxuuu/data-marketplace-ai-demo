@@ -5,10 +5,9 @@ import { useRouter } from "next/navigation";
 import type { InspectProduct } from "./candidate-inspector";
 import type { Workflow } from "./use-workflow";
 import SqlWorkflow from "./sql-workflow";
-import ExternalRegistration from "./external-registration";
 
 type Conversation = { id: string; title: string; revision: number; product_id: string | null;
-  product_version: number | null; upload_sha256: string | null; active_run_id: string | null };
+  product_version: number | null; active_run_id: string | null };
 type Event = { id: number; event_key: string; kind: string; payload: Record<string, unknown> };
 type Detail = { conversation: Conversation; events: Event[]; run: Workflow | null };
 
@@ -22,13 +21,10 @@ export default function ConversationChat({ id, products, initialQuestion = "" }:
   const router = useRouter();
   const [detail, setDetail] = useState<Detail | null>(null);
   const [question, setQuestion] = useState(initialQuestion);
-  const [sourcePage, setSourcePage] = useState("");
-  const [file, setFile] = useState<File | null>(null);
   const [sourceConfirmed, setSourceConfirmed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const generation = useRef(0);
-  const fileInput = useRef<HTMLInputElement>(null);
   const newConversationKey = useRef<string | null>(null);
   const run = detail?.run;
   const conversation = detail?.conversation;
@@ -96,29 +92,8 @@ export default function ConversationChat({ id, products, initialQuestion = "" }:
     } catch (problem) { setError(problem instanceof Error ? problem.message : "Could not open dataset"); newConversationKey.current = null; setBusy(false); }
   }
 
-  function upload() {
-    if (!run || !file || !can("upload_file")) return;
-    const query = new URLSearchParams({ request_id: crypto.randomUUID(), expected_revision: String(run.revision) });
-    const page = sourcePage.trim() || (run.external_index !== null && run.external_index !== undefined ? run.external?.[run.external_index]?.url : "") || "";
-    void perform(() => fetch(`/api/workflows/${run.id}/upload?${query}`, {
-      method: "POST", headers: { "content-type": "application/octet-stream", "x-datascout-filename": file.name,
-        ...(page ? { "x-datascout-source-page": page } : {}) },
-      body: file, signal: AbortSignal.timeout(190000),
-    }));
-    setFile(null);
-    if (fileInput.current) fileInput.current.value = "";
-  }
-
-  function resumeUpload() {
-    if (!conversation) return;
-    void perform(() => fetch(`/api/conversations/${id}/resume-upload`, {
-      method: "POST", headers: { "content-type": "application/json" },
-      body: JSON.stringify({ request_id: crypto.randomUUID(), expected_revision: conversation.revision }),
-    }));
-  }
-
   function remove() {
-    if (!window.confirm("Delete this conversation and its temporary data? This cannot be undone.")) return;
+    if (!window.confirm("Delete this conversation? This cannot be undone.")) return;
     setBusy(true);
     const params = new URLSearchParams({ request_id: crypto.randomUUID(), expected_revision: String(conversation?.revision ?? 0) });
     void fetch(`/api/conversations/${id}?${params}`, { method: "DELETE" }).then(json).then(() => router.push("/analyze"))
@@ -128,15 +103,13 @@ export default function ConversationChat({ id, products, initialQuestion = "" }:
 
   const currentTurnPrefix = run && run.turn_index ? `${run.id}:turn:${run.turn_index}:` : "";
   const history = detail?.events.filter(event => !currentTurnPrefix || !event.event_key.startsWith(currentTurnPrefix)) ?? [];
-  const askable = !run || can("ask_question") || can("revise_question");
-  const uploadable = can("upload_file");
+  const askable = !run || can("ask_question") || can("revise_question") || run.status === "ready" && run.stage === "external_review";
 
   return <div className="conversation-layout">
     <aside className="conversation-sidebar">
       <a href="/analyze" className="secondary">← Conversations</a>
       <h2>{conversation?.title ?? "Conversation"}</h2>
       {conversation?.product_id && <p>Pinned catalog product: {products.find(p => p.id === conversation.product_id)?.name ?? conversation.product_id} · v{conversation.product_version}</p>}
-      {conversation?.upload_sha256 && <p>Pinned temporary upload. Its file is retained only for the active 24-hour run.</p>}
       <details><summary>Choose a dataset</summary><p>Changing a confirmed dataset starts a new conversation.</p>
         <ul className="dataset-picker">{products.map(product => <li key={`${product.id}:${product.version}`}>
           <button type="button" disabled={busy} onClick={() => void startWithProduct(product)}>{product.name}</button>
@@ -162,34 +135,25 @@ export default function ConversationChat({ id, products, initialQuestion = "" }:
           {can("none_fit") && <button className="secondary" onClick={() => act({ type: "none_fit" })}>None of these fit</button>}
         </section>}
         {can("discover_external") && <section className="conversation-action"><h2>Look beyond the catalog</h2>
-          <p>Find external sources sends this question to Exa. No file is downloaded automatically.</p>
+          <p>Find external sources sends this question to Exa. DataScout recommends source pages; it does not acquire data.</p>
           <button onClick={() => act({ type: "discover_external", consent: true })}>Find external sources</button></section>}
         {run.external && <section><h2>Where to find the data</h2>
           <p>{run.external.length ? run.external_advice?.answer ?? "Review these source pages and their evidence." : "No external candidates were returned. Try a more specific source question; this does not prove no dataset exists."}</p>
           {!!run.external_advice?.unresolved.length && <p>Still to verify: {run.external_advice.unresolved.join(" · ")}</p>}
           <div className="conversation-cards">{run.external.map((item, index) => <article key={item.url}>
-            <h3><a href={item.url} target="_blank" rel="noreferrer">{item.title} ↗</a></h3><small>{item.publisher} · {item.provider} · Not yet queryable</small>
-            <p>{item.evidence}</p><p>Coverage: {item.coverage} · Units: {item.units}</p>
-            <button disabled={!can("select_external")} onClick={() => act({ type: "select_external", candidate_index: index })}>Inspect files from this source</button>
+            <h3><a href={item.url} target="_blank" rel="noreferrer">{item.title} ↗</a></h3><small>{item.publisher} · {item.provider} · External source, not in the catalog</small>
+            {run.external_advice?.assessments.filter(assessment => assessment.candidate_index === index).map(assessment =>
+              <p key={assessment.candidate_index}><strong>{assessment.fit} fit:</strong> {assessment.reason} {assessment.caveat}</p>)}
+            <p>Evidence: {item.evidence}</p><p>Coverage: {item.coverage} · Units: {item.units}</p>
           </article>)}</div>
         </section>}
-        {run.external_links && <section><h2>Approve an exact public file</h2><p>These links were found on the selected page. You can also upload a file you already have.</p>
-          {run.external_links.map(link => <p key={link.url}><a href={link.url} target="_blank" rel="noreferrer">{link.name} ↗</a> <button disabled={!can("approve_external_file")} onClick={() => act({ type: "approve_external_file", approved: true, url: link.url })}>Approve and download</button></p>)}
-          {!run.external_links.length && <p>No CSV/ZIP link was found on this page.</p>}</section>}
-        {uploadable && <section className="conversation-upload"><h2>Upload a local CSV or ZIP</h2>
-          <p>Data is validated into a temporary snapshot for this run; it is not added to the catalog. Maximum file size: 25 MB compressed.</p>
-          <label>File <input ref={fileInput} type="file" accept=".csv,.zip,text/csv,application/zip" onChange={e => setFile(e.target.files?.[0] ?? null)} /></label>
-          <label>Source page (optional) <input type="url" value={sourcePage} onChange={e => setSourcePage(e.target.value)} placeholder="https://publisher.example/dataset" /></label>
-          <button disabled={!file || busy} onClick={upload}>Validate this file</button>
-        </section>}
-        {selected && !run.confirmed && run.stage === "source_review" || selected && !run.confirmed && run.stage === "external_snapshot_review" ? <section className="conversation-source-review">
+        {selected && !run.confirmed && run.stage === "source_review" ? <section className="conversation-source-review">
           <h2>Review this dataset</h2><h3>{selected?.name}</h3><p>{selected?.business_context}</p>
           <p>Coverage: {selected?.coverage.start}–{selected?.coverage.end} · {selected?.coverage.rows} rows</p>
-          {run.external_file && <p>Observed units: {run.external_file.units_observed.join(", ") || "unknown"}. Verify geography and aggregation before relying on an answer.</p>}
           <details><summary>Inspect fields</summary><ul>{selected?.tables.flatMap(t => t.columns).map(column => <li key={column.name}>{column.name} ({column.type}) — {column.description}</li>)}</ul></details>
           <p>Confirming this source {run.intent === "source_finding" ? "lets you ask a separate analytical question" : "will generate SQL for the question above"}.</p>
           <label><input type="checkbox" checked={sourceConfirmed} onChange={event => setSourceConfirmed(event.target.checked)} /> I confirm this dataset fits the intended analysis.</label>
-          <p><button disabled={!sourceConfirmed || !can(run.external_file ? "confirm_external" : "confirm_source")} onClick={() => act({ type: run.external_file ? "confirm_external" : "confirm_source", confirmed: true })}>Confirm dataset</button></p>
+          <p><button disabled={!sourceConfirmed || !can("confirm_source")} onClick={() => act({ type: "confirm_source", confirmed: true })}>Confirm dataset</button></p>
         </section> : null}
         {run.stage === "question_review" && <section><h2>Interpretation for this turn</h2><p>{run.interpreted_question}</p>
           <p>Confirm the measure, geography, and period before SQL is generated.</p>
@@ -199,18 +163,14 @@ export default function ConversationChat({ id, products, initialQuestion = "" }:
         {selected && ["sql_review", "sql_abstain", "sql_clarification"].includes(run.stage) && <><p><strong>Interpreted question:</strong> {run.interpreted_question ?? run.analysis_question ?? run.question}</p>
           <SqlWorkflow run={run} busy={busy} step={3} onAction={act} /></>}
         {selected && run.stage === "results" && <SqlWorkflow run={run} busy={busy} step={4} onAction={act} />}
-        {run.stage === "results" && run.external_file && run.allowed_actions.includes("propose_registration") && <button className="secondary" disabled={busy} onClick={() => act({ type: "propose_registration" })}>Add public source to catalog</button>}
-        {run.registration && <ExternalRegistration run={run} busy={busy} onAction={act} />}
         {can("retry") && <button className="secondary" onClick={() => act({ type: "retry" })}>Retry failed step</button>}
         {!!run.trace.length && <details><summary>Workflow trace</summary><ol>{run.trace.map((entry, index) => <li key={index}>{entry.stage}: {entry.status} — {entry.result}</li>)}</ol></details>}
       </div>}
-      {conversation?.upload_sha256 && !run && <div className="notice"><p>The temporary file expired. Earlier answers remain saved. Re-upload the same file to ask another question.</p>
-        <button onClick={resumeUpload} disabled={busy}>Re-upload this dataset</button></div>}
       <form className="conversation-composer" onSubmit={event => { event.preventDefault(); send(); }}>
         <label htmlFor="conversation-question">{selected?.name ?? conversation?.product_id ? "Ask an analytical question about this dataset" : run?.allowed_actions.includes("revise_question") ? "Clarify or revise your source question" : "Ask DataScout to find data or answer a question"}</label>
         <textarea id="conversation-question" rows={3} value={question} onChange={event => setQuestion(event.target.value)}
           placeholder={selected?.name || conversation?.product_id ? "For example: Which date had the highest value?" : "For example: Where can I find daily PM2.5 measurements for Seattle in 2024?"} />
-        <button className="primary" disabled={!askable || busy || !question.trim() || !!conversation?.upload_sha256 && !run}>Send question</button>
+        <button className="primary" disabled={!askable || busy || !question.trim()}>Send question</button>
         {run && !askable && <small>Complete the current review or approval before sending another question.</small>}
       </form>
       {error && <p role="alert" className="notice error">{error} <button onClick={() => void refresh()}>Refresh</button></p>}
@@ -242,6 +202,5 @@ function EventCard({ event }: { event: Event }) {
       <details><summary>Source links and evidence</summary><ul>{candidates.map(item => <li key={item.url}><a href={item.url} target="_blank" rel="noreferrer">{item.title} ↗</a> · {item.publisher}<p>{item.evidence}</p></li>)}</ul></details></article>;
   }
   if (event.kind === "error") return <article className="conversation-event"><small>Workflow error</small><p>{String(payload.message)}</p></article>;
-  if (event.kind === "registration") return <article className="conversation-event"><small>Catalog registration</small><p>{String(payload.name ?? payload.product_id)} was registered for repeatable analysis.</p></article>;
   return null;
 }

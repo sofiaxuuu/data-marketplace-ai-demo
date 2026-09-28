@@ -22,4 +22,4 @@
 .candidate-list a,.candidate-list dd{overflow-wrap:anywhere}
 .candidate-list .caveats{padding-left:18px;font-size:13px;color:#a7b8c7}
 .candidate-list .caveats li{border:0;padding:5px 0}
-.external-recommendation{border-left:3px solid #75d8cb;background:#0b1725;padding:4px 16px;margin:18px 0}.external-recommendation .answer-text{font-size:20px}.registration-fields{display:grid;gap:12px;margin:18px 0}.registration-fields label{display:block}.registration-fields input:not([type=checkbox]),.registration-fields textarea,.registration-fields select{display:block;width:100%;margin-top:5px;padding:9px;border:1px solid #426b76;background:#0b1725;color:#ecf3fb;border-radius:7px}.registration-fields fieldset{border:1px solid #426b76;border-radius:8px}.registration-fields fieldset label{margin:8px 0}
+.external-recommendation{border-left:3px solid #75d8cb;background:#0b1725;padding:4px 16px;margin:18px 0}.external-recommendation .answer-text{font-size:20px}
