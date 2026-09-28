@@ -13,7 +13,7 @@ import uuid
 from contextlib import contextmanager
 from typing import Annotated, Literal, TypedDict
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
 from filelock import FileLock, Timeout
 from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.graph import START, StateGraph
@@ -24,10 +24,12 @@ from . import sql_runs
 from .catalog import ROOT, CatalogError, catalog, product
 from .discovery import DiscoveryError, ExaProvider
 from .external_advice import ExternalAdviceError, recommend as recommend_external
-from .external_files import ExternalFileError, inspect_page, acquire, remove as remove_external, BASE as EXTERNAL_BASE
+from .external_files import ExternalFileError, inspect_page, acquire, acquire_uploaded, remove as remove_external, BASE as EXTERNAL_BASE, DOWNLOAD_LIMIT
 from .external_registration import proposal as registration_proposal, register as register_external
 from .inspection import public_product
 from .source_advice import AdviceError, advise, validate_advice
+from . import conversation_store as conversations
+from .question_context import InterpretationError, interpret
 
 router = APIRouter(prefix="/workflows")
 DATABASE = ROOT / ".local" / "workflows.sqlite3"
@@ -36,7 +38,17 @@ RUN_TTL = 86400
 
 class State(TypedDict, total=False):
     run_id: str
+    conversation_id: str | None
+    upload_pending: bool
+    initial_product_pinned: bool
     question: str
+    intent: str
+    analysis_question: str | None
+    interpreted_question: str | None
+    interpretation_clarification: str | None
+    turn_index: int
+    turn_history: list[dict]
+    source_question_index: int
     catalog_fingerprint: str
     selected: dict | None
     selected_fingerprint: str | None
@@ -70,6 +82,8 @@ class Create(Strict):
     question: str = Field(min_length=1, max_length=1000)
     product_id: str | None = Field(default=None, max_length=128)
     manifest_version: int | None = Field(default=None, ge=1)
+    conversation_id: uuid.UUID | None = None
+    upload_pending: bool = False
 
     @field_validator("question")
     @classmethod
@@ -82,6 +96,8 @@ class Create(Strict):
     def paired_source(self):
         if (self.product_id is None) != (self.manifest_version is None):
             raise ValueError("Product and version must be supplied together")
+        if self.upload_pending and (self.conversation_id is None or self.product_id is not None):
+            raise ValueError("Pending upload requires an existing unpinned conversation")
         return self
 
 
@@ -141,10 +157,25 @@ class Simple(Strict):
     type: Literal["recover_local", "none_fit", "choose_again", "retry", "propose_registration"]
 
 
+class AskQuestion(Strict):
+    type: Literal["ask_question"]
+    question: str = Field(min_length=1, max_length=1000)
+
+
+class ReviseQuestion(Strict):
+    type: Literal["revise_question"]
+    question: str = Field(min_length=1, max_length=1000)
+
+
+class ConfirmInterpretation(Strict):
+    type: Literal["confirm_interpretation"]
+    confirmed: Literal[True]
+
+
 class ActionRequest(Strict):
     request_id: uuid.UUID
     expected_revision: int = Field(ge=1)
-    action: Annotated[Select | Confirm | Approve | Discover | SelectExternal | ApproveFile | ConfirmExternal | RegisterProduct | Simple, Field(discriminator="type")]
+    action: Annotated[Select | Confirm | Approve | Discover | SelectExternal | ApproveFile | ConfirmExternal | RegisterProduct | AskQuestion | ReviseQuestion | ConfirmInterpretation | Simple, Field(discriminator="type")]
 
 
 def revision_of(items: list[dict]) -> str:
@@ -156,13 +187,24 @@ def allowed(state: State) -> list[str]:
     stage = state.get("stage")
     if not state.get("catalog_fingerprint"):
         return ["retry"] if stage == "error" else []
-    actions = ["select_source"]
-    if state.get("selected"):
+    pinned = bool(state.get("conversation_id") and (state.get("confirmed") or state.get("initial_product_pinned")))
+    actions = [] if pinned else ["select_source"]
+    if state.get("selected") and not pinned:
         actions.append("choose_again")
     if stage == "source_review":
         actions += ["confirm_source"]
     if stage == "sql_review":
         actions += ["approve_sql"]
+    if stage == "question_review":
+        actions += ["confirm_interpretation", "ask_question"]
+    if stage in ("recommendations", "no_local_fit", "external_offer", "external_review",
+                 "external_file_review", "awaiting_upload", "upload_error", "error") and not state.get("confirmed"):
+        actions += ["upload_file"]
+    if state.get("selected") and state.get("confirmed") and stage in (
+            "ready_for_question", "results", "registered", "sql_abstain", "sql_clarification", "question_clarification"):
+        actions += ["ask_question"]
+    if not state.get("confirmed") and stage in ("clarification", "recommendations", "no_local_fit", "external_offer", "error"):
+        actions += ["revise_question"]
     if (stage in ("external_review", "external_file_review") or
             (stage == "error" and state.get("retry_node") in ("external_recommender", "external_page", "external_acquire"))) and state.get("external"):
         actions += ["select_external"]
@@ -172,17 +214,17 @@ def allowed(state: State) -> list[str]:
     if stage == "external_snapshot_review":
         actions += ["confirm_external"]
     meta = state.get("external_file")
-    if stage == "results" and meta and (state.get("result") or {}).get("outcome") == "answered":
+    if stage == "results" and meta and meta.get("origin") != "upload" and (state.get("result") or {}).get("outcome") == "answered":
         from urllib.parse import urlsplit
         if meta["start"] != "Unknown" and meta["end"] != "Unknown" and not urlsplit(meta["url"]).query and not urlsplit(meta["url"]).fragment:
             actions += ["propose_registration"]
     if stage == "registration_review":
         actions += ["register_product"]
-    if stage == "sql_abstain":
+    if stage == "sql_abstain" and not pinned:
         actions += ["recover_local"]
     if stage == "error" and state.get("retry_node") and (state.get("retry_node") != "external_acquire" or state.get("approved_external_url")):
         actions += ["retry"]
-    if stage in ("recommendations", "source_review", "sql_abstain", "external_review", "no_local_fit"):
+    if not pinned and stage in ("recommendations", "source_review", "sql_abstain", "external_review", "no_local_fit"):
         actions += ["none_fit"]
     if stage in ("external_offer", "external_review") or (stage == "no_local_fit" and state.get("advice", {}).get("limitation") == "data_gap"):
         actions += ["discover_external"]
@@ -197,6 +239,8 @@ def trace(state: State, stage: str, status: str, result: str, start: float, **ex
 def catalog_node(state: State):
     check_active(state)
     items = catalog()
+    if state.get("upload_pending"):
+        return {"catalog_fingerprint": revision_of(items), "stage": "awaiting_upload"}
     if state.get("selected"):
         source = product(state["selected"]["id"])
         return {"catalog_fingerprint": revision_of(items), "selected_fingerprint": sql_runs.fingerprint(source), "stage": "source_review"}
@@ -231,7 +275,7 @@ def check_active(state: State):
 
 def check_current(state: State):
     check_active(state)
-    if state.get("catalog_fingerprint") and revision_of(catalog()) != state["catalog_fingerprint"]:
+    if state.get("catalog_fingerprint") and not state.get("confirmed") and revision_of(catalog()) != state["catalog_fingerprint"]:
         raise HTTPException(409, "Catalog changed. Start a new analysis and confirm the source again.")
     if state.get("selected"):
         if state.get("external_file"):
@@ -255,7 +299,7 @@ def specialist(state: State, node: str, operation):
             raise
         return {"stage": "error", "error": str(exc.detail), "retry_node": node,
                 "trace": trace(state, node, "failed", str(exc.detail), started)}
-    except (AdviceError, DiscoveryError, ExternalAdviceError, ExternalFileError) as exc:
+    except (AdviceError, DiscoveryError, ExternalAdviceError, ExternalFileError, InterpretationError) as exc:
         return {"stage": "error", "error": str(exc), "retry_node": node,
                 "trace": trace(state, node, "failed", str(exc), started)}
 
@@ -267,15 +311,20 @@ def advisor_node(state: State):
         advice, model, usage = advise(state["question"], metadata, recovery)
         data = validate_advice(advice, metadata, state.get("rejected", []))
         stage = {"recommend": "recommendations", "clarify": "clarification", "no_local_fit": "no_local_fit"}[advice.outcome]
-        return {"advice": data, "stage": stage}, advice.outcome, {"model": model, "usage": usage}
+        return {"advice": data, "intent": advice.intent,
+                "analysis_question": state["question"] if advice.intent == "analysis" else None,
+                "interpreted_question": state["question"] if advice.intent == "analysis" else None,
+                "turn_index": 1 if advice.intent == "analysis" else 0,
+                "stage": stage}, advice.outcome, {"model": model, "usage": usage}
     return specialist(state, "advisor", call)
 
 
 def planner_node(state: State):
     def call():
         source = state["selected"]
-        plan = (sql_runs.generate_for_item(state["question"], external_item(state)) if state.get("external_file")
-                else sql_runs.generate_saved_plan(sql_runs.Generate(question=state["question"], product_id=source["id"], manifest_version=source["version"], confirmed=True)))
+        question = state.get("interpreted_question") or state.get("analysis_question") or state["question"]
+        plan = (sql_runs.generate_for_item(question, external_item(state)) if state.get("external_file")
+                else sql_runs.generate_saved_plan(sql_runs.Generate(question=question, product_id=source["id"], manifest_version=source["version"], confirmed=True)))
         stage = {"ready": "sql_review", "clarify": "sql_clarification", "abstain": "sql_abstain"}[plan["outcome"]]
         return {"plan": plan, "stage": stage}, plan["outcome"], {"model": plan["model"], "usage": token_usage(plan.get("usage", {}))}
     if not state.get("confirmed"):
@@ -299,10 +348,22 @@ def executor_node(state: State):
                 result["answer"] = f"The approved external CSV returned {len(rows)} rows. Review the dated observations and units below."
             result["source_url"] = state["external_file"]["url"]
             result["snapshot_date"] = state["external_file"]["retrieved_at"]
-        return {"result": result, "stage": "results"}, result["outcome"], {}
+        history = [*state.get("turn_history", []),
+                   {"asked": state.get("analysis_question") or state["question"],
+                    "interpreted": state.get("interpreted_question") or state.get("analysis_question") or state["question"]}][-5:]
+        return {"result": result, "turn_history": history, "stage": "results"}, result["outcome"], {}
     if not state.get("approved") or not state.get("confirmed"):
         raise HTTPException(409, "SQL approval and source confirmation required.")
     return specialist(state, "executor", call)
+
+
+def interpretation_node(state: State):
+    def call():
+        answer, model, usage = interpret(state["analysis_question"], state.get("turn_history", []), state["selected"])
+        stage = "question_review" if answer.outcome == "resolved" else "question_clarification"
+        return {"interpreted_question": answer.question if answer.outcome == "resolved" else None,
+                "stage": stage, "interpretation_clarification": answer.clarification}, answer.outcome, {"model": model, "usage": usage}
+    return specialist(state, "interpretation", call)
 
 
 def discovery_node(state: State):
@@ -337,6 +398,28 @@ def external_acquire_node(state: State):
         return {"external_file": meta, "selected": public_product(item), "selected_fingerprint": sql_runs.fingerprint(item),
                 "stage": "external_snapshot_review"}, f"{meta['rows']} rows validated", {}
     return specialist(state, "external_acquire", call)
+
+
+def external_upload_node(state: State):
+    started = time.perf_counter()
+    staged = EXTERNAL_BASE / state["run_id"] / "incoming.upload"
+    try:
+        check_current(state)
+        raw = staged.read_bytes()
+        if hashlib.sha256(raw).hexdigest() != state["command"]["sha256"]:
+            raise ExternalFileError("Uploaded bytes changed. Please choose the file again.")
+        meta = acquire_uploaded(state["run_id"], state["command"]["filename"], raw,
+                                state["command"].get("source_page"))
+        item = external_item({**state, "external_file": meta})
+        return {"external_file": meta, "selected": public_product(item),
+                "selected_fingerprint": sql_runs.fingerprint(item), "stage": "external_snapshot_review",
+                "error": None, "retry_node": None,
+                "trace": trace(state, "external_upload", "completed", f"{meta['rows']} rows validated", started)}
+    except (OSError, ExternalFileError) as exc:
+        return {"stage": "upload_error", "error": str(exc), "retry_node": None,
+                "trace": trace(state, "external_upload", "failed", str(exc), started)}
+    finally:
+        staged.unlink(missing_ok=True)
 
 
 def registration_node(state: State):
@@ -378,7 +461,9 @@ def dispatch(state: State):
         return Command(update={**cleared, "selected": None, "selected_fingerprint": None,
                                "stage": "recommendations" if (state.get("advice") or {}).get("outcome") == "recommend" else "source_choice"}, goto="settle")
     if kind == "confirm_source":
-        return Command(update={**cleared, "confirmed": True}, goto="planner")
+        return Command(update={**cleared, "confirmed": True,
+                               "stage": "ready_for_question" if state.get("intent") == "source_finding" and not state.get("analysis_question") else state["stage"]},
+                       goto="settle" if state.get("intent") == "source_finding" and not state.get("analysis_question") else "planner")
     if kind == "approve_sql":
         return Command(update={"approved": True, "error": None}, goto="executor")
     if kind == "recover_local":
@@ -397,8 +482,30 @@ def dispatch(state: State):
     if kind == "approve_external_file":
         return Command(update={"approved_external_url": action["url"], "plan": None, "result": None,
                                "confirmed": False, "approved": False, "error": None, "retry_node": None}, goto="external_acquire")
+    if kind == "upload_file":
+        return Command(update={"selected": None, "selected_fingerprint": None, "external_file": None,
+                               "plan": None, "result": None, "confirmed": False, "approved": False,
+                               "error": None, "retry_node": None}, goto="external_upload")
     if kind == "confirm_external":
-        return Command(update={"confirmed": True, "plan": None, "result": None}, goto="planner")
+        source_only = state.get("intent") == "source_finding" and not state.get("analysis_question")
+        return Command(update={"confirmed": True, "plan": None, "result": None,
+                               "stage": "ready_for_question" if source_only else state["stage"]},
+                       goto="settle" if source_only else "planner")
+    if kind == "ask_question":
+        question = action["question"].strip()
+        return Command(update={"analysis_question": question, "interpreted_question": None,
+                               "interpretation_clarification": None, "turn_index": state.get("turn_index", 0) + 1,
+                               "plan": None, "result": None, "registration": None,
+                               "approved": False, "error": None, "retry_node": None},
+                       goto="interpretation")
+    if kind == "revise_question":
+        question = action["question"].strip()
+        return Command(update={**cleared, "question": question, "selected": None, "selected_fingerprint": None,
+                               "advice": None, "intent": "source_finding", "analysis_question": None,
+                               "interpreted_question": None, "turn_index": 0,
+                               "source_question_index": state.get("source_question_index", 1) + 1}, goto="advisor")
+    if kind == "confirm_interpretation":
+        return Command(update={"error": None}, goto="planner")
     if kind == "propose_registration":
         return Command(update={"registration": registration_proposal(state["run_id"], state["external_file"]),
                                "stage": "registration_review", "error": None}, goto="settle")
@@ -415,18 +522,20 @@ def build_graph(saver):
     builder.add_node("catalog", catalog_node)
     builder.add_node("advisor", advisor_node)
     builder.add_node("planner", planner_node)
+    builder.add_node("interpretation", interpretation_node)
     builder.add_node("executor", executor_node)
     builder.add_node("discovery", discovery_node)
     builder.add_node("external_recommender", external_recommender_node)
     builder.add_node("external_page", external_page_node)
     builder.add_node("external_acquire", external_acquire_node)
+    builder.add_node("external_upload", external_upload_node)
     builder.add_node("registration", registration_node)
     builder.add_node("human_gate", human_gate)
     builder.add_node("dispatch", dispatch)
     builder.add_node("settle", lambda state: {})
     builder.add_edge(START, "catalog")
-    builder.add_conditional_edges("catalog", lambda state: "settle" if state.get("selected") else "advisor")
-    for node in ("advisor", "planner", "executor", "external_recommender", "external_page", "external_acquire", "registration"):
+    builder.add_conditional_edges("catalog", lambda state: "settle" if state.get("selected") or state.get("upload_pending") else "advisor")
+    for node in ("advisor", "planner", "interpretation", "executor", "external_recommender", "external_page", "external_acquire", "external_upload", "registration"):
         builder.add_edge(node, "settle")
     builder.add_conditional_edges("discovery", lambda state: "external_recommender" if state.get("stage") == "external_recommending" else "settle")
     builder.add_edge("settle", "human_gate")
@@ -448,6 +557,9 @@ def storage():
             run_id TEXT NOT NULL, request_id TEXT NOT NULL, body_hash TEXT NOT NULL,
             response TEXT, PRIMARY KEY (run_id, request_id));
     """)
+    conversations.ensure_schema(conn)
+    if "conversation_id" not in {row[1] for row in conn.execute("PRAGMA table_info(workflow_runs)")}:
+        conn.execute("ALTER TABLE workflow_runs ADD COLUMN conversation_id TEXT")
     saver = SqliteSaver(conn)
     try:
         yield conn, saver, build_graph(saver)
@@ -465,13 +577,17 @@ def lock(run_id):
 
 
 def prune(conn, saver):
-    expired = conn.execute("SELECT id FROM workflow_runs WHERE created < ?", [time.time() - RUN_TTL]).fetchall()
+    expired = conn.execute("SELECT id, conversation_id FROM workflow_runs WHERE created < ?", [time.time() - RUN_TTL]).fetchall()
     for row in expired:
         try:
             with lock(row["id"]):
+                if row["conversation_id"]:
+                    sync_conversation(conn, build_graph(saver).get_state(config(row["id"])).values)
                 saver.delete_thread(row["id"])
                 remove_external(row["id"])
                 with conn:
+                    if row["conversation_id"]:
+                        conversations.detach_run(conn, row["conversation_id"], row["id"])
                     conn.execute("DELETE FROM workflow_actions WHERE run_id = ?", [row["id"]])
                     conn.execute("DELETE FROM workflow_runs WHERE id = ?", [row["id"]])
         except Timeout:
@@ -498,7 +614,11 @@ def public_state(conn, graph, run_id):
     active = row["status"] == "ready"
     terminal = row["status"] in ("cancelled", "invalidated")
     return {"id": run_id, "revision": row["revision"], "status": "running" if row["status"] == "queued" else row["status"],
-            "question": state.get("question", ""), "stage": row["status"] if terminal else state.get("stage", "starting"),
+            "conversation_id": row["conversation_id"], "question": state.get("question", ""),
+            "analysis_question": state.get("analysis_question"), "interpreted_question": state.get("interpreted_question"),
+            "interpretation_clarification": state.get("interpretation_clarification"),
+            "turn_index": state.get("turn_index", 0), "intent": state.get("intent", "analysis"),
+            "stage": row["status"] if terminal else state.get("stage", "starting"),
             "allowed_actions": allowed(state) if active else [],
             "catalog_fingerprint": state.get("catalog_fingerprint"), "expires_at": row["created"] + RUN_TTL,
             "selected": None if terminal else state.get("selected"), "advice": None if terminal else state.get("advice"),
@@ -515,6 +635,68 @@ def public_state(conn, graph, run_id):
             "trace": state.get("trace", [])}
 
 
+def sync_conversation(conn, state: State) -> None:
+    conversation_id = state.get("conversation_id")
+    if not conversation_id or not conversations.get(conn, conversation_id):
+        return
+    run_id = state["run_id"]
+    if state.get("intent") == "source_finding":
+        conversations.put_event(conn, conversation_id, f"{run_id}:source-question:{state.get('source_question_index', 1)}", "question",
+                                {"text": state["question"], "purpose": "source_finding"})
+    if state.get("advice"):
+        conversations.put_event(conn, conversation_id, f"{run_id}:advice", "source_advice", state["advice"])
+    if state.get("external") is not None:
+        conversations.put_event(conn, conversation_id, f"{run_id}:external", "external_sources",
+                                {"candidates": state["external"], "recommendation": state.get("external_advice")})
+    selected = state.get("selected")
+    if selected and state.get("confirmed"):
+        existing = conversations.get(conn, conversation_id)
+        if state.get("external_file"):
+            meta = state["external_file"]
+            if not existing["product_id"]:
+                conversations.pin(conn, conversation_id, upload_sha256=meta.get("upload_sha256") or meta["raw_sha256"])
+            source = {"name": selected["name"], "temporary": True, "rows": meta["rows"],
+                      "coverage": {"start": meta["start"], "end": meta["end"]},
+                      "units_observed": meta["units_observed"], "source_url": meta["url"],
+                      "raw_sha256": meta["raw_sha256"], "upload_sha256": meta.get("upload_sha256"),
+                      "source_page": meta.get("source_page")}
+        else:
+            if not existing["product_id"]:
+                conversations.pin(conn, conversation_id, product_id=selected["id"],
+                                  product_version=selected["version"], fingerprint=state["selected_fingerprint"])
+            source = {"name": selected["name"], "temporary": False, "id": selected["id"],
+                      "version": selected["version"], "fingerprint": state["selected_fingerprint"],
+                      "coverage": selected["coverage"], "source_url": selected["source_url"]}
+        conversations.put_event(conn, conversation_id, f"{run_id}:selected", "source", source)
+    index = state.get("turn_index", 0)
+    asked = state.get("analysis_question")
+    if index and asked:
+        prefix = f"{run_id}:turn:{index}"
+        conversations.put_event(conn, conversation_id, prefix + ":question", "question",
+                                {"text": asked, "purpose": "analysis"})
+        if state.get("interpreted_question"):
+            conversations.put_event(conn, conversation_id, prefix + ":interpreted", "interpretation",
+                                    {"question": state["interpreted_question"]})
+        if state.get("approved") and state.get("plan"):
+            plan = state["plan"]
+            conversations.put_event(conn, conversation_id, prefix + ":sql", "approved_sql",
+                                    {"sql": plan.get("sql"), "reason": plan.get("reason"),
+                                     "assumptions": plan.get("assumptions", []), "result_units": plan.get("result_units", [])})
+        if state.get("result"):
+            result = state["result"]
+            bounded = {**result, "rows": [{key: value[:1000] if isinstance(value, str) else value
+                                           for key, value in row.items()} for row in result.get("rows", [])[:sql_runs.ROW_LIMIT]]}
+            conversations.put_event(conn, conversation_id, prefix + ":result", "result", bounded)
+    if state.get("error"):
+        conversations.put_event(conn, conversation_id, f"{run_id}:trace:{len(state.get('trace', []))}:error", "error",
+                                {"message": state["error"]})
+    if state.get("stage") == "registered" and state.get("registration"):
+        registration = state["registration"]
+        conversations.put_event(conn, conversation_id, f"{run_id}:registration", "registration",
+                                {"product_id": registration.get("product_id"), "name": registration.get("name"),
+                                 "status": registration.get("status")})
+
+
 def recover_interrupted(conn, graph, run_id):
     row = row_for(conn, run_id)
     if row["status"] == "queued" and time.time() - row["created"] < 5:
@@ -528,7 +710,7 @@ def recover_interrupted(conn, graph, run_id):
         if not snapshot.interrupts:
             graph.invoke(None, config(run_id))
     else:
-        node = next((n for n in snapshot.next if n in ("catalog", "advisor", "planner", "executor", "discovery", "external_recommender", "external_page", "external_acquire")), row["pending"] or "advisor")
+        node = next((n for n in snapshot.next if n in ("catalog", "advisor", "planner", "interpretation", "executor", "discovery", "external_recommender", "external_page", "external_acquire", "external_upload")), row["pending"] or "advisor")
         graph.update_state(config(run_id), {"stage": "error", "error": "The previous operation was interrupted. Its outcome may be uncertain; explicitly retry or choose another source.", "retry_node": node}, as_node="settle")
         graph.invoke(None, config(run_id))  # human_gate only; no provider or execution call
     mark(conn, run_id, "ready")
@@ -556,7 +738,9 @@ def request_hash(request):
 def run_operation(conn, graph, run_id, input_value):
     try:
         graph.invoke(input_value, config(run_id))
-        check_current(graph.get_state(config(run_id)).values)
+        state = graph.get_state(config(run_id)).values
+        check_current(state)
+        sync_conversation(conn, state)
         # Cancellation can be recorded while a bounded provider call is in progress.
         if row_for(conn, run_id)["status"] != "cancelled":
             mark(conn, run_id, "ready")
@@ -616,10 +800,31 @@ def create(request: Create, background_tasks: BackgroundTasks):
                     selected = public_product(p)
                 run_id = str(uuid.uuid4())
                 with lock(run_id):
+                    conversation_id = str(request.conversation_id) if request.conversation_id else None
+                    if conversation_id:
+                        conv = conversations.get(conn, conversation_id)
+                        if not conv:
+                            raise HTTPException(404, "Conversation not found.")
+                        if conv["active_run_id"]:
+                            raise HTTPException(409, "This conversation already has an active workflow.")
+                        if conv["product_id"] and (request.product_id != conv["product_id"] or request.manifest_version != conv["product_version"] or sql_runs.fingerprint(product(conv["product_id"])) != conv["product_fingerprint"]):
+                            raise HTTPException(409, "Start a new conversation to choose another dataset.")
                     with conn:
-                        conn.execute("INSERT INTO workflow_runs VALUES (?, ?, 1, 'queued', ?, ?, ?)",
-                                     [run_id, time.time(), "catalog", key, digest])
+                        conn.execute("INSERT INTO workflow_runs (id, created, revision, status, pending, create_key, create_hash, conversation_id) "
+                                     "VALUES (?, ?, 1, 'queued', ?, ?, ?, ?)",
+                                     [run_id, time.time(), "catalog", key, digest, conversation_id])
+                    if conversation_id:
+                        conversations.attach_run(conn, conversation_id, run_id,
+                                                 request.question if conv["title"] == "New conversation" else None)
                     graph.update_state(config(run_id), {"run_id": run_id, "question": request.question, "selected": selected,
+                        "upload_pending": request.upload_pending,
+                        "initial_product_pinned": bool(conversation_id and conv["product_id"]),
+                        "conversation_id": conversation_id, "intent": "analysis" if selected else "source_finding",
+                        "analysis_question": request.question if selected else None,
+                        "interpreted_question": request.question if selected else None,
+                        "interpretation_clarification": None, "turn_index": 1 if selected else 0,
+                        "source_question_index": 1,
+                        "turn_history": [],
                         "advice": None, "plan": None, "result": None, "external": None, "external_advice": None,
                         "external_links": None, "external_index": None, "approved_external_url": None,
                         "external_file": None, "registration": None, "rejected": [],
@@ -650,6 +855,7 @@ def inspect(run_id: uuid.UUID):
                             check_current(graph.get_state(config(run_id)).values)
                         except (HTTPException, CatalogError):
                             mark(conn, run_id, "invalidated")
+                    sync_conversation(conn, graph.get_state(config(run_id)).values)
             except Timeout:
                 pass  # live operation; inspect its checkpoint without resuming it
             return public_state(conn, graph, run_id)
@@ -684,7 +890,9 @@ def act(run_id: uuid.UUID, request: ActionRequest):
                 raise HTTPException(409, "Workflow changed. Reload before taking another action.")
             action = request.action.model_dump()
             validate_action(state, action)
-            pending = {"confirm_source": "planner", "confirm_external": "planner", "approve_sql": "executor", "recover_local": "advisor", "discover_external": "discovery",
+            pending = {"confirm_source": "planner", "confirm_external": "planner", "confirm_interpretation": "planner",
+                       "revise_question": "advisor",
+                       "ask_question": "interpretation", "approve_sql": "executor", "recover_local": "advisor", "discover_external": "discovery",
                        "select_external": "external_page", "approve_external_file": "external_acquire",
                        "register_product": "registration"}.get(action["type"], state.get("retry_node") or "advisor")
             if action["type"] == "retry" and pending == "discovery":
@@ -696,6 +904,7 @@ def act(run_id: uuid.UUID, request: ActionRequest):
             run_operation(conn, graph, run_id, Command(resume=action))
             if state.get("external_file") and not graph.get_state(config(run_id)).values.get("external_file"):
                 remove_external(run_id)
+            sync_conversation(conn, graph.get_state(config(run_id)).values)
             response = public_state(conn, graph, run_id)
             with conn:
                 conn.execute("UPDATE workflow_actions SET response = ? WHERE run_id = ? AND request_id = ?", [json.dumps(response), run_id, key])
@@ -706,6 +915,65 @@ def act(run_id: uuid.UUID, request: ActionRequest):
         raise HTTPException(409, "Source unavailable. Reload the catalog.") from None
     except (sqlite3.Error, OSError):
         raise HTTPException(503, "Local workflow storage unavailable.") from None
+
+
+@router.post("/{run_id}/upload")
+async def upload(run_id: uuid.UUID, request: Request, request_id: uuid.UUID, expected_revision: int):
+    """Explicit, bounded raw-body upload. Client filenames never become filesystem paths."""
+    run_id = str(run_id)
+    filename = request.headers.get("x-datascout-filename", "")
+    source_page = request.headers.get("x-datascout-source-page") or None
+    if not filename or len(filename) > 160 or not filename.lower().endswith((".csv", ".zip")):
+        raise HTTPException(422, "Choose one CSV or ZIP file.")
+    if source_page and (len(source_page) > 2048 or not source_page.startswith("https://")):
+        raise HTTPException(422, "Source page must be a public HTTPS URL.")
+    if int(request.headers.get("content-length", "0") or 0) > DOWNLOAD_LIMIT:
+        raise HTTPException(413, "Uploaded file exceeds the size limit.")
+    raw = bytearray()
+    async for chunk in request.stream():
+        raw.extend(chunk)
+        if len(raw) > DOWNLOAD_LIMIT:
+            raise HTTPException(413, "Uploaded file exceeds the size limit.")
+    digest = hashlib.sha256(raw).hexdigest()
+    action = {"type": "upload_file", "filename": filename, "source_page": source_page, "sha256": digest}
+    body_hash = hashlib.sha256(json.dumps(action, sort_keys=True).encode()).hexdigest()
+    try:
+        with storage() as (conn, saver, graph), lock(run_id):
+            prune(conn, saver)
+            recover_interrupted(conn, graph, run_id)
+            row = row_for(conn, run_id)
+            key = str(request_id)
+            previous = conn.execute("SELECT * FROM workflow_actions WHERE run_id = ? AND request_id = ?", [run_id, key]).fetchone()
+            if previous:
+                if previous["body_hash"] != body_hash:
+                    raise HTTPException(409, "Request ID was used for a different upload.")
+                return json.loads(previous["response"]) if previous["response"] else public_state(conn, graph, run_id)
+            if row["revision"] != expected_revision or row["status"] != "ready":
+                raise HTTPException(409, "Workflow changed. Reload before uploading.")
+            state = graph.get_state(config(run_id)).values
+            check_current(state)
+            if "upload_file" not in allowed(state):
+                raise HTTPException(409, "Upload is not available at this workflow stage.")
+            if row["conversation_id"]:
+                expected_sha = conversations.get(conn, row["conversation_id"])["upload_sha256"]
+                if expected_sha and digest != expected_sha:
+                    raise HTTPException(409, "This conversation is pinned to a different uploaded file. Start a new conversation.")
+            target = EXTERNAL_BASE / run_id
+            target.mkdir(parents=True, exist_ok=True)
+            (target / "incoming.upload").write_bytes(raw)
+            with conn:
+                conn.execute("INSERT INTO workflow_actions VALUES (?, ?, ?, NULL)", [run_id, key, body_hash])
+                conn.execute("UPDATE workflow_runs SET revision = revision + 1, status = 'running', pending = 'external_upload' WHERE id = ?", [run_id])
+            run_operation(conn, graph, run_id, Command(resume=action))
+            response = public_state(conn, graph, run_id)
+            with conn:
+                conn.execute("UPDATE workflow_actions SET response = ? WHERE run_id = ? AND request_id = ?",
+                             [json.dumps(response), run_id, key])
+            return response
+    except Timeout:
+        raise HTTPException(409, "Another action is in progress. Reload before retrying.") from None
+    except (sqlite3.Error, OSError):
+        raise HTTPException(503, "Local upload storage unavailable.") from None
 
 
 @router.delete("/{run_id}")
@@ -719,6 +987,8 @@ def cancel(run_id: uuid.UUID):
                 with conn:
                     conn.execute("UPDATE workflow_runs SET status = 'cancelled', revision = revision + 1 WHERE id = ?", [run_id])
                 remove_external(run_id)
+                if row["conversation_id"]:
+                    conversations.detach_run(conn, row["conversation_id"], run_id)
             return public_state(conn, graph, run_id)
     except (sqlite3.Error, OSError):
         raise HTTPException(503, "Local workflow storage unavailable.") from None

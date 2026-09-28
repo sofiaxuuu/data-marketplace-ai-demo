@@ -95,7 +95,7 @@ export default function Home() {
         <p>{selected.business_context}</p><dl>{Object.entries(selected.facets).map(([key, value]) => <div key={key}><dt>{key.replaceAll("_", " ")}</dt><dd>{value}</dd></div>)}</dl>
         <p>Coverage: {selected.coverage.start}–{selected.coverage.end} · {selected.coverage.rows} rows · Snapshot {selected.snapshot_date}</p>
         <details><summary>Inspect schema and fields</summary>{selected.tables.map(table => <div key={table.id}><h3>{table.id}</h3><ul>{table.columns.map(column => <li key={column.name}><code>{column.name}</code> ({column.type}{column.unit ? `, ${column.unit}` : ""}) — {column.description}</li>)}</ul></div>)}</details>
-        <div className="workflow-actions"><a className="primary" href={`/analyze?product_id=${encodeURIComponent(selected.id)}`}>Analyze with this dataset →</a><a href={selected.source_url} target="_blank" rel="noreferrer">Original source ↗</a></div>
+        <div className="workflow-actions"><a className="primary" href={`/analyze?product_id=${encodeURIComponent(selected.id)}`}>Ask about this dataset →</a><a href={selected.source_url} target="_blank" rel="noreferrer">Original source ↗</a></div>
       </section></>}
     </div>
   </main>;

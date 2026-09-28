@@ -26,6 +26,7 @@ class Recommendation(BaseModel):
 
 class Advice(BaseModel):
     model_config = ConfigDict(extra="forbid")
+    intent: Literal["source_finding", "analysis"]
     outcome: Literal["recommend", "clarify", "no_local_fit"]
     limitation: Literal["none", "ambiguous", "data_gap", "unsupported_operation"]
     reason: str = Field(min_length=1, max_length=2000)
@@ -61,6 +62,8 @@ For recommend: limitation none, empty clarification, 1-3 recommendations. For cl
 limitation ambiguous, specific clarification, no recommendations. For no_local_fit:
 limitation data_gap or unsupported_operation, empty clarification and recommendations.
 No tools, search or execution. A recommendation is a proposal requiring human review.
+Classify intent as source_finding when the user primarily asks where to find or obtain data;
+otherwise classify it as analysis. A source_finding question is not itself a SQL request.
 """
 
 

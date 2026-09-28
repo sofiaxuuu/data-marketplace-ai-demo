@@ -22,9 +22,10 @@ export default function SqlWorkflow({ run, busy, step, onAction }: { run: Workfl
     {plan && <div aria-live="polite">
       <h4>{plan.outcome === "ready" ? "Review the query plan" : plan.outcome === "clarify" ? "Please clarify your question" : "This dataset cannot answer that question"}</h4>
       <p>{plan.reason}</p>
-      {plan.outcome === "clarify" && <p>Update the question above, then choose and confirm a source again.</p>}
-      {plan.outcome === "abstain" && <><p>The advisor can suggest alternatives. A different dataset may not help with an unsupported SQL operation.</p>
-        <button disabled={busy || !run.allowed_actions.includes("recover_local")} onClick={() => onAction({ type: "recover_local" })}>Suggest another local dataset</button></>}
+      {plan.outcome === "clarify" && <p>{run.conversation_id ? "Ask a clearer question in the composer below." : "Update the question above, then choose and confirm a source again."}</p>}
+      {plan.outcome === "abstain" && <><p>A different dataset may help with missing data, but not an unsupported SQL operation.</p>
+        {run.conversation_id ? <p>Choose another dataset in the sidebar to start a new conversation, or ask a different question about this dataset.</p>
+          : <button disabled={busy || !run.allowed_actions.includes("recover_local")} onClick={() => onAction({ type: "recover_local" })}>Suggest another local dataset</button>}</>}
       {plan.outcome === "ready" && <>
         <p><strong>Input fields:</strong> {plan.selected_fields.join(", ")}</p>
         {!!plan.formulas.length && <><h4>Formulas</h4><ul>{plan.formulas.map((s, i) => <li key={i}>{s}</li>)}</ul></>}
@@ -39,9 +40,10 @@ export default function SqlWorkflow({ run, busy, step, onAction }: { run: Workfl
     </div>}</>}
     {step === 4 && result && <section aria-live="polite">
       <div className="section-heading"><span className="step-number" aria-hidden="true">04</span><h2>Results</h2></div><p>{result.answer}</p>
+      {result.outcome === "no_data" && <p className="notice">No rows matched the approved query. Check its filters and the snapshot coverage.</p>}
       {!!result.rows.length && <div className="result-table-scroll"><table><thead><tr>{result.columns.map(c => <th scope="col" key={c}>{c}</th>)}</tr></thead><tbody>{result.rows.map((row, i) => <tr key={i}>{result.columns.map(c => <td key={c}>{row[c] === null ? "NULL" : String(row[c])}</td>)}</tr>)}</tbody></table></div>}
       {result.truncated && <p className="notice">Results truncated. Narrow the question to see a smaller slice.</p>}
-      <p>Source: <a href={product.source_url} target="_blank" rel="noreferrer">{product.source_name}</a> · Snapshot {product.snapshot_date} · {external ? "Temporary external file" : `Product v${product.version}`} · Execution {result.execution_ms.toFixed(0)} ms</p>
+      <p>Source: {run.external_file?.origin === "upload" ? `Uploaded ${run.external_file.filename ?? "CSV"}` : <a href={product.source_url} target="_blank" rel="noreferrer">{product.source_name}</a>} · Snapshot {product.snapshot_date} · {external ? "Temporary CSV" : `Product v${product.version}`} · Execution {result.execution_ms.toFixed(0)} ms</p>
       <details><summary>Run trace</summary><ol>{result.trace.map((step, i) => <li key={i}>{step.stage}: {step.result}</li>)}</ol></details>
     </section>}
   </section>;

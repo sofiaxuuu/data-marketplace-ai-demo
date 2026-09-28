@@ -15,7 +15,7 @@ def test_evaluation_scores_source_choice_separately(monkeypatch):
     case = next(c for c in evaluation.development_cases() if c.expected_outcome == "select")
     metadata = [public_product(p) for p in catalog()]
     p = next(p for p in metadata if p["id"] == case.expected_data_products[0])
-    advice = source_advice.Advice(outcome="recommend", limitation="none", reason="Fields fit", clarification="",
+    advice = source_advice.Advice(intent="analysis", outcome="recommend", limitation="none", reason="Fields fit", clarification="",
         recommendations=[source_advice.Recommendation(product_id=p["id"], manifest_version=p["version"], reason="Coverage fits", caveats=[])])
     monkeypatch.setattr(evaluation, "advise", lambda *args: (advice, "fixture", {}))
     row = evaluation.evaluate(case, metadata)

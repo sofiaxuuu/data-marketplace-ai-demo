@@ -19,7 +19,7 @@ from datascout.main import app
 
 
 def advice_for(pid="fred_unemployment", outcome="recommend", limitation="none"):
-    return source_advice.Advice(outcome=outcome, limitation=limitation, reason="Matches fields and snapshot coverage",
+    return source_advice.Advice(intent="analysis", outcome=outcome, limitation=limitation, reason="Matches fields and snapshot coverage",
         clarification="Which reporting period?" if outcome == "clarify" else "",
         recommendations=[source_advice.Recommendation(product_id=pid, manifest_version=product(pid)["version"], reason="Available measure and period", caveats=["Check reporting basis"])] if outcome == "recommend" else [])
 

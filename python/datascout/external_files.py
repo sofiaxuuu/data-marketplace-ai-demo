@@ -116,19 +116,38 @@ def inspect_page(url: str, question: str) -> list[dict]:
 def acquire(run_id: str, url: str) -> dict:
     if not supported_file(url):
         raise ExternalFileError("Approve a direct public CSV or ZIP file.")
+    raw = fetch(url, DOWNLOAD_LIMIT)
+    return normalize(run_id, raw, url, filename=Path(urlsplit(url).path).name, origin="download")
+
+
+def acquire_uploaded(run_id: str, filename: str, raw: bytes, source_url: str | None = None) -> dict:
+    """Validate an explicitly uploaded file through the same normalization pipeline."""
+    if len(raw) > DOWNLOAD_LIMIT:
+        raise ExternalFileError("Uploaded file exceeds the size limit.")
+    name = Path(filename).name
+    if not name.lower().endswith((".csv", ".zip")):
+        raise ExternalFileError("Upload one CSV or ZIP file.")
+    digest = hashlib.sha256(raw).hexdigest()
+    if source_url is not None and not public_url(source_url):
+        raise ExternalFileError("The optional source page must be a public HTTPS URL.")
+    return normalize(run_id, raw, f"upload://local/{digest}", filename=name,
+                     origin="upload", source_page=source_url)
+
+
+def normalize(run_id: str, raw: bytes, url: str, *, filename: str, origin: str,
+              source_page: str | None = None) -> dict:
     try:
         if str(uuid.UUID(run_id)) != run_id:
             raise ValueError
     except ValueError:
         raise ExternalFileError("Invalid workflow identifier.") from None
-    raw = fetch(url, DOWNLOAD_LIMIT)
     target = BASE / run_id
     target.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="incoming-", dir=target) as directory:
         temporary = Path(directory) / "source.csv"
         if raw.startswith(b"PK\x03\x04"):
             raw_digest = extract_csv_to(raw, temporary)
-        elif urlsplit(url).path.lower().endswith(".csv"):
+        elif filename.lower().endswith(".csv"):
             temporary.write_bytes(raw)
             raw_digest = hashlib.sha256(raw).hexdigest()
         else:
@@ -179,7 +198,9 @@ def acquire(run_id: str, url: str) -> dict:
             (target / "source.csv").unlink(missing_ok=True)
             (target / "snapshot.parquet").unlink(missing_ok=True)
             raise ExternalFileError("Could not store the validated temporary snapshot.") from None
-        return {"url": url, "retrieved_at": datetime.now(timezone.utc).isoformat(), "sha256": digest, "rows": count,
+        return {"url": url, "origin": origin, "filename": filename[:160], "source_page": source_page,
+                "upload_sha256": hashlib.sha256(raw).hexdigest(),
+                "retrieved_at": datetime.now(timezone.utc).isoformat(), "sha256": digest, "rows": count,
                 "raw_sha256": raw_digest,
                 "start": start.isoformat() if start else "Unknown", "end": end.isoformat() if end else "Unknown",
                 "units_observed": units, "sample_rows": [{name: str(value)[:160] if value is not None else None for name, value in zip(names, row)} for row in sample],

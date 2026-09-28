@@ -886,22 +886,17 @@ model smoke cases. Neither held-out retrieval labels nor metadata are changed.
 Next: human review of generated period/unit/formula interpretations, a richer
 SQL gold-result benchmark, and repeatability/latency/cost release criteria.
 
-### Unified analysis UI (implemented)
+### Unified analysis UI (superseded by saved conversations below)
 
-The home page is now a data marketplace with a browsable product table, semantic
-metadata search, and product details. **Ask DataScout** opens `/analyze`, where
-one question input and four focused stages cover source comparison, dataset
-confirmation, SQL review, and results. The unemployment example fills the same
-input. Users can revisit completed stages through progress navigation; feedback
-stays with the active step. Schema details are collapsed; definitions, coverage,
-units, source and snapshot remain visible. Source confirmation and SQL approval
-remain separate gates. Question/source/version changes clear downstream state,
-and late responses cannot restore it. SQL results retain provenance and their
-own trace; the obsolete baseline form and baseline-only sidebar trace are removed.
+The home page remains a data marketplace with a browsable product table,
+semantic metadata search, and product details. The former four-stage
+`/analyze` screen has been replaced by the saved conversation UI below. Source
+confirmation and SQL approval remain separate gates, and results retain
+provenance and execution trace.
 
 Benchmark review remains a separate navigation link. The UI consolidation did
 not change the database. Subsequent cleanup retired `/runs/preview` and
-`/runs/execute`; `/sql-runs/*` remains the saved-plan API. The analysis page uses
+`/runs/execute`; `/sql-runs/*` remains the saved-plan API. The conversation page uses
 the persisted `/workflows` API described below.
 `npm test` adds offline UI
 interaction coverage using mocked APIs, separate from live model evaluation.
@@ -948,17 +943,51 @@ The extraction, validation, storage, and cleanup lifecycle is detailed in
 POST /workflows creates; GET inspects; POST /workflows/{id}/actions resumes through
 typed, stage-validated human actions; DELETE cancels. Revisions, request IDs and
 per-run locks prevent conflicting actions and repeat completed requests. Late
-responses are ignored; question edits retire old runs; source/catalog changes
-invalidate downstream artifacts and approvals. The current tab stores only its
-run ID and restores paused/completed state on refresh, without provider calls.
+responses are ignored; source changes clear active plans and approvals. The
+current UI restores a saved conversation and its active run without provider
+calls on reads.
 Run creation returns its ID before assessment; the UI polls persisted state
 while a local background worker runs. Interrupted work needs explicit
 retry; arbitrary process crashes do not have exactly-once provider semantics.
 SQL-plan TTL stays one hour; run TTL is 24 hours with access-time checkpoint
-pruning. Traces expose status, duration, provider/model and token counts only.
+pruning. Conversation history persists separately until deletion. Traces expose
+status, duration, provider/model and token counts only.
 
 Offline graph/API/UI tests mock providers and exercise gates, refresh/restart,
 recovery, consent, invalid outputs, conflicts, cancellation, drift, expiration and
 failures. `evals.source_advisor` evaluates development cases separately; live calls
 require --live and a new report filename. No held-out tuning or automatic label
 updates. Runtime harness selection remains separate from LangGraph orchestration.
+
+### Saved, dataset-pinned conversations (implemented)
+
+The marketplace retains semantic search and product inspection. **Ask DataScout**
+now lists saved conversations; each conversation has its own chat page. Opening a
+catalog product can start a conversation pinned to that exact product version.
+General questions still use local source advice and explicit Exa consent. The
+advisor classifies a source-finding question separately from an analytical one:
+confirming a source for “where can I find data?” does not send that wording to
+the SQL planner. Users ask a separate analytical question after confirmation.
+Follow-up questions are rewritten with bounded recent context, shown for user
+confirmation, then planned. Every turn requires its own saved-plan SQL approval.
+Changing datasets starts a new conversation; completed answers remain in the old
+one.
+
+Conversation/event tables in `.local/workflows.sqlite3` persist until explicit
+deletion, separately from LangGraph checkpoints and run-scoped files. Saved
+history includes source evidence, pinned identity, interpreted questions,
+approved SQL, bounded result rows, provenance and errors. The active workflow
+run lasts 24 hours from creation and can resume at a human pause across refresh
+and server restart. On expiry, completed history remains; a catalog-pinned
+conversation starts a fresh run for its next turn. A temporary CSV/ZIP requires
+re-upload of the same bytes before further SQL. The saved SQL-plan authority and
+one-hour expiration are unchanged. Reads never launch provider calls or SQL.
+
+In addition to reviewed public-URL downloads, chat supports explicit local
+CSV/ZIP upload through a bounded raw-body endpoint. Uploads reuse the existing
+ZIP/CSV validation and run-scoped Parquet normalization, but have no invented
+public URL and cannot be registered in this milestone. Existing public-URL
+registration remains available. Product-specific fingerprint checks allow
+unrelated catalog additions without invalidating confirmed conversations; a
+changed or missing pinned version blocks new execution but preserves history.
+This is single-user local persistence, not authenticated multi-user storage.

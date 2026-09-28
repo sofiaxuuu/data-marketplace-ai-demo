@@ -2,10 +2,12 @@
 
 DataScout has 15 real, overlapping data products. A Source Advisor recommends
 local products with reasons; you inspect and confirm one, review SQL, approve
-execution and see local results. LangGraph persists human pauses so refreshing
-the current tab restores its run. Explicit Exa discovery recommends external
-sources; a separately approved CSV/ZIP can support one-off SQL before optional
-catalog registration. Samples are local Parquet; descriptive metadata
+execution and see local results. Analysis now happens in saved, dataset-pinned
+conversations: each follow-up question gets a fresh SQL review and approval.
+LangGraph persists human pauses within a 24-hour run; conversation history remains
+until deleted. Explicit Exa discovery recommends external sources; an approved
+public CSV/ZIP download or local CSV/ZIP upload can support one-off SQL. Only
+public-URL downloads currently support optional catalog registration. Samples are local Parquet; descriptive metadata
 is also embedded in SingleStore for retrieval and evaluation.
 
 ## Run locally
@@ -26,8 +28,10 @@ npm run dev
 ```
 
 Open `http://localhost:3000` to browse the data marketplace. Select **Ask
-DataScout** (or visit `/analyze`) and try “What was the U.S. unemployment rate
-in April 2020?” or “What was U.S. GDP per capita in 2020?” The UI proxies requests
+DataScout** (or visit `/analyze`) to create a conversation, or open a catalog
+product and select **Ask about this dataset**. Try “What was the U.S. unemployment
+rate in April 2020?” or “Where can I find daily PM2.5 measurements for Seattle in
+2024?” The UI proxies requests
 to the local Python API. Set
 `DATASCOUT_API_URL` if the API uses another host or port.
 
@@ -250,19 +254,17 @@ re-embedding and evaluation. Never use held-out feedback for metadata tuning.
 
 The marketplace home page lists local products and offers semantic metadata
 search; searching does not start analysis. Product details show coverage, fields,
-units and provenance, with a link to start analysis using that product. On
-`/analyze`, enter a question, choose an advised candidate (or browse the catalog),
-and confirm that dataset fits the question.
-**Generate SQL for review** produces the fields, formulas, interpretation, units
-and query. Approve the SQL separately, then **Execute approved SQL** shows the
-local result table, source, snapshot version, timing and trace. The four numbered
-stages share one question input and show only the current step; earlier steps are
-available through the progress navigation. Status and errors stay with the active
-step. An unemployment example fills that input without making a request. Detailed
-schema inspection is collapsed by default. Changing
-the question, source, or catalog version clears downstream plans and approvals.
-Selecting or
-inspecting a product alone never generates or executes a query.
+units and provenance, with a link to open a dataset-pinned conversation.
+`/analyze` lists saved conversations; `/analyze/{id}` contains the chat, source
+review, SQL approval and results. A general source-finding question returns local
+or explicitly requested external recommendations; it is not sent to the SQL
+planner as an analytical question. Once a source is confirmed, ask a separate
+analytical question. If an initial question is analytical, confirming a local
+source can plan it directly. Follow-ups such as “What about July?” are rewritten
+against recent turns; the complete interpretation is shown and confirmed before
+SQL planning. Every turn needs separate SQL approval before DuckDB execution.
+Selecting or inspecting a product alone never generates or executes SQL.
+Changing datasets starts a new conversation, keeping prior answers inspectable.
 
 The configurable planner defaults to `gpt-4.1-mini`; set `DATASCOUT_SQL_MODEL` in
 the local environment to change it. It uses `OPENAI_API_KEY` and the Responses API
@@ -353,47 +355,69 @@ Parquet snapshot under `.local/external-runs/{run ID}`. Its schema, sample rows,
 observed units and date bounds are shown for review. See
 [the processing guide](docs/external-file-processing.md) for the safety limits,
 staging layout, cleanup, and path-based registration flow.
-Confirming the temporary source generates SQL; approving that saved SQL executes
+The chat also accepts one explicitly selected local CSV/ZIP file (up to 25 MB
+compressed), using the same normalization and validation. It is run-scoped,
+not a catalog entry; a source-page URL is optional provenance and is never
+fetched automatically. A source-finding question waits for a new analytical
+question after temporary-source confirmation. Confirming an analytical question
+generates SQL; approving that saved SQL executes
 it under the same local DuckDB restrictions as catalog products. The answer is
 derived from executed rows, not search excerpts. Ambiguous geography, measures
 or units still require human judgment; an unrelated page or unsupported file is
 not silently made queryable.
 
-After a successful one-off result, **Add to catalog for repeatable use** opens a
+After a successful public-URL one-off result, **Add to catalog for repeatable use** opens a
 separate review of the product name, reporting basis, geography, measure/unit,
 coverage column and unique observation key. Explicit approval reads the saved
 CSV file through the existing ingestion pipeline, publishes a versioned snapshot
 and manifest, and saves a CSV/ZIP refresh recipe. It does not re-download or index
 metadata in SingleStore. Future refresh is a separate explicit command. API,
-PDF and HTML-chart ingestion are not supported by this milestone.
+PDF and HTML-chart ingestion are not supported by this milestone. Registration
+of a locally uploaded file is deferred because its provenance and manual-refresh
+recipe need a separate review flow.
 
-API (proxied under `/api/workflows`):
+Conversation API (proxied under `/api/conversations`):
+
+- `POST /conversations`: create an empty conversation with a UUID `request_id`, optionally pinned to a product ID/version.
+- `GET /conversations` and `GET /conversations/{id}`: list and reopen saved history; detail includes the active run, if any.
+- `POST /conversations/{id}/turns`: ask a new question with a UUID `request_id` and `expected_revision`.
+- `POST /conversations/{id}/resume-upload`: start a new 24-hour run for re-uploading the exact same temporary file after expiry.
+- `DELETE /conversations/{id}`: UUID `request_id` and `expected_revision` query parameters; delete saved history, run checkpoints and temporary data.
+
+Workflow API (proxied under `/api/workflows`):
 
 - `POST /workflows`: UUID `request_id`, question, optional product ID/version for manual choice.
 - `GET /workflows/{id}`: read authoritative stage, artifacts, allowed actions and sanitized trace; no provider calls.
 - `POST /workflows/{id}/actions`: UUID `request_id`, `expected_revision`, and a typed `action`.
+- `POST /workflows/{id}/upload`: explicit raw CSV/ZIP body, filename header, UUID `request_id` and `expected_revision`; validates a bounded temporary copy.
 - `DELETE /workflows/{id}`: cancel the run and suppress late results.
 
 Actions are `select_source`, `choose_again`, `confirm_source` (`confirmed: true`),
 `approve_sql` (`approved: true`, exact `plan_id`), `recover_local`, `none_fit`,
 `discover_external` (`consent: true`), `select_external` (candidate index),
 `approve_external_file` (exact reviewed URL), `confirm_external`,
+`ask_question`, `confirm_interpretation`,
 `propose_registration`, `register_product` (reviewed metadata), and `retry`. Source selection needs product
 ID/version. Only currently allowed actions are accepted; duplicates replay saved
 responses without repeating work and conflicting revisions return HTTP 409.
 
-`.local/workflows.sqlite3` holds checkpoints/action records; the existing
-`.local/sql-runs.sqlite3` remains the SQL-plan authority. The current tab stores
-only its run ID in sessionStorage. Paused/completed runs restore after refresh;
+`.local/workflows.sqlite3` holds checkpoints/action records plus separate durable
+conversation/event tables; the existing `.local/sql-runs.sqlite3` remains the
+SQL-plan authority. Conversation URLs identify saved history without relying on
+sessionStorage. Paused/completed runs restore after refresh;
 reads never retry uncertain provider work. A crashed operation requires explicit
 retry and can repeat a call whose outcome was uncertain—not an exactly-once claim.
 Run creation returns its ID before the initial assessment, and the UI polls the
 persisted state while the local background worker assesses the catalog.
-Question edits retire the old run; source changes clear downstream approvals and
-results. Catalog drift invalidates a run. SQL plans expire after one hour;
-workflow checkpoints/results expire after 24 hours and are pruned on later access.
-Run-scoped external files are removed on cancellation or expiry; a registered
-snapshot is separate and remains available.
+Each new analytical turn clears its active plan and approval while completed
+turns remain in the conversation. A confirmed dataset is pinned to its exact
+fingerprint; unrelated catalog additions do not invalidate it. If that product
+version changes or disappears, prior answers remain visible but new execution
+is blocked. SQL plans expire after one hour; workflow checkpoints and temporary
+files expire after 24 hours from run creation and are pruned on later access.
+Saved messages, approved SQL, bounded result rows and provenance remain until
+the conversation is deleted. An expired unregistered file needs the same bytes
+re-uploaded for further analysis. A registered snapshot is separate and persists.
 Traces show stage, duration, model/provider and available token counts, not hidden
 reasoning or estimated cost. Local SQLite and unguessable run IDs are development
 defaults, not multi-user authentication: add authentication and production-grade

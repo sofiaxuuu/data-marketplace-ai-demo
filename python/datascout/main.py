@@ -15,6 +15,7 @@ from .inspection import public_product
 from .reviews import router as review_router
 from .sql_runs import router as sql_router
 from .workflows import router as workflow_router
+from .conversations_api import router as conversation_router
 from .singlestore import ConfigurationError
 
 
@@ -22,6 +23,7 @@ app = FastAPI(title="DataScout API", version="0.1.0")
 app.include_router(review_router)
 app.include_router(sql_router)
 app.include_router(workflow_router)
+app.include_router(conversation_router)
 logger = logging.getLogger("uvicorn.error")
 
 

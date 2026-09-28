@@ -13,6 +13,8 @@ export type Result = { outcome: "answered" | "no_data"; answer: string; columns:
   trace: { stage: string; result: string }[] };
 export type Workflow = {
   id: string; revision: number; status: string; stage: string; question: string; allowed_actions: string[];
+  conversation_id?: string | null; analysis_question?: string | null; interpreted_question?: string | null;
+  interpretation_clarification?: string | null; turn_index?: number; intent?: "source_finding" | "analysis";
   selected: InspectProduct | null; confirmed: boolean; approved: boolean; plan: Plan | null; result: Result | null;
   advice: { outcome: "recommend" | "clarify" | "no_local_fit"; limitation: string; reason: string; clarification: string;
     recommendations: { product: InspectProduct; reason: string; caveats: string[] }[] } | null;
@@ -22,7 +24,8 @@ export type Workflow = {
     assessments: { candidate_index: number; fit: "strong" | "partial" | "poor"; reason: string; caveat: string; evidence_quote: string }[]; unresolved: string[] } | null;
   external_links: { url: string; name: string }[] | null;
   external_index: number | null;
-  external_file: { url: string; retrieved_at: string; sha256: string; rows: number; start: string; end: string;
+  external_file: { url: string; origin?: "download" | "upload"; filename?: string; source_page?: string | null;
+    retrieved_at: string; sha256: string; rows: number; start: string; end: string;
     raw_sha256: string; units_observed: string[]; sample_rows: Record<string, string | null>[];
     columns: { name: string; type: string; description: string }[] } | null;
   registration: { id: string; name: string; description: string; source_url: string; adapter: string;

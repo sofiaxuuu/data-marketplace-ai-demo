@@ -122,7 +122,7 @@ test("marketplace separates semantic search from analysis and opens product deta
   assert.equal(calls.some(c => c.url === "/api/workflows"), false);
   fireEvent.click(screen.getByRole("button", { name: fred.name }));
   assert.ok(screen.getByRole("dialog", { name: fred.name }));
-  assert.ok(screen.getByRole("link", { name: "Analyze with this dataset →" }).getAttribute("href").includes(fred.id));
+  assert.ok(screen.getByRole("link", { name: "Ask about this dataset →" }).getAttribute("href").includes(fred.id));
   fireEvent.keyDown(window, { key: "Escape" });
   assert.equal(screen.queryByRole("dialog"), null);
 });
