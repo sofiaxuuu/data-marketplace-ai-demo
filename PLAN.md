@@ -927,17 +927,20 @@ numerical answer and does not claim independent page verification.
 The user can select one candidate for CSV/ZIP one-off analysis. Only that page
 is inspected for supported links; the user approves the exact file URL before
 a bounded, pinned public-HTTPS download. CSV/ZIP validation creates a temporary
-Parquet snapshot under the run; schema, sample rows, observed units and coverage
-are shown before SQL planning. The existing restricted planner and saved-plan
+Parquet snapshot under the run, using bounded chunked extraction rather than
+loading an expanded archive into memory. Schema, sample rows, observed units,
+and coverage are shown before SQL planning. The existing restricted planner and saved-plan
 approval/execution path accepts either a catalog product or this immutable
 temporary snapshot. Numerical claims derive from executed rows, not snippets.
 Cancellation and expiry remove run-scoped files.
 
 After a successful one-off result, reviewed name, geography, measure, unit,
 coverage and key fields can be explicitly registered through the existing
-ingestion pipeline. This publishes a versioned snapshot and manifest plus a
+ingestion pipeline using a path-based large-CSV route. This publishes a versioned snapshot and manifest plus a
 CSV/ZIP refresh recipe, without a new download or automatic SingleStore index.
 API-based acquisition, PDFs and HTML charts remain later improvements.
+The extraction, validation, storage, and cleanup lifecycle is detailed in
+`docs/external-file-processing.md`.
 
 POST /workflows creates; GET inspects; POST /workflows/{id}/actions resumes through
 typed, stage-validated human actions; DELETE cancels. Revisions, request IDs and

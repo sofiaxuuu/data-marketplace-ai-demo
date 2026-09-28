@@ -67,7 +67,9 @@ export default function CandidateInspector({ products }: { products: InspectProd
         <p className="answer-text">{run.external_advice.answer}</p>
         {run.external_advice.primary_index !== null && <p>Recommended source: <a href={run.external[run.external_advice.primary_index]?.url} target="_blank" rel="noreferrer">{run.external[run.external_advice.primary_index]?.title} ↗</a></p>}
         {!!run.external_advice.unresolved.length && <p>Still to verify: {run.external_advice.unresolved.join(" · ")}</p>}
-      </div> : !!run.external.length && <p>Assessing the returned source evidence…</p>}
+      </div> : !!run.external.length && (run.stage === "error"
+        ? <p className="notice">The source recommendation is unavailable. You can still inspect a returned source or retry the recommendation.</p>
+        : <p>Assessing the returned source evidence…</p>)}
       {!run.external.length && <p>No external candidates returned. Try a more specific question; this is not proof no source exists.</p>}
       <ul className="candidate-list">{run.external.map((c, index) => <li key={c.url}>
         <h4><a href={c.url} target="_blank" rel="noreferrer">{c.title} ↗</a></h4>
@@ -81,7 +83,7 @@ export default function CandidateInspector({ products }: { products: InspectProd
     {run?.external_index !== null && run?.external_index !== undefined && run.external_links && <section className="external-discovery" aria-label="Review external file">
       <h3>Choose an exact CSV or ZIP file</h3>
       <p>Only this selected source page was inspected. Approving a file downloads a temporary copy for this run; it does not add a catalog product.</p>
-      {!run.external_links.length && <p>No supported CSV/ZIP links were found. Choose another source or provide a direct file link in a future version.</p>}
+      {!run.external_links.length && <p>No public CSV/ZIP links were found on this page. Choose another external source above; the EPA AirData download page is one option if it appears in your results.</p>}
       <ul className="candidate-list">{run.external_links.map(file => <li key={file.url}><a href={file.url} target="_blank" rel="noreferrer">{file.name} ↗</a><p><small>{file.url}</small></p>
         <button type="button" disabled={!can("approve_external_file")} onClick={() => void flow.act({ type: "approve_external_file", approved: true, url: file.url })}>Approve and download this file</button>
       </li>)}</ul>

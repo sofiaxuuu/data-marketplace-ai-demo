@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import hashlib
+import csv
 import json
 import math
 import os
+import shutil
 import tempfile
 from datetime import date
 from decimal import Decimal, InvalidOperation
@@ -56,45 +58,49 @@ def cast(value, column: Column):
 def normalize(recipe: Recipe, raw: bytes) -> list[tuple]:
     rows = []
     for record in records(recipe, raw):
-        for check in recipe.source.record_checks:
-            if at(record, check.path) != check.equals:
-                raise ValueError("Source record failed a configured identity assertion")
-        if any(at(record, path) is None or str(at(record, path)) in recipe.missing_values for path in recipe.skip_missing):
-            continue
-        normalized = {}
-        for column in recipe.columns:
-            paths = [[column.name]] if recipe.source.adapter == "sec_xbrl" else column.paths
-            found = False
-            for path in paths:
-                try:
-                    value = at(record, path)
-                except ValueError:
-                    continue
-                found = True
-                break
-            if not found:
-                if not column.nullable:
-                    raise ValueError(f"Required source field for {column.name} is missing")
-                value = None
-            if value is not None and str(value) in recipe.missing_values:
-                value = None
-            normalized[column.name] = cast(value, column)
-        keep = True
-        for rule in recipe.filters:
-            value = at(normalized, rule.path)
-            if isinstance(value, date):
-                lower, upper = date.fromisoformat(str(rule.minimum)), date.fromisoformat(str(rule.maximum))
-            elif isinstance(value, (int, float)):
-                lower, upper = float(rule.minimum), float(rule.maximum)
-            else:
-                lower, upper = rule.minimum, rule.maximum
-            if value is None or not lower <= value <= upper:
-                keep = False
-        if keep:
-            rows.append(tuple(normalized[col.name] for col in recipe.columns))
+        row = normalize_record(recipe, record)
+        if row is not None:
+            rows.append(row)
     validate(recipe, rows)
     indices = [next(i for i, col in enumerate(recipe.columns) if col.name == name) for name in recipe.unique_key]
     return sorted(rows, key=lambda row: tuple(row[i] for i in indices))
+
+
+def normalize_record(recipe: Recipe, record: dict) -> tuple | None:
+    for check in recipe.source.record_checks:
+        if at(record, check.path) != check.equals:
+            raise ValueError("Source record failed a configured identity assertion")
+    if any(at(record, path) is None or str(at(record, path)) in recipe.missing_values for path in recipe.skip_missing):
+        return None
+    normalized = {}
+    for column in recipe.columns:
+        paths = [[column.name]] if recipe.source.adapter == "sec_xbrl" else column.paths
+        found = False
+        for path in paths:
+            try:
+                value = at(record, path)
+            except ValueError:
+                continue
+            found = True
+            break
+        if not found:
+            if not column.nullable:
+                raise ValueError(f"Required source field for {column.name} is missing")
+            value = None
+        if value is not None and str(value) in recipe.missing_values:
+            value = None
+        normalized[column.name] = cast(value, column)
+    for rule in recipe.filters:
+        value = at(normalized, rule.path)
+        if isinstance(value, date):
+            lower, upper = date.fromisoformat(str(rule.minimum)), date.fromisoformat(str(rule.maximum))
+        elif isinstance(value, (int, float)):
+            lower, upper = float(rule.minimum), float(rule.maximum)
+        else:
+            lower, upper = rule.minimum, rule.maximum
+        if value is None or not lower <= value <= upper:
+            return None
+    return tuple(normalized[col.name] for col in recipe.columns)
 
 
 def validate(recipe: Recipe, rows: list[tuple]) -> None:
@@ -137,7 +143,65 @@ def confined(root: Path, relative: str) -> Path:
     return path
 
 
-def build_snapshot(recipe: Recipe, raw: bytes, *, retrieved_at: str,
+def file_hash(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def insert_csv_path(connection: duckdb.DuckDBPyConnection, recipe: Recipe, path: Path) -> int:
+    from ..external_files import EXTRACT_LIMIT
+    if path.stat().st_size > EXTRACT_LIMIT:
+        raise ValueError("CSV exceeds the bounded extraction limit")
+    if recipe.coverage.frequency != "bounds":
+        raise ValueError("Streaming CSV registration requires bounds coverage")
+    if recipe.filters or recipe.skip_missing or recipe.source.record_checks or any(c.scale != 1 for c in recipe.columns):
+        raise ValueError("This reviewed CSV needs unsupported streaming transformations")
+    with path.open("r", encoding=recipe.source.encoding, newline="") as handle:
+        fields = next(csv.reader(handle, delimiter=recipe.source.delimiter), [])
+        if len(fields) != len(set(fields)):
+            raise ValueError("CSV contains duplicate headers")
+        for column in recipe.columns:
+            if not any(len(p) == 1 and p[0] in fields for p in column.paths):
+                raise ValueError("CSV does not contain the configured columns")
+    expressions = []
+    for column in recipe.columns:
+        source = next((p[0] for p in column.paths if len(p) == 1 and p[0] in fields), None)
+        if source is None:
+            if not column.nullable:
+                raise ValueError("CSV does not contain the configured columns")
+            expressions.append(f'NULL AS "{column.name}"')
+            continue
+        source_sql = '"' + source.replace('"', '""') + '"'
+        missing = ", ".join("'" + value.replace("'", "''") + "'" for value in recipe.missing_values)
+        value_sql = f"CASE WHEN {source_sql} IN ({missing}) THEN NULL ELSE {source_sql} END" if missing else source_sql
+        expressions.append(f'CAST({value_sql} AS {column.type}) AS "{column.name}"')
+    projection = ", ".join(expressions)
+    connection.execute(f"INSERT INTO observations SELECT {projection} FROM read_csv(?, all_varchar=true)", [str(path)])
+    count = connection.execute("SELECT COUNT(*) FROM observations").fetchone()[0]
+    if not count or recipe.expected_rows is not None and count != recipe.expected_rows:
+        raise ValueError("CSV row count does not match the reviewed snapshot")
+    if count > 1_000_000:
+        raise ValueError("CSV exceeds one million observations")
+    for column in recipe.columns:
+        if column.type == "DOUBLE" and connection.execute(f'SELECT 1 FROM observations WHERE NOT isfinite("{column.name}") LIMIT 1').fetchone():
+            raise ValueError("Nonfinite numeric observations are not allowed")
+    keys = ", ".join('"' + name + '"' for name in recipe.unique_key)
+    if connection.execute(f"SELECT 1 FROM observations GROUP BY {keys} HAVING COUNT(*) > 1 LIMIT 1").fetchone():
+        raise ValueError("Duplicate primary-key observations")
+    if connection.execute("SELECT 1 FROM observations WHERE " + " OR ".join(f'"{name}" IS NULL' for name in recipe.unique_key) + " LIMIT 1").fetchone():
+        raise ValueError("Missing primary-key observations")
+    coverage = recipe.coverage
+    column = next(c for c in recipe.columns if c.name == coverage.column)
+    start, end = connection.execute(f'SELECT MIN("{coverage.column}"), MAX("{coverage.column}") FROM observations').fetchone()
+    if start is None or start != cast(coverage.start, column.model_copy(update={"scale": 1})) or end != cast(coverage.end, column.model_copy(update={"scale": 1})):
+        raise ValueError("Snapshot does not match configured coverage bounds")
+    return count
+
+
+def build_snapshot(recipe: Recipe, raw: bytes | Path, *, retrieved_at: str,
                    publish: bool = False, root: Path = ROOT) -> dict:
     lock_directory = confined(root, ".cache/ingestion")
     lock_directory.mkdir(parents=True, exist_ok=True)
@@ -146,11 +210,14 @@ def build_snapshot(recipe: Recipe, raw: bytes, *, retrieved_at: str,
         return _build_snapshot(recipe, raw, retrieved_at=retrieved_at, publish=publish, root=root)
 
 
-def _build_snapshot(recipe: Recipe, raw: bytes, *, retrieved_at: str,
+def _build_snapshot(recipe: Recipe, raw: bytes | Path, *, retrieved_at: str,
                    publish: bool = False, root: Path = ROOT) -> dict:
     retrieved_at = date.fromisoformat(retrieved_at).isoformat()
-    rows = normalize(recipe, raw)
-    source_hash = hashlib.sha256(raw).hexdigest()
+    path_source = isinstance(raw, Path)
+    if path_source and recipe.source.adapter not in ("csv", "csv_zip"):
+        raise ValueError("Path-based ingestion supports CSV sources only")
+    rows = None if path_source else normalize(recipe, raw)
+    source_hash = file_hash(raw) if path_source else hashlib.sha256(raw).hexdigest()
     recipe_bytes = json.dumps(recipe.model_dump(mode="json"), sort_keys=True, separators=(",", ":")).encode()
     recipe_hash = hashlib.sha256(recipe_bytes).hexdigest()
     fingerprint = hashlib.sha256(f"{PIPELINE_VERSION}:{source_hash}:{recipe_hash}:{retrieved_at}".encode()).hexdigest()
@@ -166,15 +233,20 @@ def _build_snapshot(recipe: Recipe, raw: bytes, *, retrieved_at: str,
         placeholders = ", ".join("?" for _ in recipe.columns)
         with duckdb.connect() as connection:
             connection.execute(f"CREATE TABLE observations ({schema})")
-            connection.executemany(f"INSERT INTO observations VALUES ({placeholders})", rows)
-            connection.execute("COPY observations TO ? (FORMAT PARQUET)", [str(parquet)])
+            if path_source:
+                row_count = insert_csv_path(connection, recipe, raw)
+            else:
+                connection.executemany(f"INSERT INTO observations VALUES ({placeholders})", rows)
+                row_count = len(rows)
+            order = ", ".join('"' + name + '"' for name in recipe.unique_key)
+            connection.execute(f"COPY (SELECT * FROM observations ORDER BY {order}) TO ? (FORMAT PARQUET)", [str(parquet)])
         metadata = {
             "pipeline_version": PIPELINE_VERSION, "adapter": recipe.source.adapter,
             "source_url": recipe.source.url or recipe.source_url,
             "retrieved_at": retrieved_at, "source_sha256": source_hash,
             "recipe_sha256": recipe_hash,
-            "snapshot_sha256": hashlib.sha256(parquet.read_bytes()).hexdigest(),
-            "start": recipe.coverage.start, "end": recipe.coverage.end, "rows": len(rows),
+            "snapshot_sha256": file_hash(parquet),
+            "start": recipe.coverage.start, "end": recipe.coverage.end, "rows": row_count,
             "raw_file": raw_name,
         }
         if recipe.source.adapter == "sec_xbrl":
@@ -184,13 +256,16 @@ def _build_snapshot(recipe: Recipe, raw: bytes, *, retrieved_at: str,
                              "edgartools_version": payload.get("edgartools_version"),
                              "unit": recipe.source.currency, "period_basis": recipe.source.period_basis,
                              "metric_concepts": recipe.source.metrics})
-        (staging / raw_name).write_bytes(raw)
+        if path_source:
+            shutil.copyfile(raw, staging / raw_name)
+        else:
+            (staging / raw_name).write_bytes(raw)
         (staging / "recipe.json").write_bytes(recipe_bytes)
         (staging / "snapshot.json").write_text(json.dumps(metadata, indent=2) + "\n")
         if destination.exists():
             # Immutable means never rewrite even an identical snapshot.
             stored = json.loads((destination / "snapshot.json").read_text())
-            if stored != metadata or hashlib.sha256((destination / parquet_name).read_bytes()).hexdigest() != metadata["snapshot_sha256"] or hashlib.sha256((destination / raw_name).read_bytes()).hexdigest() != source_hash:
+            if stored != metadata or file_hash(destination / parquet_name) != metadata["snapshot_sha256"] or file_hash(destination / raw_name) != source_hash:
                 raise ValueError("Existing immutable snapshot differs or is corrupt")
         else:
             os.rename(staging, destination)

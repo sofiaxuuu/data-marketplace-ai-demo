@@ -11,3 +11,4 @@ __pycache__/
 .cache/ingestion/
 singlestore_bundle.pem
 .local/
+data/daily_88101_2024.zip

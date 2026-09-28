@@ -37,8 +37,11 @@ def test_zip_with_one_csv_and_rejects_traversal(tmp_path, monkeypatch):
         files.acquire(str(uuid.uuid4()), "https://example.org/data.zip")
     monkeypatch.setattr(files, "fetch", lambda url, limit: archive("daily.csv"))
     monkeypatch.setattr(files, "EXTRACT_LIMIT", 10)
+    rejected_run = str(uuid.uuid4())
     with pytest.raises(files.ExternalFileError, match="oversized"):
-        files.acquire(str(uuid.uuid4()), "https://example.org/data.zip")
+        files.acquire(rejected_run, "https://example.org/data.zip")
+    assert not list((tmp_path / rejected_run).rglob("source.csv"))
+    assert not list((tmp_path / rejected_run).rglob("snapshot.parquet"))
 
 
 def test_landing_page_proposes_files_without_download(monkeypatch):
@@ -69,15 +72,21 @@ def test_external_recommendation_requires_grounded_candidate(monkeypatch):
         status_code = 200
         def raise_for_status(self): pass
         def json(self):
-            return {"status": "completed", "output": [{"type": "message", "content": [{"type": "output_text", "text": '{"outcome":"recommend","primary_index":4,"assessments":[{"candidate_index":4,"fit":"strong","reason":"Daily data","caveat":"Verify units","evidence_quote":"Daily PM2.5 for 2024"}],"unresolved":[]}'}]}]}
+            return {"status": "completed", "output": [{"type": "message", "content": [{"type": "output_text", "text": '{"outcome":"recommend","primary_index":4,"assessments":[{"candidate_index":4,"fit":"strong","reason":"Daily data","caveat":"Verify units"}],"unresolved":[]}'}]}]}
     class Client:
         def __init__(self, **kwargs): pass
         def __enter__(self): return self
         def __exit__(self, *args): pass
         def post(self, *args, **kwargs): return Response()
     monkeypatch.setattr(external_advice.httpx, "Client", Client)
-    with pytest.raises(external_advice.ExternalAdviceError, match="invalid evidence"):
+    with pytest.raises(external_advice.ExternalAdviceError, match="invalid structured evidence"):
         external_advice.recommend("Question", candidates)
+
+    def valid_json(self):
+        return {"status": "completed", "output": [{"type": "message", "content": [{"type": "output_text", "text": '{"outcome":"recommend","primary_index":0,"assessments":[{"candidate_index":0,"fit":"strong","reason":"Daily data","caveat":"Verify units"}],"unresolved":[]}'}]}]}
+    monkeypatch.setattr(Response, "json", valid_json)
+    result, _, _ = external_advice.recommend("Question", candidates)
+    assert result["assessments"][0]["evidence_quote"] == candidates[0]["evidence"]
 
 
 def test_reviewed_promotion_uses_existing_snapshot_pipeline(tmp_path, monkeypatch):

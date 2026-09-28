@@ -1,6 +1,8 @@
 """Generic onboarding and publication tests; fixtures never enter the real catalog."""
 
 import json
+import zipfile
+import io
 from datetime import date
 
 import httpx
@@ -45,6 +47,40 @@ def test_another_provider_is_configuration_only(tmp_path):
     assert item["snapshot"]["rows"] == 2
     assert result["state"] == "registered"
     assert normalize(csv_recipe(), RAW) == [(2022, 10.0), (2023, 20.0)]
+
+
+def test_reviewed_external_csv_path_uses_same_validations(tmp_path):
+    config = csv_config()
+    config["id"] = "external_testpath"
+    config["coverage"]["frequency"] = "bounds"
+    recipe = Recipe.model_validate(config)
+    source = tmp_path / "source.csv"
+    source.write_bytes(RAW)
+    direct = build_snapshot(recipe, RAW, retrieved_at="2026-09-25", root=tmp_path / "bytes")
+    streamed = build_snapshot(recipe, source, retrieved_at="2026-09-25", root=tmp_path / "path")
+    assert streamed["metadata"]["source_sha256"] == direct["metadata"]["source_sha256"]
+    assert streamed["metadata"]["rows"] == direct["metadata"]["rows"] == 2
+    with pytest.raises(ValueError, match="Duplicate"):
+        source.write_bytes(b"year,amount\n2022,10\n2022,20\n")
+        build_snapshot(recipe, source, retrieved_at="2026-09-25", root=tmp_path / "invalid")
+    with pytest.raises(ValueError, match="configured columns"):
+        source.write_bytes(b"year,wrong\n2022,10\n2023,20\n")
+        build_snapshot(recipe, source, retrieved_at="2026-09-25", root=tmp_path / "missing")
+
+
+def test_reviewed_external_refresh_acquires_to_file(tmp_path, monkeypatch):
+    config = csv_config()
+    config["id"] = "external_testrefresh"
+    config["source"]["adapter"] = "csv_zip"
+    recipe = Recipe.model_validate(config)
+    archive = io.BytesIO()
+    with zipfile.ZipFile(archive, "w") as output:
+        output.writestr("source.csv", RAW)
+    from datascout import external_files
+    monkeypatch.setattr(external_files, "fetch", lambda url, limit: archive.getvalue())
+    destination = tmp_path / "source.csv"
+    adapters.acquire_file(recipe, destination)
+    assert destination.read_bytes() == RAW
 
 
 def test_all_initial_datasets_are_recipes():

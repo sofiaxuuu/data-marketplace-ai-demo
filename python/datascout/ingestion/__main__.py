@@ -6,15 +6,16 @@ import argparse
 import hashlib
 import json
 import sys
+import tempfile
 from datetime import date
 from pathlib import Path
 
-from .adapters import acquire
+from .adapters import acquire, acquire_file
 from .models import ROOT, load_recipe
-from .pipeline import build_snapshot
+from .pipeline import build_snapshot, file_hash
 
 
-def input_date(path: Path, raw: bytes, provided: str | None, adapter: str) -> str:
+def input_date(path: Path, raw: bytes | Path, provided: str | None, adapter: str) -> str:
     if provided:
         return date.fromisoformat(provided).isoformat()
     if adapter == "sec_xbrl":
@@ -22,7 +23,7 @@ def input_date(path: Path, raw: bytes, provided: str | None, adapter: str) -> st
     sidecar = path.parent / "snapshot.json"
     if sidecar.is_file():
         metadata = json.loads(sidecar.read_text())
-        if metadata.get("source_sha256") == hashlib.sha256(raw).hexdigest():
+        if metadata.get("source_sha256") == (file_hash(raw) if isinstance(raw, Path) else hashlib.sha256(raw).hexdigest()):
             return date.fromisoformat(metadata["retrieved_at"]).isoformat()
     raise ValueError("Offline input requires --retrieved-at or a matching snapshot sidecar")
 
@@ -53,15 +54,20 @@ def main(argv: list[str] | None = None) -> int:
             print(json.dumps({"state": "configured", "recipe": recipe.model_dump(mode="json"),
                               "requires_explicit_download": True, "execution_adapter": "not_implied_by_registration"}, indent=2))
             return 0
-        if args.download:
-            if args.retrieved_at:
-                parser.error("--retrieved-at is only for offline replay")
-            raw = acquire(recipe)
-            retrieved_at = date.today().isoformat()
-        else:
-            raw = args.input.read_bytes()
-            retrieved_at = input_date(args.input, raw, args.retrieved_at, recipe.source.adapter)
-        result = build_snapshot(recipe, raw, retrieved_at=retrieved_at, publish=args.publish)
+        with tempfile.TemporaryDirectory(prefix="datascout-ingestion-") as directory:
+            if args.download:
+                if args.retrieved_at:
+                    parser.error("--retrieved-at is only for offline replay")
+                if recipe.id.startswith("external_") and recipe.source.adapter in ("csv", "csv_zip"):
+                    raw = Path(directory) / "source.csv"
+                    acquire_file(recipe, raw)
+                else:
+                    raw = acquire(recipe)
+                retrieved_at = date.today().isoformat()
+            else:
+                raw = args.input if recipe.id.startswith("external_") and recipe.source.adapter in ("csv", "csv_zip") else args.input.read_bytes()
+                retrieved_at = input_date(args.input, raw, args.retrieved_at, recipe.source.adapter)
+            result = build_snapshot(recipe, raw, retrieved_at=retrieved_at, publish=args.publish)
         if args.index:
             try:
                 from ..retrieval import ingest

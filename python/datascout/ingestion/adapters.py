@@ -11,6 +11,7 @@ import socket
 from datetime import date
 from decimal import Decimal, InvalidOperation
 from importlib.metadata import version
+from pathlib import Path
 from urllib.parse import urljoin, urlsplit
 
 import certifi
@@ -71,6 +72,18 @@ def http_get(client: httpx.Client, source: Source, params: dict, headers: dict) 
                 chunks.append(chunk)
             return b"".join(chunks)
     raise ValueError("Source has too many redirects")
+
+
+def acquire_file(recipe: Recipe, destination: Path) -> None:
+    """Acquire an approved external CSV source into a bounded local file."""
+    if not recipe.id.startswith("external_") or recipe.source.adapter not in ("csv", "csv_zip"):
+        raise ValueError("File acquisition is limited to reviewed external CSV recipes")
+    from ..external_files import DOWNLOAD_LIMIT, extract_csv_to, fetch
+    raw = fetch(recipe.source.url, DOWNLOAD_LIMIT)
+    if recipe.source.adapter == "csv_zip":
+        extract_csv_to(raw, destination)
+    else:
+        destination.write_bytes(raw)
 
 
 def acquire(recipe: Recipe, client: httpx.Client | None = None) -> bytes:

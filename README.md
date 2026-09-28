@@ -166,6 +166,19 @@ npm run typecheck
 npm run build
 ```
 
+To run the opt-in large-file integration fixture without network calls or
+changing the project catalog, place its archive at
+`data/daily_88101_2024.zip` and run:
+
+```bash
+DATASCOUT_TEST_LOCAL_EPA=1 PYTHONPATH=python .venv/bin/python -m pytest tests/test_external_epa_local.py -q
+```
+
+This fixture test performs real inspection and registration in a temporary
+catalog. Ordinary tests skip it; keep downloaded archives out of Git. The
+general processing lifecycle is documented in
+[Approved external CSV/ZIP processing](docs/external-file-processing.md).
+
 ## Current scope
 
 | Family | Products | Active sample coverage |
@@ -328,12 +341,12 @@ granularity; otherwise it reports insufficient evidence. This is source-finding
 advice, not a numerical answer or independent verification of linked pages.
 
 After reviewing a candidate, **Analyze this source** inspects only that selected
-page for CSV/ZIP links. The user must approve an exact file URL before a bounded
-download. Public HTTPS is required; DNS addresses are checked and pinned for
-the request, redirects are not followed, and CSV/ZIP size and extraction limits
-apply. ZIP archives must contain exactly one CSV. The inspected file becomes a
-temporary single-table Parquet snapshot under `.local/external-runs/{run ID}`.
-Its schema, sample rows, observed units and date bounds are shown for review.
+page for CSV/ZIP links. The user approves an exact file URL before acquisition.
+Bounded extraction and DuckDB validation create a temporary, single-table
+Parquet snapshot under `.local/external-runs/{run ID}`. Its schema, sample rows,
+observed units and date bounds are shown for review. See
+[the processing guide](docs/external-file-processing.md) for the safety limits,
+staging layout, cleanup, and path-based registration flow.
 Confirming the temporary source generates SQL; approving that saved SQL executes
 it under the same local DuckDB restrictions as catalog products. The answer is
 derived from executed rows, not search excerpts. Ambiguous geography, measures
@@ -342,8 +355,8 @@ not silently made queryable.
 
 After a successful one-off result, **Add to catalog for repeatable use** opens a
 separate review of the product name, reporting basis, geography, measure/unit,
-coverage column and unique observation key. Explicit approval replays the saved
-CSV bytes through the existing ingestion pipeline, publishes a versioned snapshot
+coverage column and unique observation key. Explicit approval reads the saved
+CSV file through the existing ingestion pipeline, publishes a versioned snapshot
 and manifest, and saves a CSV/ZIP refresh recipe. It does not re-download or index
 metadata in SingleStore. Future refresh is a separate explicit command. API,
 PDF and HTML-chart ingestion are not supported by this milestone.

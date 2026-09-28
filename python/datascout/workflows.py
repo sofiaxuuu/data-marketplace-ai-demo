@@ -47,6 +47,7 @@ class State(TypedDict, total=False):
     external_advice: dict | None
     external_links: list[dict] | None
     external_index: int | None
+    approved_external_url: str | None
     external_file: dict | None
     registration: dict | None
     rejected: list[str]
@@ -162,9 +163,11 @@ def allowed(state: State) -> list[str]:
         actions += ["confirm_source"]
     if stage == "sql_review":
         actions += ["approve_sql"]
-    if stage == "external_review" and state.get("external"):
+    if (stage in ("external_review", "external_file_review") or
+            (stage == "error" and state.get("retry_node") in ("external_recommender", "external_page", "external_acquire"))) and state.get("external"):
         actions += ["select_external"]
-    if stage == "external_file_review" and state.get("external_links"):
+    if (stage == "external_file_review" or
+            (stage == "error" and state.get("retry_node") == "external_acquire")) and state.get("external_links"):
         actions += ["approve_external_file"]
     if stage == "external_snapshot_review":
         actions += ["confirm_external"]
@@ -177,7 +180,7 @@ def allowed(state: State) -> list[str]:
         actions += ["register_product"]
     if stage == "sql_abstain":
         actions += ["recover_local"]
-    if stage == "error" and state.get("retry_node"):
+    if stage == "error" and state.get("retry_node") and (state.get("retry_node") != "external_acquire" or state.get("approved_external_url")):
         actions += ["retry"]
     if stage in ("recommendations", "source_review", "sql_abstain", "external_review", "no_local_fit"):
         actions += ["none_fit"]
@@ -329,7 +332,7 @@ def external_page_node(state: State):
 
 def external_acquire_node(state: State):
     def call():
-        meta = acquire(state["run_id"], state["command"]["url"])
+        meta = acquire(state["run_id"], state["approved_external_url"])
         item = external_item({**state, "external_file": meta})
         return {"external_file": meta, "selected": public_product(item), "selected_fingerprint": sql_runs.fingerprint(item),
                 "stage": "external_snapshot_review"}, f"{meta['rows']} rows validated", {}
@@ -366,7 +369,7 @@ def dispatch(state: State):
     action = state["command"]
     kind = action["type"]
     cleared = {"plan": None, "result": None, "external": None, "external_advice": None,
-               "external_links": None, "external_index": None, "external_file": None, "registration": None,
+               "external_links": None, "external_index": None, "approved_external_url": None, "external_file": None, "registration": None,
                "confirmed": False, "approved": False, "error": None, "retry_node": None}
     if kind == "select_source":
         p = product(action["product_id"])
@@ -387,11 +390,13 @@ def dispatch(state: State):
     if kind == "discover_external":
         return Command(update={**cleared, "selected": None, "selected_fingerprint": None}, goto="discovery")
     if kind == "select_external":
-        return Command(update={"external_index": action["candidate_index"], "external_links": None,
+        return Command(update={"external_index": action["candidate_index"], "external_links": None, "approved_external_url": None,
                                "external_file": None, "registration": None, "selected": None, "selected_fingerprint": None,
-                               "plan": None, "result": None, "confirmed": False, "approved": False}, goto="external_page")
+                               "plan": None, "result": None, "confirmed": False, "approved": False,
+                               "error": None, "retry_node": None}, goto="external_page")
     if kind == "approve_external_file":
-        return Command(update={"plan": None, "result": None, "confirmed": False, "approved": False}, goto="external_acquire")
+        return Command(update={"approved_external_url": action["url"], "plan": None, "result": None,
+                               "confirmed": False, "approved": False, "error": None, "retry_node": None}, goto="external_acquire")
     if kind == "confirm_external":
         return Command(update={"confirmed": True, "plan": None, "result": None}, goto="planner")
     if kind == "propose_registration":
@@ -616,7 +621,8 @@ def create(request: Create, background_tasks: BackgroundTasks):
                                      [run_id, time.time(), "catalog", key, digest])
                     graph.update_state(config(run_id), {"run_id": run_id, "question": request.question, "selected": selected,
                         "advice": None, "plan": None, "result": None, "external": None, "external_advice": None,
-                        "external_links": None, "external_index": None, "external_file": None, "registration": None, "rejected": [],
+                        "external_links": None, "external_index": None, "approved_external_url": None,
+                        "external_file": None, "registration": None, "rejected": [],
                         "confirmed": False, "approved": False, "trace": [], "stage": "starting"}, as_node=START)
                     background_tasks.add_task(start_background, run_id)
                     return public_state(conn, graph, run_id)

@@ -176,6 +176,35 @@ def test_discovery_requires_consent_and_never_becomes_sql_product(client):
     assert action(client, run, "confirm_source", confirmed=True).status_code == 409
 
 
+def test_external_recommendation_failure_keeps_candidates_reviewable(client, monkeypatch):
+    from datascout.external_advice import ExternalAdviceError
+    monkeypatch.setattr(w, "recommend_external", lambda *args: (_ for _ in ()).throw(ExternalAdviceError("advisor failed")))
+    monkeypatch.setattr(w, "inspect_page", lambda url, question: [{"url": "https://example.org/data.csv", "name": "data.csv"}])
+    run = advance(client, create(client), "none_fit")
+    run = advance(client, run, "discover_external", consent=True)
+    assert run["stage"] == "error" and len(run["external"]) == 1
+    assert "select_external" in run["allowed_actions"] and "retry" in run["allowed_actions"]
+    run = advance(client, run, "select_external", candidate_index=0)
+    assert run["stage"] == "external_file_review" and run["error"] is None
+
+
+def test_external_page_without_files_can_switch_candidate(client, monkeypatch):
+    monkeypatch.setattr(discovery.ExaProvider, "search", lambda self, q: [
+        discovery.Candidate(title=name, publisher="example.org", url=f"https://example.org/{name}",
+            evidence="Dataset documentation", relevance="Review suitability", provider="exa", discovered_at="2026-09-27T00:00:00Z")
+        for name in ("summary", "downloads")])
+    monkeypatch.setattr(w, "inspect_page", lambda url, question: [] if url.endswith("summary") else
+        [{"url": "https://example.org/daily_2024.zip", "name": "daily_2024.zip"}])
+    run = advance(client, create(client), "none_fit")
+    run = advance(client, run, "discover_external", consent=True)
+    run = advance(client, run, "select_external", candidate_index=0)
+    assert run["stage"] == "external_file_review" and run["external_links"] == []
+    assert "select_external" in run["allowed_actions"]
+    run = advance(client, run, "select_external", candidate_index=1)
+    assert run["stage"] == "external_file_review"
+    assert run["external_links"] == [{"url": "https://example.org/daily_2024.zip", "name": "daily_2024.zip"}]
+
+
 def test_external_csv_one_off_requires_exact_file_and_sql_approval(client, monkeypatch):
     from datascout import external_files
     csv = b"Date,Sample Measurement,Units of Measure\n2024-01-01,7.2,ug/m3\n"
@@ -206,6 +235,30 @@ def test_external_csv_one_off_requires_exact_file_and_sql_approval(client, monke
             name="Test data", description="Daily monitor data for this test", geography="Seattle", measure="PM2.5 concentration",
             measure_column="sample_measurement", unit="ug/m3", coverage_column="date", unique_key=["date"])
         assert run["stage"] == "registered" and run["registration"]["product_id"] == "external_test"
+    finally:
+        external_files.remove(run["id"])
+
+
+def test_failed_external_download_retries_only_the_approved_url(client, monkeypatch):
+    from datascout import external_files
+    monkeypatch.setattr(w, "inspect_page", lambda url, question: [{"url": "https://example.org/data.csv", "name": "data.csv"}])
+    monkeypatch.setattr(external_files, "fetch", lambda url, limit: b"Date,Value\n2024-01-01,7.2\n")
+    real_acquire, attempted = w.acquire, []
+    def acquire(run_id, url):
+        attempted.append(url)
+        if len(attempted) == 1:
+            raise external_files.ExternalFileError("Temporary download failure")
+        return real_acquire(run_id, url)
+    monkeypatch.setattr(w, "acquire", acquire)
+    run = advance(client, create(client), "none_fit")
+    run = advance(client, run, "discover_external", consent=True)
+    run = advance(client, run, "select_external", candidate_index=0)
+    run = advance(client, run, "approve_external_file", approved=True, url="https://example.org/data.csv")
+    assert run["stage"] == "error" and "retry" in run["allowed_actions"]
+    try:
+        run = advance(client, run, "retry")
+        assert run["stage"] == "external_snapshot_review"
+        assert attempted == ["https://example.org/data.csv"] * 2
     finally:
         external_files.remove(run["id"])
 

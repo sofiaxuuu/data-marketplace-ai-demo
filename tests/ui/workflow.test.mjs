@@ -72,7 +72,7 @@ function mockFetch(overrides = {}, initialRun = null) {
         assessments: [{ candidate_index: 0, fit: "strong", reason: "Daily observations", caveat: "Check units", evidence_quote: "Dataset documentation" }], unresolved: ["Access terms"] },
         stage: "external_review", allowed_actions: ["select_source", "discover_external", "select_external"] });
       if (kind === "select_external") Object.assign(next, { external_index: 0, external_links: [{ url: "https://example.org/data.csv", name: "data.csv" }],
-        stage: "external_file_review", allowed_actions: ["select_source", "approve_external_file"] });
+        stage: "external_file_review", allowed_actions: ["select_source", "select_external", "approve_external_file"] });
       if (kind === "recover_local") Object.assign(next, { selected: null, plan: null, confirmed: false, stage: "recommendations", advice, allowed_actions: ["select_source", "none_fit"] });
       serverRun = next; return json(next);
     }
@@ -224,6 +224,18 @@ test("external file requires exact user approval before acquisition", async () =
   await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Approve and download this file" })); });
   assert.deepEqual(calls.find(c => c.body?.action?.type === "approve_external_file").body.action,
     { type: "approve_external_file", approved: true, url: "https://example.org/data.csv" });
+});
+test("a landing page without files keeps other external candidates selectable", async () => {
+  const restored = state({ stage: "external_file_review", external: [external, { ...external, title: "EPA AirData", url: "https://example.org/downloads" }],
+    external_index: 0, external_links: [], allowed_actions: ["select_source", "select_external"] });
+  mockFetch({}, restored); window.sessionStorage.setItem("datascout.active-workflow", restored.id);
+  render(React.createElement(CandidateInspector, { products }));
+  await screen.findByText(/No public CSV\/ZIP links were found/);
+  const buttons = screen.getAllByRole("button", { name: "Analyze this source" });
+  assert.equal(buttons.length, 2);
+  assert.equal(buttons[1].disabled, false);
+  fireEvent.click(buttons[1]);
+  await waitFor(() => assert.equal(calls.filter(c => c.body?.action?.type === "select_external").length, 1));
 });
 test("late discovery cannot restore candidates after switching to local source", async () => {
   const pending = deferred();

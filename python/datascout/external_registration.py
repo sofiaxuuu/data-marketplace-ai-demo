@@ -1,7 +1,6 @@
 """Human-reviewed promotion of a successful one-off CSV snapshot."""
 from __future__ import annotations
 
-import hashlib
 import os
 import tempfile
 from pathlib import Path
@@ -10,7 +9,7 @@ from urllib.parse import urlsplit
 import yaml
 
 from .catalog import ROOT, catalog
-from .external_files import BASE, ExternalFileError
+from .external_files import BASE, ExternalFileError, file_sha256
 from .ingestion.models import Recipe
 from .ingestion.pipeline import build_snapshot
 
@@ -51,8 +50,7 @@ def register(run_id: str, meta: dict, review: dict) -> dict:
     raw_path = BASE / run_id / "source.csv"
     if not raw_path.is_file():
         raise ExternalFileError("Temporary source bytes expired.")
-    raw = raw_path.read_bytes()
-    if hashlib.sha256(raw).hexdigest() != meta["raw_sha256"]:
+    if file_sha256(raw_path) != meta["raw_sha256"]:
         raise ExternalFileError("Temporary source bytes changed.")
     types = {"FLOAT": "DOUBLE", "DECIMAL": "DOUBLE"}
     columns = []
@@ -80,7 +78,7 @@ def register(run_id: str, meta: dict, review: dict) -> dict:
             yaml.safe_dump(recipe.model_dump(mode="json", exclude_none=True), handle, sort_keys=False)
         os.replace(staged, target)
         try:
-            result = build_snapshot(recipe, raw, retrieved_at=meta["retrieved_at"][:10], publish=True, root=ROOT)
+            result = build_snapshot(recipe, raw_path, retrieved_at=meta["retrieved_at"][:10], publish=True, root=ROOT)
         except Exception:
             target.unlink(missing_ok=True)
             raise
